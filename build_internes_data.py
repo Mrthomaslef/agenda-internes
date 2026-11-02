@@ -541,6 +541,15 @@ def rebuild_day_lists(day_obj: dict):
     by_interne = day_obj["byInterne"]
     closed_am = day_obj.get("closedAm", [])
     closed_pm = day_obj.get("closedPm", [])
+    am_counts: dict[str, int] = {}
+    pm_counts: dict[str, int] = {}
+    for st in by_interne.values():
+        p_am = st.get("am", "")
+        p_pm = st.get("pm", "")
+        if p_am not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
+            am_counts[p_am] = am_counts.get(p_am, 0) + 1
+        if p_pm not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
+            pm_counts[p_pm] = pm_counts.get(p_pm, 0) + 1
     am_list = []
     pm_list = []
     for i_obj in INTERNES_LIST:
@@ -551,7 +560,7 @@ def rebuild_day_lists(day_obj: dict):
             "interneId": iid,
             "interne": i_obj["shortName"],
             "isSocle": bool(i_obj.get("isSocle")),
-            "binome": st["am"] in ("TDM SAU", "TDM OLLIER DIAG") and bool(i_obj.get("isSocle")),
+            "binome": am_counts.get(st["am"], 0) > 1 and bool(i_obj.get("isSocle")),
             "note": st.get("noteAm", ""),
         })
         pm_list.append({
@@ -559,7 +568,7 @@ def rebuild_day_lists(day_obj: dict):
             "interneId": iid,
             "interne": i_obj["shortName"],
             "isSocle": bool(i_obj.get("isSocle")),
-            "binome": st["pm"] in ("TDM SAU", "TDM OLLIER DIAG") and bool(i_obj.get("isSocle")),
+            "binome": pm_counts.get(st["pm"], 0) > 1 and bool(i_obj.get("isSocle")),
             "note": st.get("notePm", ""),
         })
     for c in closed_am:
@@ -602,8 +611,9 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
       * Autres créneaux non obligatoires si les demi-offs ne sont pas suffisants pour les internes.
     - Noé GRANDVAL ('noe', Phase Socle) :
       * 2 demi-offs / semaine
-      * En binôme avec Gabriel en TDM OLLIER DIAG (TDM3) le lundi 02/11 après-midi, puis doublé-posté aux Urgences ('TDM SAU')
-      * Posté avec Dr Macil HAMADOUCHE ('MH') le mardi matin les 3 premières semaines (03/11, 10/11, 17/11)
+      * Posté principalement au Scanner des Urgences ('TDM SAU') avec un ratio équilibré (~53 % de ses vacations actives)
+        et réparti le reste du temps en IRM (3T / 1,5T), Échographie, TDM Ollier Diag (TDM3) et Consultation du vendredi PM.
+      * Posté avec Dr Macil HAMADOUCHE ('MH') le mardi matin les 3 premières semaines (03/11, 10/11, 17/11).
     - Les vacations fermées ('FERMÉ' / 'MAINTENANCE') issues du planning officiel du service.
     """
     weekly_roles = build_balanced_trame()
@@ -700,6 +710,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             role_idx = (idx + week_idx) % 5
             post_am = day_roles["am"][role_idx]
             post_pm = day_roles["pm"][role_idx]
+            # Mardi matin : quand Noé est en IRM 1,5T (semaines impaires >= S4), R0 prend le TDM SAU
+            if wd == 1 and role_idx == 0 and week_idx >= 3 and (week_idx % 2 == 1):
+                post_am = "TDM SAU"
+            # Lundi après-midi (hors 02/11) : 1 semaine sur 2 (semaines paires >= S3), Noé est en TDM OLLIER DIAG et R0 prend le TDM SAU
+            if wd == 0 and role_idx == 0 and (week_idx % 2 == 0):
+                post_pm = "TDM SAU"
             note_pm = "Relecture avec Pr Drapé (systématique)" if (wd == 1 and post_pm == "LECTURE/CS") else ""
             by_interne[iid] = {
                 "am": post_am,
@@ -710,23 +726,29 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             }
 
         # 2. Attribution pour Noé (Phase Socle)
-        if wd == 1:  # Mardi matin : 3 premières semaines (week_idx 0, 1, 2 -> 03/11, 10/11, 17/11) avec Macil (MH) au TDM SAU
+        if wd == 1:  # Mardi matin : 3 premières semaines (week_idx 0, 1, 2 -> 03/11, 10/11, 17/11) posté avec Macil (MH) au TDM SAU
             if week_idx < 3:
                 noe_am = "TDM SAU"
-                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Binôme Socle Urgences"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
             else:
                 noe_am = day_roles["am"]["socle_after"] if (week_idx % 2 == 1) else "TDM SAU"
-                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Binôme Socle" if noe_am == "TDM SAU" else "Phase Socle"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences" if noe_am == "TDM SAU" else "Phase Socle"
+        elif wd == 3:
+            noe_am = day_roles["am"]["socle"]
+            noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences" if noe_am == "TDM SAU" else ""
         else:
             noe_am = day_roles["am"]["socle"]
-            noe_note_am = "Binôme Socle Urgences" if noe_am == "TDM SAU" else ""
+            noe_note_am = "Posté Socle Urgences" if noe_am == "TDM SAU" else ""
 
-        if wd == 4:  # Vendredi après-midi : en LECTURE/CS (Consultation Internes) ou TDM SAU
-            noe_pm = "LECTURE/CS" if (week_idx % 2 == 0 or week_idx in (1, 3)) else "TDM SAU"
-            noe_note_pm = "Consultation Internes (Vendredi PM)" if noe_pm == "LECTURE/CS" else "Binôme Socle Urgences"
+        if wd == 0:  # Lundi après-midi (hors 02/11) : alterne 1 sem/2 TDM SAU et 1 sem/2 TDM OLLIER DIAG
+            noe_pm = "TDM OLLIER DIAG" if (week_idx % 2 == 0) else "TDM SAU"
+            noe_note_pm = "Posté Socle Urgences" if noe_pm == "TDM SAU" else "Phase Socle (TDM3)"
+        elif wd == 4:  # Vendredi après-midi : en LECTURE/CS (Consultation Internes avec MH)
+            noe_pm = "LECTURE/CS"
+            noe_note_pm = "Consultation Internes (Vendredi PM)"
         else:
             noe_pm = day_roles["pm"]["socle"]
-            noe_note_pm = "Binôme Socle Urgences" if noe_pm == "TDM SAU" else ""
+            noe_note_pm = "Posté Socle Urgences" if noe_pm == "TDM SAU" else ""
         by_interne["noe"] = {
             "am": noe_am,
             "pm": noe_pm,
@@ -746,7 +768,27 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 by_interne[iid]["noteAm"] = abs_type
                 by_interne[iid]["notePm"] = abs_type
 
-        # 3bis. Garantie SYSTÉMATIQUE de la Relecture avec Pr Drapé le Mardi après-midi (wd == 1)
+        # 3bis. Garantie SYSTÉMATIQUE du TDM SAU (Matin & Après-midi) et de la Relecture avec Pr Drapé le Mardi après-midi (wd == 1)
+        for h_sau in ("am", "pm"):
+            has_sau = any(
+                by_interne[iid][h_sau] == "TDM SAU"
+                for iid in [x["id"] for x in INTERNES_LIST]
+            )
+            if not has_sau:
+                nk_sau = "noteAm" if h_sau == "am" else "notePm"
+                for donor_poste in ("ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM"):
+                    replaced_sau = False
+                    for iid in senior_interne_ids:
+                        if by_interne[iid][h_sau] == donor_poste:
+                            by_interne[iid][h_sau] = "TDM SAU"
+                            by_interne[iid][nk_sau] = "Remplacement TDM SAU (congés/RG)"
+                            if not by_interne[iid]["note"]:
+                                by_interne[iid]["note"] = by_interne[iid][nk_sau]
+                            replaced_sau = True
+                            break
+                    if replaced_sau:
+                        break
+
         if wd == 1:
             has_tue_cs = any(
                 by_interne[iid]["pm"] == "LECTURE/CS"
@@ -824,11 +866,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if noe_p in closed_map:
                     status_lbl = closed_map[noe_p]
                     by_interne["noe"][half] = "TDM SAU"
-                    by_interne["noe"][note_key] = f"{noe_p} {status_lbl.lower()} → Binôme TDM SAU"
+                    by_interne["noe"][note_key] = f"{noe_p} {status_lbl.lower()} → TDM SAU"
                     by_interne["noe"]["note"] = by_interne["noe"][note_key]
                 elif noe_p != "TDM SAU" and noe_p in used_by_seniors:
                     by_interne["noe"][half] = "TDM SAU"
-                    by_interne["noe"][note_key] = "Binôme Socle Urgences"
+                    by_interne["noe"][note_key] = "Posté Socle Urgences"
 
         # 4bis. Le Vendredi après-midi (wd == 4), s'assurer que le créneau LECTURE/CS est couvert par un interne
         # si cela ne prive aucun interne de ses 2 demi-offs hebdomadaires
@@ -963,8 +1005,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     break
 
                 # C) Si un senior a > 2 demi-offs (à cause de salles fermées) et que Noé (Socle) occupe un poste
-                #    individuel ouvert (IRM 1,5T, IRM 3T, ECHO, LECTURE/CS), Noé bascule en binôme TDM SAU et le senior
-                #    prend le poste individuel ouvert
+                #    individuel ouvert alors que le TDM SAU est libre, Noé bascule au TDM SAU
                 if iid in senior_interne_ids:
                     for d_iso1 in active_isos:
                         if d_iso1 == "2026-11-02":
@@ -974,14 +1015,18 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             st1 = schedule[d_iso1]["byInterne"][iid]
                             noe_st = schedule[d_iso1]["byInterne"]["noe"]
                             noe_p = noe_st[h1]
-                            if st1[h1] == "1/2 journée libre" and noe_p not in ("TDM SAU", "1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
+                            sau_taken = any(
+                                schedule[d_iso1]["byInterne"][k][h1] == "TDM SAU"
+                                for k in senior_interne_ids
+                            )
+                            if not sau_taken and st1[h1] == "1/2 journée libre" and noe_p not in ("TDM SAU", "1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
                                 st1[h1] = noe_p
                                 if datetime.date.fromisoformat(d_iso1).weekday() == 4 and h1 == "pm" and noe_p == "LECTURE/CS":
                                     st1[nk1] = "Consultation Internes (Vendredi PM)"
                                 else:
                                     st1[nk1] = ""
                                 noe_st[h1] = "TDM SAU"
-                                noe_st[nk1] = "Binôme Socle Urgences"
+                                noe_st[nk1] = "Posté Socle Urgences"
                                 fixed = True
                                 break
                         if fixed:
@@ -2170,7 +2215,7 @@ def build_full_dataset() -> dict:
                 "2 demi-offs (1/2 journée libre) par semaine par interne : les autres créneaux ne sont pas obligatoires si les demi-offs ne sont pas suffisants pour les internes.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
-                "Noé GRANDVAL (Phase Socle) est doublé-posté uniquement aux Urgences (TDM SAU) et posté avec Dr Macil HAMADOUCHE (MH) le mardi matin les 3 premières semaines.",
+                "Noé GRANDVAL (Phase Socle) est posté principalement sur le Scanner des Urgences (TDM SAU, ~50 % de ses vacations actives) tout en gardant un ratio équilibré sur les autres modalités (IRM, Écho, TDM Diag, Consultation) et avec Dr Macil HAMADOUCHE (MH) le mardi matin les 3 premières semaines.",
                 "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin).",
                 "Les vacations fermées (FERMÉ / MAINTENANCE) sont affichées directement sur le planning.",
             ],
