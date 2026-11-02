@@ -1432,6 +1432,81 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       text-decoration: line-through;
       white-space: nowrap;
     }
+
+    .chef-week-fix-bar {
+      background: linear-gradient(90deg, #EFF6FF 0%, #F0FDF4 100%);
+      border: 1.5px solid #93C5FD;
+      border-radius: 11px;
+      padding: 10px 13px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chef-week-fix-bar.is-locked {
+      background: linear-gradient(90deg, #DCFCE7 0%, #F0FDF4 100%);
+      border-color: #22C55E;
+    }
+
+    .week-status-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 7px 12px;
+      border-radius: 9px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      border: 1px solid #CBD5E1;
+      background: #F8FAFC;
+      color: #334155;
+    }
+
+    .week-status-strip.locked {
+      background: #F0FDF4;
+      border-color: #86EFAC;
+      color: #166534;
+    }
+
+    .btn-fix-week {
+      background: #16A34A;
+      border: 1px solid #15803D;
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 2px 5px rgba(22, 163, 74, 0.25);
+      transition: all 0.15s ease;
+    }
+    .btn-fix-week:hover {
+      background: #15803D;
+      border-color: #166534;
+      color: #FFFFFF;
+    }
+
+    .btn-unfix-week {
+      background: #FFFFFF;
+      border: 1px solid #F59E0B;
+      color: #B45309;
+      font-weight: 700;
+      font-size: 11.5px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+    }
+    .btn-unfix-week:hover {
+      background: #FEF3C7;
+    }
   </style>
 </head>
 <body>
@@ -1850,6 +1925,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const base = JSON.parse(JSON.stringify(INITIAL_DATA));
       base.absences = normalizeAbsencesList(base.absences);
       base.chefDecisions = base.chefDecisions || {};
+      base.lockedWeeks = base.lockedWeeks || {};
       try {
         const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (raw) {
@@ -1857,6 +1933,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (Array.isArray(saved.absences)) base.absences = normalizeAbsencesList(saved.absences);
           if (saved.customVacations) base.customVacations = saved.customVacations;
           if (saved.chefDecisions) base.chefDecisions = saved.chefDecisions;
+          if (saved.lockedWeeks) base.lockedWeeks = saved.lockedWeeks;
           if (Array.isArray(saved.presentations) && saved.presentations.length > 0) {
             base.presentations = mergePresentationsList(base.presentations, saved.presentations);
           }
@@ -1883,6 +1960,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           absences: STATE.absences,
           customVacations: STATE.customVacations || {},
           chefDecisions: STATE.chefDecisions || {},
+          lockedWeeks: STATE.lockedWeeks || {},
           presentations: STATE.presentations,
           meetings: STATE.meetings,
           phoneDirectory: STATE.phoneDirectory || []
@@ -1977,6 +2055,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         };
       });
       const custom = st.customVacations || {};
+      const lockedWeeks = st.lockedWeeks || {};
       const seniorIds = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
 
       // 1. Appliquer customVacations et absences jour par jour
@@ -2052,6 +2131,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         "IRM"
       ];
       Object.keys(weeksMap).forEach(monIso => {
+        if (lockedWeeks[monIso] && lockedWeeks[monIso].locked) return; // Semaine fixée par le Chef : ne pas réattribuer automatiquement
         const activeIsos = weeksMap[monIso].filter(dIso => st.schedule[dIso] && !st.schedule[dIso].holiday && st.schedule[dIso].byInterne);
         (st.internes || []).forEach(intObj => {
           const iid = intObj.id;
@@ -2100,8 +2180,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         });
       });
 
-      // 2bis. Garantie stricte : Noé (Phase Socle) est TOUJOURS en poste en binôme avec un autre interne
-      //       (si son binôme initial part en congés/RG ou change de poste, Noé bascule sur un poste occupé par un autre interne)
+      // 2bis. Garantie stricte : Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
       const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
       Object.keys(st.schedule).sort().forEach(iso => {
         const dayObj = st.schedule[iso];
@@ -2114,35 +2193,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const noeP = noeSlot[h];
           if (!noeP || nonActivePostes.includes(noeP)) return;
           const nk = h === "am" ? "noteAm" : "notePm";
-          const activeSeniorsByPoste = {};
-          seniorIds.forEach(sId => {
-            const sp = dayObj.byInterne[sId] ? dayObj.byInterne[sId][h] : null;
-            if (sp && !nonActivePostes.includes(sp)) {
-              if (!activeSeniorsByPoste[sp]) activeSeniorsByPoste[sp] = [];
-              activeSeniorsByPoste[sp].push(sId);
-            }
-          });
-          let finalNoeP = noeP;
-          if (!activeSeniorsByPoste[finalNoeP] && Object.keys(activeSeniorsByPoste).length > 0) {
-            const prefOrder = ["IRM 1,5T", "IRM 3T", "IRM"].includes(finalNoeP)
-              ? ["IRM 1,5T", "IRM 3T", "IRM", "ECHO", "TDM OLLIER DIAG", "TDM SAU", "LECTURE/CS", "GESTES (C)", "SCAN ACHARD", "ALLURA"]
-              : [finalNoeP, "TDM SAU", "ECHO", "TDM OLLIER DIAG", "IRM 1,5T", "IRM 3T", "IRM", "LECTURE/CS", "GESTES (C)", "SCAN ACHARD", "ALLURA"];
-            const chosen = prefOrder.find(p => activeSeniorsByPoste[p]) || Object.keys(activeSeniorsByPoste)[0];
-            noeSlot[h] = chosen;
-            finalNoeP = chosen;
-          }
-          const partners = (activeSeniorsByPoste[finalNoeP] || []).map(sId => {
-            const iObj = (st.internes || []).find(x => x.id === sId);
-            return iObj ? iObj.shortName : sId;
-          });
-          if (partners.length > 0 && !(iso === "2026-11-02" && h === "pm")) {
-            const pStr = partners.join(" & ");
-            if (h === "am" && (jsDay === 2 || jsDay === 4) && finalNoeP === "TDM SAU") {
-              noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • En binôme avec ${pStr}`;
-            } else if (finalNoeP === "TDM SAU") {
-              noeSlot[nk] = `Posté Socle Urgences • En binôme avec ${pStr}`;
-            } else {
-              noeSlot[nk] = `Phase Socle • En binôme avec ${pStr}`;
+          if (noeP === "TDM SAU") {
+            const sauPartners = seniorIds
+              .filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU")
+              .map(sId => {
+                const iObj = (st.internes || []).find(x => x.id === sId);
+                return iObj ? iObj.shortName : sId;
+              });
+            if (sauPartners.length > 0) {
+              const pStr = sauPartners.join(" & ");
+              if (h === "am" && (jsDay === 2 || jsDay === 4)) {
+                noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec ${pStr}`;
+              } else {
+                noeSlot[nk] = `Posté Socle Urgences • Binôme SAU avec ${pStr}`;
+              }
             }
           }
         });
@@ -3380,7 +3444,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="avatar-sm" style="background:#0284C7">6</div>
             <div>
               <div class="summary-title">Tous les internes & DJ (6)</div>
-              <div class="summary-sub">Oussama Docteur Junior (DJ) • Noé en Phase Socle (toujours en binôme avec un autre interne, ~50 % TDM SAU)</div>
+              <div class="summary-sub">Oussama Docteur Junior (DJ) • Noé en Phase Socle (systématiquement avec un co-interne au TDM SAU, ~50 % SAU)</div>
             </div>
           </div>
           <div class="summary-stats">
