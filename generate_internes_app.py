@@ -2730,16 +2730,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const p = String(poste || "").toUpperCase();
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "08h15 – 12h00";
       if (p.includes("IRM")) {
-        return periodKey === "am" ? "dès 07h45" : (periodKey === "pm" ? "13h30 – 18h30" : "dès 07h45");
+        return periodKey === "am" ? "dès 07h45" : (periodKey === "pm" ? "dès 13h00" : "dès 07h45");
       }
       if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) {
-        return periodKey === "am" ? "dès 09h00" : (periodKey === "pm" ? "13h30 – 18h00" : "dès 09h00");
+        return periodKey === "am" ? "dès 09h00" : (periodKey === "pm" ? "dès 14h00" : "dès 09h00");
       }
       if (p.includes("SAU") || p.includes("OLLIER 4")) {
         return periodKey === "am" ? "08h00 – 13h00" : (periodKey === "pm" ? "fin à 18h30" : "08h00 – 18h30");
       }
-      if (p.includes("CONSULT") || p.includes("LECTURE")) {
-        return periodKey === "pm" ? "13h30 – 18h00" : "";
+      if (p.includes("CONSULT") || p === "CS") {
+        return periodKey === "pm" ? "14h00 – 15h00" : "";
+      }
+      if (p.includes("LECTURE")) {
+        return periodKey === "pm" ? "14h00 – 16h00" : "";
       }
       return "";
     }
@@ -2752,8 +2755,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const p = String(poste || "").toUpperCase();
       let h = "";
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
-      else if (p.includes("IRM")) h = periodKey === "am" ? "7h45" : (periodKey === "pm" ? "13h30–18h30" : "");
-      else if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) h = periodKey === "am" ? "9h00" : "";
+      else if (p.includes("IRM")) h = periodKey === "am" ? "7h45" : (periodKey === "pm" ? "13h00" : "");
+      else if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) h = periodKey === "am" ? "9h00" : (periodKey === "pm" ? "14h00" : "");
+      else if (p.includes("CONSULT") || p === "CS") h = periodKey === "pm" ? "14h–15h" : "";
+      else if (p.includes("LECTURE")) h = periodKey === "pm" ? "14h–16h" : "";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "dès 8h00" : (periodKey === "pm" ? "fin 18h30" : "8h00–18h30");
       return h ? `${shortName} <span style="opacity:0.85; font-weight:600; font-size:10px;">(${h})</span>` : shortName;
     }
@@ -2785,12 +2790,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const p = String(poste || "").toUpperCase();
       let h = "";
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
-      else if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "13h30–18h30";
-      else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "13h30–18h00";
-      else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "13h30–18h00";
+      else if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "13h00";
+      else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "14h00";
+      else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "14h00";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "08h00–18h30" : "fin 18h30";
-      else if (p.includes("CONSULT")) h = periodKey === "pm" ? "13h30–18h00 • Mar & Ven PM" : "";
-      else if (p.includes("LECTURE")) h = periodKey === "pm" ? "13h30–18h00 • Relecture" : "";
+      else if (p.includes("CONSULT")) h = periodKey === "pm" ? "14h00–15h00 • Mar & Ven PM" : "";
+      else if (p.includes("LECTURE")) h = periodKey === "pm" ? "14h00–16h00 • Relecture" : "";
       return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
         <span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>
         ${h ? `<span class="poste-horaire-sub" style="font-size:9.5px; font-weight:700; color:var(--text-muted); padding-left:1px;">🕒 ${h}</span>` : ""}
@@ -3349,7 +3354,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
         }
 
-        // 2B. Ajustement des demi-offs (en alternant Matin / Après-midi : 1 AM + 1 PM par semaine) et équilibrage hebdomadaire
+        // 2B. Ajustement des demi-offs (maximum 2 demi-offs par semaine par interne, en alternant Matin / Après-midi : 1 AM + 1 PM)
         if (shouldRebalanceWeek) {
           (st.internes || []).forEach(intObj => {
             const iid = intObj.id;
@@ -3363,12 +3368,49 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 else if (slot[h] === "1/2 journée libre") offCnt++;
               });
             });
+            const targetOffs = vacHalfDays >= 6 ? 0 : 2;
+
+            // Si l'interne dépasse 2 demi-offs (ou targetOffs), remplacer les demi-offs en excès par un poste actif ouvert
+            if (offCnt > targetOffs) {
+              const excessSlots = [];
+              activeIsos.forEach(dIso => {
+                if (dIso === "2026-11-02") return;
+                const slot = st.schedule[dIso].byInterne[iid];
+                if (!slot) return;
+                ["am", "pm"].forEach(h => {
+                  if (slot[h] === "1/2 journée libre" && !(custom[dIso + "__" + iid] && custom[dIso + "__" + iid][h])) {
+                    excessSlots.push([dIso, h]);
+                  }
+                });
+              });
+              excessSlots.sort((a, b) => {
+                const fixA = isProtectedFixedOff(iid, a[0], a[1]) ? 1 : 0;
+                const fixB = isProtectedFixedOff(iid, b[0], b[1]) ? 1 : 0;
+                return fixA - fixB;
+              });
+              for (const [dIso, h] of excessSlots) {
+                if (offCnt <= targetOffs) break;
+                const [yy, mm, dd] = dIso.split("-").map(Number);
+                const jsDay = new Date(yy, mm - 1, dd).getDay();
+                const otherH = h === "am" ? "pm" : "am";
+                const byInt = st.schedule[dIso].byInterne;
+                const slot = byInt[iid];
+                const otherP = slot[otherH];
+                const usedSet = new Set(Object.values(byInt).map(s => s && s[h]).filter(Boolean));
+                const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
+                const candPostes = [...Array.from(phSet), ...nonMandatoryPriority];
+                const chosen = candPostes.find(p => !usedSet.has(p) && p !== otherP) || candPostes.find(p => p !== otherP) || "TDM OLLIER DIAG";
+                const nk = h === "am" ? "noteAm" : "notePm";
+                slot[h] = chosen;
+                slot[nk] = "";
+                offCnt--;
+              }
+            }
+
             if (vacHalfDays >= 6) return;
-            const targetOffs = Math.min(3, 2 + (carryOverOffs[iid] || 0));
 
             while (offCnt < targetOffs) {
               let freed = false;
-              const isRattrapage = offCnt >= 2;
               const wAm = countWeekHalfOffsJs(iid, "am");
               const wPm = countWeekHalfOffsJs(iid, "pm");
               let preferredH = "pm";
@@ -3421,9 +3463,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   if (slot[h] === candPoste) {
                     const nk = h === "am" ? "noteAm" : "notePm";
                     slot[h] = "1/2 journée libre";
-                    slot[nk] = isRattrapage
-                      ? "Demi-off de rattrapage (équilibrage semaine précédente)"
-                      : (isProtectedFixedOff(iid, dIso, h) ? "Demi-journée off fixe hebdomadaire" : "Demi-off hebdomadaire (hors vacations obligatoires)");
+                    slot[nk] = isProtectedFixedOff(iid, dIso, h)
+                      ? "Demi-journée off fixe hebdomadaire"
+                      : "Demi-off hebdomadaire (hors vacations obligatoires)";
                     if (!slot.note) slot.note = slot[nk];
                     offCnt++;
                     freed = true;
@@ -3443,9 +3485,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                         const nk = h === "am" ? "noteAm" : "notePm";
                         byInt[otherId][h] = slot[h];
                         slot[h] = "1/2 journée libre";
-                        slot[nk] = isRattrapage
-                          ? "Demi-off de rattrapage (équilibrage semaine précédente)"
-                          : (isProtectedFixedOff(iid, dIso, h) ? "Demi-journée off fixe hebdomadaire" : "Demi-off hebdomadaire (équilibré)");
+                        slot[nk] = isProtectedFixedOff(iid, dIso, h)
+                          ? "Demi-journée off fixe hebdomadaire"
+                          : "Demi-off hebdomadaire (équilibré)";
                         if (!slot.note) slot.note = slot[nk];
                         offCnt++;
                         freed = true;
@@ -5905,6 +5947,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const srcInterne = getInterneById(source.interneId);
       const nonActList = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
+      const countInterneWeekOffs = (iid, anyDayIso) => {
+        const mon = getMondayOfWeek(anyDayIso);
+        let cnt = 0;
+        for (let off = 0; off < 5; off++) {
+          const d = addDaysIso(mon, off);
+          const dayObj = STATE.schedule[d];
+          if (!dayObj || dayObj.holiday || !dayObj.byInterne || !dayObj.byInterne[iid]) continue;
+          if (dayObj.byInterne[iid].am === "1/2 journée libre") cnt++;
+          if (dayObj.byInterne[iid].pm === "1/2 journée libre") cnt++;
+        }
+        return cnt;
+      };
 
       // Si on dépose directement sur un autre interne (ou si on échange deux internes, même jour ou autre jour)
       if (target.targetInterneId && (target.targetInterneId !== source.interneId || target.dIso !== source.dIso || target.periodKey !== source.periodKey)) {
@@ -5928,6 +5982,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           selectedForMove = null;
           renderAll();
           return;
+        }
+
+        if (source.interneId !== target.targetInterneId) {
+          if (tgtPoste === "1/2 journée libre" && srcPoste !== "1/2 journée libre" && countInterneWeekOffs(source.interneId, source.dIso) >= 2) {
+            showToast(`⛔ Règle : ${srcInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
+            selectedForMove = null;
+            renderAll();
+            return;
+          }
+          if (srcPoste === "1/2 journée libre" && tgtPoste !== "1/2 journée libre" && countInterneWeekOffs(target.targetInterneId, target.dIso) >= 2) {
+            showToast(`⛔ Règle : ${tgtInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
+            selectedForMove = null;
+            renderAll();
+            return;
+          }
         }
 
         // Vérifier qu'aucun des deux internes ne se retrouve avec le même poste toute la journée (Matin == Après-midi)
@@ -5987,6 +6056,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       const daySlotsMove = (STATE.schedule[source.dIso] && STATE.schedule[source.dIso].byInterne) || {};
+      const curSlotPosteMove = daySlotsMove[source.interneId] ? daySlotsMove[source.interneId][source.periodKey] : source.fromPoste;
+      if (target.toPoste === "1/2 journée libre" && curSlotPosteMove !== "1/2 journée libre" && countInterneWeekOffs(source.interneId, source.dIso) >= 2) {
+        showToast(`⛔ Règle : ${srcInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
+        selectedForMove = null;
+        renderAll();
+        return;
+      }
       const otherPeriodMove = source.periodKey === "am" ? "pm" : "am";
       const myOtherPoste = daySlotsMove[source.interneId] ? daySlotsMove[source.interneId][otherPeriodMove] : "";
       if (!nonActList.includes(target.toPoste) && target.toPoste === myOtherPoste) {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cochin-internes-2026-11-02T20:12:05.108316+00:00';
+const CACHE_NAME = 'cochin-internes-2026-11-02T20:14:10.397900+00:00';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
