@@ -5143,6 +5143,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="poste-pill poste-gestes">Poste C : 09h00</span>
           <span class="poste-pill poste-cs">Consult. Internes : Mar PM (Relecture Pr Drapé) & Ven PM</span>
           <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
+          <span class="poste-pill" style="background:#FEF3C7; color:#92400E; border:1px solid #F59E0B;" title="Case en jaune : vacation ouverte avec un Chef / Senior présent mais aucun interne prévu">🟨 Chef sans interne prévu</span>
         </div>
       `;
 
@@ -5436,17 +5437,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }).join("") + `</div>`;
             }
             const isMandatorySec = sec.intMatch.some(p => isMandatoryVacationSlot(dIso, periodKey, p));
+            const openChefDocsSec = [];
+            sec.intMatch.forEach(p => {
+              getChefWithoutInterneDocsForPoste(dIso, periodKey, p).forEach(doc => {
+                if (!openChefDocsSec.includes(doc)) openChefDocsSec.push(doc);
+              });
+            });
+            const isChefNoInterneSec = openChefDocsSec.length > 0;
             const canDrop = isChefPlanningMode;
             const isTapTarget = canDrop && selectedForMove && selectedForMove.dIso === dIso && selectedForMove.periodKey === periodKey;
             const tdClass = [
               canDrop ? "drop-zone-cell" : "",
               isTapTarget ? "tap-target-ready" : "",
-              isMandatorySec ? "cell-mandatory-vacation" : ""
+              isChefNoInterneSec ? "cell-chef-without-interne" : (isMandatorySec ? "cell-mandatory-vacation" : "")
             ].filter(Boolean).join(" ");
             const tdAttrs = canDrop
               ? `ondragover="onCellDragOver(event, '${dIso}', '${periodKey}')" ondragleave="onCellDragLeave(event)" ondrop="onCellDrop(event, '${dIso}', '${periodKey}', '${escPoste}')" onclick="onChefCellClick(event, '${dIso}', '${periodKey}', '${escPoste}')"`
               : "";
-            rows += `<td class="${tdClass}" ${tdAttrs} ${isMandatorySec ? 'title="Vacation obligatoire prioritaire"' : ''}>${cellHtml || '<span style="color:#CBD5E1">—</span>'}</td>`;
+            const secTitleAttr = isChefNoInterneSec
+              ? `title="Chef présent (${openChefDocsSec.join(", ")}) sans interne prévu"`
+              : (isMandatorySec ? 'title="Vacation obligatoire prioritaire"' : '');
+            rows += `<td class="${tdClass}" ${tdAttrs} ${secTitleAttr}>${cellHtml || '<span style="color:#CBD5E1">—</span>'}</td>`;
           });
           rows += `</tr>`;
         });
@@ -5576,25 +5587,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             const matches = (dObj[periodKey] || []).filter(x => x.poste === posteName);
             const isMandatoryCell = isMandatoryVacationSlot(dIso, periodKey, posteName);
+            const chefNoInterneDocs = getChefWithoutInterneDocsForPoste(dIso, periodKey, posteName);
+            const isChefNoInterne = chefNoInterneDocs.length > 0;
             const cellIssue = inChefSpace ? (blocking.byDate[dIso] || []).find(iss => iss.periodKey === periodKey && iss.poste === posteName) : null;
             const canDrop = isChefPlanningMode;
             const isTapTarget = canDrop && selectedForMove && selectedForMove.dIso === dIso && selectedForMove.periodKey === periodKey;
             const tdClass = [
               canDrop ? "drop-zone-cell" : "",
               isTapTarget ? "tap-target-ready" : "",
-              cellIssue ? "cell-blocking-alert" : (isMandatoryCell ? "cell-mandatory-vacation" : "")
+              cellIssue ? "cell-blocking-alert" : (isChefNoInterne ? "cell-chef-without-interne" : (isMandatoryCell ? "cell-mandatory-vacation" : ""))
             ].filter(Boolean).join(" ");
             const tdAttrs = canDrop
               ? `ondragover="onCellDragOver(event, '${dIso}', '${periodKey}')" ondragleave="onCellDragLeave(event)" ondrop="onCellDrop(event, '${dIso}', '${periodKey}', '${escPoste}')" onclick="onChefCellClick(event, '${dIso}', '${periodKey}', '${escPoste}')"`
               : "";
-            const mandatoryTitleAttr = isMandatoryCell ? `title="Vacation obligatoire prioritaire (${posteName})"` : "";
+            const mandatoryTitleAttr = isChefNoInterne
+              ? `title="Chef présent (${chefNoInterneDocs.join(", ")}) sans interne prévu (${posteName})"`
+              : (isMandatoryCell ? `title="Vacation obligatoire prioritaire (${posteName})"` : "");
 
             const issueBannerHtml = cellIssue
               ? `<div style="margin-top:2px;"><span class="poste-pill poste-rg" style="font-size:9px; background:#DC2626; color:#FFF;">À couvrir</span></div>`
               : "";
 
             if (matches.length === 0) {
-              rowsHtml += `<td class="${tdClass}" ${tdAttrs} ${mandatoryTitleAttr} style="color:#CBD5E1">${cellIssue ? issueBannerHtml : '—'}</td>`;
+              const emptyLabelHtml = cellIssue
+                ? issueBannerHtml
+                : (isChefNoInterne
+                  ? `<span style="font-size:9.5px; font-weight:700; color:#92400E;" title="Chef présent : ${chefNoInterneDocs.join(', ')}">Chef : ${chefNoInterneDocs.join(", ")}</span>`
+                  : '—');
+              rowsHtml += `<td class="${tdClass}" ${tdAttrs} ${mandatoryTitleAttr} style="color:#CBD5E1">${emptyLabelHtml}</td>`;
             } else {
               const [yy, mm, dd] = dIso.split("-").map(Number);
               const jsDay = new Date(yy, mm - 1, dd).getDay();
@@ -5835,12 +5855,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:4px;">MATIN (IRM 7h45 • TDM SAU 8h • Écho/Poste C 9h)</div>
                 ${(chDay.am || []).map(x => {
                   const isCl = (x.doc === "FERMÉ" || x.doc === "MAINTENANCE" || x.closed);
-                  return `<div style="font-size:12px; margin-bottom:3px;"><strong>${getPosteWithTimeLabel(x.poste, "am")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:#0284C7; font-weight:700;">${x.doc}</span>`}</div>`;
+                  const mappedP = CHEF_TO_INTERNE_POSTE_MAP[x.poste] || null;
+                  const isNoInt = !isCl && mappedP && getChefWithoutInterneDocsForPoste(iso, "am", mappedP).length > 0;
+                  return `<div style="font-size:12px; margin-bottom:3px; ${isNoInt ? 'background:#FEF3C7; border-left:3px solid #F59E0B; padding:2px 6px; border-radius:4px;' : ''}" ${isNoInt ? 'title="Chef présent sans interne prévu"' : ''}><strong>${getPosteWithTimeLabel(x.poste, "am")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:${isNoInt ? '#92400E' : '#0284C7'}; font-weight:700;">${x.doc}</span>`}</div>`;
                 }).join("") || '—'}
                 <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin:10px 0 4px;">APRÈS-MIDI (TDM SAU fin 18h30)</div>
                 ${(chDay.pm || []).map(x => {
                   const isCl = (x.doc === "FERMÉ" || x.doc === "MAINTENANCE" || x.closed);
-                  return `<div style="font-size:12px; margin-bottom:3px;"><strong>${getPosteWithTimeLabel(x.poste, "pm")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:#6D28D9; font-weight:700;">${x.doc}</span>`}</div>`;
+                  const [yyD, mmD, ddD] = iso.split("-").map(Number);
+                  const jsDayD = new Date(yyD, mmD - 1, ddD).getDay();
+                  const mappedP = CHEF_TO_INTERNE_POSTE_MAP[x.poste] || (x.poste === "CONSULTATION" && (jsDayD === 2 || jsDayD === 5) ? "LECTURE/CS" : null);
+                  const isNoInt = !isCl && mappedP && getChefWithoutInterneDocsForPoste(iso, "pm", mappedP).length > 0;
+                  return `<div style="font-size:12px; margin-bottom:3px; ${isNoInt ? 'background:#FEF3C7; border-left:3px solid #F59E0B; padding:2px 6px; border-radius:4px;' : ''}" ${isNoInt ? 'title="Chef présent sans interne prévu"' : ''}><strong>${getPosteWithTimeLabel(x.poste, "pm")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:${isNoInt ? '#92400E' : '#6D28D9'}; font-weight:700;">${x.doc}</span>`}</div>`;
                 }).join("") || '—'}
               </div>
             </div>
@@ -5913,6 +5939,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!matches.length) {
               rows += `<td style="color:#CBD5E1">—</td>`;
             } else {
+              const [yyC, mmC, ddC] = dIso.split("-").map(Number);
+              const jsDayC = new Date(yyC, mmC - 1, ddC).getDay();
+              const mappedIntPoste = CHEF_TO_INTERNE_POSTE_MAP[pName] || (pName === "CONSULTATION" && periodKey === "pm" && (jsDayC === 2 || jsDayC === 5) ? "LECTURE/CS" : null);
+              const noIntDocs = mappedIntPoste ? getChefWithoutInterneDocsForPoste(dIso, periodKey, mappedIntPoste) : [];
+              const isNoIntCell = noIntDocs.length > 0;
               const badges = matches.map(m => {
                 if (m.doc === "FERMÉ" || m.doc === "MAINTENANCE" || m.closed) {
                   return `<span class="poste-pill poste-closed">${m.doc === "MAINTENANCE" ? "Maint." : "Fermé"}</span>`;
@@ -5922,7 +5953,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <strong>${m.doc}</strong>
                 </span>`;
               }).join(" ");
-              rows += `<td>${badges}</td>`;
+              rows += `<td class="${isNoIntCell ? 'cell-chef-without-interne' : ''}" ${isNoIntCell ? `title="Chef présent (${noIntDocs.join(", ")}) sans interne prévu"` : ''}>${badges}</td>`;
             }
           });
           rows += `</tr>`;
