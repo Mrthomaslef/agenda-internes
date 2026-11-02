@@ -1382,8 +1382,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 nk = "noteAm" if h == "am" else "notePm"
                 ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
 
-                # 1) Toujours au moins un interne senior au TDM SAU (hors 02/11 matin = Formation/Accueil)
-                has_senior_sau = any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids)
+                # 1) Toujours au moins un interne senior au TDM SAU (hors 02/11 matin = Formation/Accueil,
+                #    et hors mardi matin où Noé est posté en solo au TDM SAU avec Dr Macil Hamadouche)
+                is_tue_am_noe_solo = (wd_cur == 1 and h == "am" and by_int["noe"]["am"] not in ("RG", "VACANCES", "FÉRIÉ"))
+                if is_tue_am_noe_solo:
+                    by_int["noe"]["am"] = "TDM SAU"
+                    by_int["noe"]["noteAm"] = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
+                has_senior_sau = is_tue_am_noe_solo or any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids)
                 if not has_senior_sau:
                     sau_donors = (
                         [p for p in non_mandatory_priority if p not in ph_set]
@@ -1429,7 +1434,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             if reassigned_ph:
                                 break
 
-                        # B) S'il y a >= 2 seniors au TDM SAU (ou Noé au TDM SAU avec un senior), l'un d'eux prend la vacation obligatoire
+                        # B) S'il y a >= 2 seniors au TDM SAU (ou Noé au TDM SAU avec un senior hors mardi matin solo), l'un d'eux prend la vacation obligatoire
                         if not reassigned_ph and ph_poste != "TDM SAU":
                             sau_seniors = [s_id for s_id in senior_interne_ids if by_int[s_id][h] == "TDM SAU"]
                             if len(sau_seniors) >= 2:
@@ -1437,7 +1442,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                 by_int[donor_sid][h] = ph_poste
                                 by_int[donor_sid][nk] = f"Vacation obligatoire ({ph_poste})"
                                 reassigned_ph = True
-                            elif len(sau_seniors) >= 1 and by_int["noe"][h] == "TDM SAU":
+                            elif len(sau_seniors) >= 1 and by_int["noe"][h] == "TDM SAU" and not (wd_cur == 1 and h == "am"):
                                 if ph_poste in ("ECHO", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG"):
                                     by_int["noe"][h] = ph_poste
                                     by_int["noe"][nk] = f"Vacation obligatoire ({ph_poste})"
@@ -1607,6 +1612,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     for h in ("pm", "am"):
                         if h == "pm" and wd_cand == 1:
                             continue
+                        if iid == "noe" and wd_cand == 1 and h == "am":
+                            continue
                         if schedule[d_iso]["byInterne"][iid][h] in non_active_codes:
                             continue
                         raw_slots.append((d_iso, h))
@@ -1645,7 +1652,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
                     # Passe 1 : libération directe si le poste de l'interne est non obligatoire
                     for cand_poste in cand_list:
-                        if iid == "noe" and cand_poste == "TDM SAU" and wd_cur == 1 and h == "am" and w_idx < 4:
+                        if iid == "noe" and cand_poste == "TDM SAU" and wd_cur == 1 and h == "am":
                             continue
                         if cand_poste in ph_set and not (iid == "noe" and cand_poste == "TDM SAU"):
                             continue
@@ -1734,6 +1741,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             wd_dest = datetime.date.fromisoformat(d_dest).weekday()
                             if target_h == "pm" and wd_dest in (1, 4):
                                 continue
+                            if iid == "noe" and wd_dest == 1 and target_h == "am":
+                                continue
                             other_dest_h = "am" if target_h == "pm" else "pm"
                             if schedule[d_dest]["byInterne"][iid][other_dest_h] == "1/2 journée libre":
                                 continue
@@ -1743,7 +1752,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             ch_dest = (chefs_planning or {}).get(d_dest, {})
                             ph_dest = get_ph_interne_postes_for_halfday(ch_dest, target_h, wd_dest, d_dest)
                             can_free_dest = (dest_p != "TDM SAU" and dest_p not in ph_dest) or (
-                                iid == "noe" and dest_p == "TDM SAU" and not (wd_dest == 1 and target_h == "am" and w_idx < 4)
+                                iid == "noe" and dest_p == "TDM SAU" and not (wd_dest == 1 and target_h == "am")
                             )
                             swap_partner_dest = None
                             if not can_free_dest and iid in senior_interne_ids:
@@ -1815,6 +1824,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     if d_iso != "2026-11-02"
                     and schedule[d_iso]["byInterne"][iid][to_h] not in non_active_codes
                     and not (to_h == "pm" and datetime.date.fromisoformat(d_iso).weekday() == 1)
+                    and not (iid == "noe" and to_h == "am" and datetime.date.fromisoformat(d_iso).weekday() == 1)
                 ]
 
                 for allow_protected_from in (False, True):
@@ -1839,7 +1849,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             cur_to_p = schedule[d_to]["byInterne"][iid][to_h]
 
                             can_free_to = (cur_to_p != "TDM SAU" and cur_to_p not in ph_to) or (
-                                iid == "noe" and cur_to_p == "TDM SAU" and not (wd_to == 1 and to_h == "am" and w_idx < 4)
+                                iid == "noe" and cur_to_p == "TDM SAU" and not (wd_to == 1 and to_h == "am")
                             )
                             swap_partner_to = None
                             if not can_free_to and iid in senior_interne_ids:
@@ -1999,13 +2009,16 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             return False
 
         # A) Éviter les doublons de seniors au TDM SAU sur la même demi-journée
+        #    (et retirer tout senior du TDM SAU le mardi matin où Noé est en solo avec Dr Macil Hamadouche)
         for d_iso in active_isos:
+            wd_cur = datetime.date.fromisoformat(d_iso).weekday()
             for h in ("am", "pm"):
                 if d_iso == "2026-11-02" and h == "am":
                     continue
                 by_int = schedule[d_iso]["byInterne"]
                 sau_sids = [s_id for s_id in senior_interne_ids if by_int[s_id][h] == "TDM SAU"]
-                while len(sau_sids) > 1:
+                min_sau_sids = 0 if (wd_cur == 1 and h == "am" and by_int["noe"]["am"] == "TDM SAU") else 1
+                while len(sau_sids) > min_sau_sids:
                     avail = get_available_open_postes(d_iso, h)
                     if not avail:
                         break
@@ -2157,7 +2170,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if not swapped_sau:
                 break
 
-        # C) Quota hebdomadaire de TDM SAU pour Noé (Phase Socle) : cible = 3 TDM SAU / semaine (jamais matin ET après-midi le même jour)
+        # C) Quota hebdomadaire de TDM SAU pour Noé (Phase Socle) : cible = 3 TDM SAU / semaine
+        #    (dont systématiquement Mardi AM en solo avec Dr Macil Hamadouche, et jamais matin ET après-midi le même jour)
         if w_idx == 0:
             noe_pref_sau_slots = {(1, "am"), (3, "am"), (4, "pm")}
         elif w_idx < 4:
@@ -2165,11 +2179,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         else:
             rot_noe_w = (w_idx - 4) % 5
             noe_pref_sau_by_rot = {
-                0: {(0, "pm"), (2, "am"), (4, "am")},
-                1: {(1, "pm"), (3, "am"), (4, "pm")},
-                2: {(0, "am"), (2, "pm"), (3, "pm")},
+                0: {(1, "am"), (0, "pm"), (4, "am")},
+                1: {(1, "am"), (3, "am"), (4, "pm")},
+                2: {(1, "am"), (2, "pm"), (3, "pm")},
                 3: {(1, "am"), (2, "pm"), (4, "am")},
-                4: {(0, "pm"), (1, "am"), (3, "pm")},
+                4: {(1, "am"), (0, "pm"), (3, "pm")},
             }
             noe_pref_sau_slots = noe_pref_sau_by_rot[rot_noe_w]
 
@@ -2182,6 +2196,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 for d_iso in active_isos
                 for h in ("am", "pm")
                 if schedule[d_iso]["byInterne"]["noe"][h] == "TDM SAU"
+                and not (datetime.date.fromisoformat(d_iso).weekday() == 1 and h == "am")
             ]
             def noe_slot_drop_priority(slot: tuple[str, str]) -> int:
                 d_s, h_s = slot
@@ -2304,7 +2319,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     continue
                 if by_int["noe"][other_h] == "TDM SAU":
                     continue
-                if not any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids):
+                if not (wd_cur == 1 and h == "am") and not any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids):
                     continue
                 ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
                 if noe_p in ph_set:
@@ -2314,7 +2329,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         continue
                 nk = "noteAm" if h == "am" else "notePm"
                 by_int["noe"][h] = "TDM SAU"
-                by_int["noe"][nk] = "Posté Socle Urgences"
+                by_int["noe"][nk] = (
+                    "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
+                    if (wd_cur == 1 and h == "am")
+                    else "Posté Socle Urgences"
+                )
                 added_noe = True
                 break
             if not added_noe:
@@ -2413,6 +2432,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     for h in ("pm", "am"):
                         if d_iso == "2026-11-02" and h == "am":
                             continue
+                        if iid == "noe" and wd_cur == 1 and h == "am":
+                            continue
                         other_h = "am" if h == "pm" else "pm"
                         cur_p = by_int[iid][h]
                         other_p = by_int[iid][other_h]
@@ -2445,6 +2466,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         swap_cands = senior_interne_ids if iid in senior_interne_ids else all_interne_ids
                         for other_id in swap_cands:
                             if other_id == iid:
+                                continue
+                            if other_id == "noe" and wd_cur == 1 and h == "am":
                                 continue
                             cand_p = by_int[other_id][h]
                             if cand_p in non_active_codes or cand_p == cur_p:
@@ -2596,7 +2619,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if noe_p == "TDM SAU":
                     sau_partners = [interne_short_by_id[s_id] for s_id in senior_interne_ids if by_int[s_id][h] == "TDM SAU"]
                     partner_str = " & ".join(sau_partners)
-                    if h == "am" and wd_cur in (1, 3):
+                    if h == "am" and wd_cur == 1:
+                        noe_st[nk] = (
+                            f"Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec {partner_str}"
+                            if partner_str
+                            else "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
+                        )
+                    elif h == "am" and wd_cur == 3:
                         noe_st[nk] = f"Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec {partner_str}" if partner_str else "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
                     else:
                         noe_st[nk] = f"Posté Socle Urgences • Binôme SAU avec {partner_str}" if partner_str else "Posté Socle Urgences"
@@ -2617,7 +2646,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             for h_chk in ("am", "pm"):
                 if d_iso == "2026-11-02" and h_chk == "am":
                     continue
-                if not any(day_obj["byInterne"][s_id][h_chk] == "TDM SAU" for s_id in senior_interne_ids):
+                is_tue_am_noe_solo_chk = (wd_chk == 1 and h_chk == "am" and day_obj["byInterne"]["noe"]["am"] == "TDM SAU")
+                if not is_tue_am_noe_solo_chk and not any(day_obj["byInterne"][s_id][h_chk] == "TDM SAU" for s_id in senior_interne_ids):
                     raise RuntimeError(f"ERREUR : Aucun interne senior au TDM SAU le {d_iso} ({h_chk})")
                 ph_req = get_ph_interne_postes_for_halfday(ch_chk, h_chk, wd_chk, d_iso)
                 present_cnt = sum(
@@ -3716,8 +3746,8 @@ def build_full_dataset() -> dict:
                 "Horaires des vacations : IRM du matin commence à 07h45 (IRM d'après-midi de 13h30 à 18h30) • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
                 "Séparation des vacations de Lecture (LECTURE) et de Consultation d'internes (CONSULTATION) : les consultations d'internes ont lieu le mardi après-midi et le vendredi après-midi (13h30 – 18h00), séparément des vacations de lecture/relecture.",
                 "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
-                "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior, créneaux fixes le 1er mois puis variables en jours et Matin/Après-midi à partir du 2e mois) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
-                "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
+                "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle : imposé en solo sans doublure exceptionnellement chaque mardi matin avec Dr Macil HAMADOUCHE, + 2 créneaux en binôme avec un co-interne senior sur le reste de la semaine) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
+                "Permanence Scanner SAU (un interne senior matin et après-midi, sauf le mardi matin assuré en solo par Noé avec Dr Macil HAMADOUCHE) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
                 "Présentations des internes (Cas du Mardi & Biblio du Vendredi) : début en semaine 2 (mardi 10/11/2026 pour les Cas, vendredi 13/11/2026 pour la Biblio) avec espacement garanti d'au moins 2,5 à 3,5 semaines (18 à 24 jours minimum) entre deux présentations d'un même interne et 6 semaines entre deux Cas ou deux Biblios.",
