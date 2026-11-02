@@ -52,10 +52,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Planning Radio B" />
   <meta name="application-name" content="Planning Radio B — Cochin" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="theme-color" content="#F8FAFC" id="metaThemeColor" />
-  <link rel="manifest" href="manifest.json?v=3" />
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=3" />
-  <link rel="apple-touch-icon" href="icon.svg?v=3" />
+  <link rel="manifest" href="manifest.json?v=5" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5" />
+  <link rel="apple-touch-icon" href="icon.svg?v=5" />
   <title>Radio B Cochin — Planning Internes & Chefs</title>
   <script>
     (function() {
@@ -65,6 +68,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           document.documentElement.setAttribute("data-theme", "dark");
           var m = document.getElementById("metaThemeColor");
           if (m) m.setAttribute("content", "#0B1120");
+        }
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            regs.forEach(function(r) { r.unregister(); });
+          });
+        }
+        if ("caches" in window) {
+          caches.keys().then(function(keys) {
+            keys.forEach(function(k) { caches.delete(k); });
+          });
         }
       } catch (e) {}
     })();
@@ -11279,20 +11292,19 @@ def generate_pwa_files(dataset: dict):
 
     sw_version = dataset.get("updatedAt", "v5")
     sw_code = f"""const CACHE_NAME = 'cochin-internes-{sw_version}';
-const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
 self.addEventListener('install', e => {{
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
 }});
 self.addEventListener('activate', e => {{
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+    caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k))))
       .then(() => self.clients.claim())
+      .then(() => self.registration.unregister())
   );
 }});
 self.addEventListener('fetch', e => {{
   if (e.request.method !== 'GET') return;
-  e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  e.respondWith(fetch(e.request, {{ cache: 'no-store' }}).catch(() => caches.match(e.request)));
 }});
 """
     SW_FILE.write_text(sw_code, encoding="utf-8")
