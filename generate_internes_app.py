@@ -569,6 +569,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .poste-tdm { background: #FEF3C7; color: #B45309; border-color: #FCD34D; }
+    .poste-tdm-sau { background: #FEF3C7; color: #B45309; border-color: #FCD34D; }
+    .poste-achard { background: #FFEDD5; color: #C2410C; border-color: #FDBA74; }
+    .poste-tdm-ollier { background: #E0F2FE; color: #0369A1; border-color: #7DD3FC; }
     .poste-irm { background: #F3E8FF; color: #6D28D9; border-color: #D8B4FE; }
     .poste-echo { background: #CCFBF1; color: #0F766E; border-color: #5EEAD4; }
     .poste-gestes { background: #FFE4E6; color: #BE123C; border-color: #FDA4AF; }
@@ -1862,7 +1865,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <button class="btn btn-sm" onclick="closeModal('modalVacationEdit')">Fermer</button>
       </div>
       <div class="note-box">
-        Règle : 2 demi-offs (1/2 journée libre) par semaine maximum par interne • <strong>Pas de demi-off le mardi après-midi ni le vendredi après-midi</strong>.
+        Règles : <strong>Pas le même poste toute la journée (Matin ≠ Après-midi)</strong> • <strong>Max 1 IRM d'après-midi / semaine</strong> (sauf exception) • 2 demi-offs max / semaine • Pas de demi-off mardi PM ni vendredi PM.
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
@@ -2270,7 +2273,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "poste-cs";
       if (p.includes("IRM")) return "poste-irm";
       if (p.includes("ECHO") || p.includes("ÉCHO")) return "poste-echo";
-      if (p.includes("GESTES") || p.includes("ACHARD") || p.includes("ALLURA")) return "poste-gestes";
+      if (p.includes("ACHARD")) return "poste-achard";
+      if (p.includes("OLLIER DIAG") || p.includes("OLLIER 3") || p === "TDM OLLIER" || p === "SCAN OLLIER") return "poste-tdm-ollier";
+      if (p.includes("SAU") || p.includes("OLLIER 4")) return "poste-tdm-sau";
+      if (p.includes("GESTES") || p.includes("ALLURA")) return "poste-gestes";
       if (p.includes("LECTURE") || p.includes("CS") || p.includes("CONSULT")) return "poste-cs";
       return "poste-tdm";
     }
@@ -2279,10 +2285,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const p = String(poste || "").toUpperCase();
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "08h15 – 12h00";
       if (p.includes("IRM")) {
-        return periodKey === "am" ? "dès 07h45" : (periodKey === "pm" ? "dès 07h45 (matin)" : "dès 07h45");
+        return periodKey === "am" ? "dès 07h45" : (periodKey === "pm" ? "13h30 – 18h30" : "dès 07h45");
       }
       if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) {
-        return periodKey === "am" ? "dès 09h00" : (periodKey === "pm" ? "dès 09h00 (matin)" : "dès 09h00");
+        return periodKey === "am" ? "dès 09h00" : (periodKey === "pm" ? "13h30 – 18h00" : "dès 09h00");
       }
       if (p.includes("SAU") || p.includes("OLLIER 4")) {
         return periodKey === "am" ? "08h00 – 13h00" : (periodKey === "pm" ? "fin à 18h30" : "08h00 – 18h30");
@@ -2291,11 +2297,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function getPosteWithTimeLabel(poste, periodKey) {
-      const shortName = poste === "1/2 journée libre" ? "Demi-off" : (poste === "FORMATION / ACCUEIL" ? "Accueil & Formation" : poste);
+      let shortName = poste === "1/2 journée libre" ? "Demi-off" : (poste === "FORMATION / ACCUEIL" ? "Accueil & Formation" : poste);
+      if (shortName === "TDM OLLIER DIAG") shortName = "SCAN OLLIER";
+      if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
       const p = String(poste || "").toUpperCase();
       let h = "";
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
-      else if (p.includes("IRM")) h = periodKey === "am" ? "7h45" : "";
+      else if (p.includes("IRM")) h = periodKey === "am" ? "7h45" : (periodKey === "pm" ? "13h30–18h30" : "");
       else if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) h = periodKey === "am" ? "9h00" : "";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "dès 8h00" : (periodKey === "pm" ? "fin 18h30" : "8h00–18h30");
       return h ? `${shortName} <span style="opacity:0.85; font-weight:600; font-size:10px;">(${h})</span>` : shortName;
@@ -2304,19 +2312,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function renderPosteCellLabel(poste, periodKey) {
       let shortName = poste === "1/2 journée libre" ? "Demi-off" : poste;
       if (shortName === "FORMATION / ACCUEIL") shortName = "ACCUEIL / FORM.";
-      if (shortName === "TDM OLLIER DIAG") shortName = "TDM OLLIER";
+      if (shortName === "TDM OLLIER DIAG" || shortName === "TDM OLLIER" || shortName === "TDM OLLIER 3") shortName = "SCAN OLLIER";
       if (shortName === "TDM OLLIER 4 (SAU)") shortName = "TDM SAU";
-      if (shortName === "TDM ACHARD 1") shortName = "ACHARD 1";
+      if (shortName === "TDM ACHARD 1") shortName = "SCAN ACHARD";
       if (shortName === "CONSULT / LECTURE") shortName = "CS / LECT.";
+      if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
       if (isChefPlanningMode) {
         return `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
       }
       const p = String(poste || "").toUpperCase();
       let h = "";
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
-      else if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "Mat. 07h45";
-      else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "Mat. 09h00";
-      else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "Mat. 09h00";
+      else if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "13h30–18h30";
+      else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "13h30–18h00";
+      else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "13h30–18h00";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "08h00–18h30" : "fin 18h30";
       else if (p.includes("LECTURE") || p.includes("CONSULT")) h = periodKey === "pm" ? "Mar : Pr Drapé • Ven : CS" : "";
       return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
@@ -2639,11 +2648,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       //    - Équilibrage automatique sur les semaines suivantes (carryOverOffs) si < 2 demi-offs possibles sur une semaine chargée
       const nonMandatoryPriority = [
         "ALLURA",
-        "TDM OLLIER DIAG",
-        "IRM 1,5T",
-        "SCAN ACHARD",
         "GESTES (C)",
         "ECHO",
+        "IRM 1,5T",
+        "SCAN ACHARD",
+        "TDM OLLIER DIAG",
         "IRM 3T",
         "IRM",
         "LECTURE/CS"
@@ -2858,6 +2867,230 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             carryOverOffs[iid] = Math.max(0, (carryOverOffs[iid] || 0) + (2 - offCnt));
           });
+
+          // 2B-bis. Quotas hebdomadaires (TDM SAU & IRM d'après-midi max 1/sem) + Règle Matin != Après-midi :
+          //   - 2 TDM SAU / semaine pour les 5 internes seniors (3 uniquement à titre exceptionnel en cas de congés/RG)
+          //   - 3 TDM SAU / semaine pour Noé (Phase Socle), plus uniquement exceptionnellement
+          //   - Maximum 1 IRM d'après-midi ("IRM" en PM) par semaine par interne (sauf exception)
+          //   - Interdiction pour un interne de faire le même poste toute la journée (am !== pm)
+          const countWeekSauJs = (interneId) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (!sl) return;
+              if (sl.am === "TDM SAU") cnt++;
+              if (sl.pm === "TDM SAU") cnt++;
+            });
+            return cnt;
+          };
+
+          const countWeekIrmPmJs = (interneId) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (sl && sl.pm === "IRM") cnt++;
+            });
+            return cnt;
+          };
+
+          const isSamePosteDayJs = (pAm, pPm) => {
+            if (!pAm || !pPm || nonActivePostes.includes(pAm) || nonActivePostes.includes(pPm)) return false;
+            return pAm === pPm;
+          };
+
+          for (let iter = 0; iter < 25; iter++) {
+            const sauCounts = {};
+            seniorIds.forEach(sId => { sauCounts[sId] = countWeekSauJs(sId); });
+            const overSids = seniorIds.filter(sId => sauCounts[sId] > 2).sort((a, b) => sauCounts[b] - sauCounts[a]);
+            if (!overSids.length) break;
+            let swappedSau = false;
+
+            for (const overSid of overSids) {
+              let underSids = seniorIds.filter(sId => sauCounts[sId] < 2).sort((a, b) => sauCounts[a] - sauCounts[b]);
+              if (sauCounts[overSid] > 3) {
+                underSids = [...underSids, ...seniorIds.filter(sId => sauCounts[sId] === 2)];
+              }
+              // 1. Échange direct sur la même demi-journée
+              for (const underSid of underSids) {
+                for (const dIso of activeIsos) {
+                  if (dIso === "2026-11-02") continue;
+                  const byInt = st.schedule[dIso].byInterne;
+                  for (const h of ["am", "pm"]) {
+                    const otherH = h === "am" ? "pm" : "am";
+                    if (custom[dIso + "__" + overSid] && custom[dIso + "__" + overSid][h]) continue;
+                    if (custom[dIso + "__" + underSid] && custom[dIso + "__" + underSid][h]) continue;
+                    if (!byInt[overSid] || byInt[overSid][h] !== "TDM SAU") continue;
+                    const otherP = byInt[underSid] ? byInt[underSid][h] : "";
+                    if (!otherP || nonActivePostes.includes(otherP) || otherP === "TDM SAU") continue;
+                    if (isSamePosteDayJs(otherP, byInt[overSid][otherH]) || isSamePosteDayJs("TDM SAU", byInt[underSid][otherH])) continue;
+                    if (h === "pm" && otherP === "IRM" && countWeekIrmPmJs(overSid) >= 1) continue;
+                    const nk = h === "am" ? "noteAm" : "notePm";
+                    const otherNote = byInt[underSid][nk] || "";
+                    byInt[overSid][h] = otherP;
+                    byInt[overSid][nk] = otherNote;
+                    byInt[underSid][h] = "TDM SAU";
+                    byInt[underSid][nk] = "";
+                    swappedSau = true;
+                    break;
+                  }
+                  if (swappedSau) break;
+                }
+                if (swappedSau) break;
+              }
+              if (swappedSau) break;
+
+              // 2. Échange en 2 étapes via un senior intermédiaire (midSid)
+              for (const underSid of underSids) {
+                for (const midSid of seniorIds) {
+                  if (midSid === overSid || midSid === underSid) continue;
+                  let step1 = null;
+                  for (const dIso of activeIsos) {
+                    if (dIso === "2026-11-02") continue;
+                    const byInt = st.schedule[dIso].byInterne;
+                    for (const h of ["am", "pm"]) {
+                      const otherH = h === "am" ? "pm" : "am";
+                      if (custom[dIso + "__" + overSid] && custom[dIso + "__" + overSid][h]) continue;
+                      if (custom[dIso + "__" + midSid] && custom[dIso + "__" + midSid][h]) continue;
+                      if (byInt[overSid] && byInt[overSid][h] === "TDM SAU" && byInt[midSid] && !nonActivePostes.includes(byInt[midSid][h]) && byInt[midSid][h] !== "TDM SAU") {
+                        const pMid = byInt[midSid][h];
+                        if (isSamePosteDayJs(pMid, byInt[overSid][otherH]) || isSamePosteDayJs("TDM SAU", byInt[midSid][otherH])) continue;
+                        if (h === "pm" && pMid === "IRM" && countWeekIrmPmJs(overSid) >= 1) continue;
+                        step1 = [dIso, h];
+                        break;
+                      }
+                    }
+                    if (step1) break;
+                  }
+                  if (!step1) continue;
+                  let step2 = null;
+                  for (const dIso of activeIsos) {
+                    if (dIso === "2026-11-02") continue;
+                    const byInt = st.schedule[dIso].byInterne;
+                    for (const h of ["am", "pm"]) {
+                      if (dIso === step1[0] && h === step1[1]) continue;
+                      const otherH = h === "am" ? "pm" : "am";
+                      if (custom[dIso + "__" + midSid] && custom[dIso + "__" + midSid][h]) continue;
+                      if (custom[dIso + "__" + underSid] && custom[dIso + "__" + underSid][h]) continue;
+                      if (byInt[midSid] && byInt[midSid][h] === "TDM SAU" && byInt[underSid] && !nonActivePostes.includes(byInt[underSid][h]) && byInt[underSid][h] !== "TDM SAU") {
+                        const pUnd = byInt[underSid][h];
+                        if (isSamePosteDayJs(pUnd, byInt[midSid][otherH]) || isSamePosteDayJs("TDM SAU", byInt[underSid][otherH])) continue;
+                        if (h === "pm" && pUnd === "IRM" && countWeekIrmPmJs(midSid) >= 1) continue;
+                        step2 = [dIso, h];
+                        break;
+                      }
+                    }
+                    if (step2) break;
+                  }
+                  if (step1 && step2) {
+                    const [d1, h1] = step1;
+                    const nk1 = h1 === "am" ? "noteAm" : "notePm";
+                    const by1 = st.schedule[d1].byInterne;
+                    const p1 = by1[midSid][h1], n1 = by1[midSid][nk1] || "";
+                    by1[overSid][h1] = p1;
+                    by1[overSid][nk1] = n1;
+                    by1[midSid][h1] = "TDM SAU";
+                    by1[midSid][nk1] = "";
+
+                    const [d2, h2] = step2;
+                    const nk2 = h2 === "am" ? "noteAm" : "notePm";
+                    const by2 = st.schedule[d2].byInterne;
+                    const p2 = by2[underSid][h2], n2 = by2[underSid][nk2] || "";
+                    by2[midSid][h2] = p2;
+                    by2[midSid][nk2] = n2;
+                    by2[underSid][h2] = "TDM SAU";
+                    by2[underSid][nk2] = "";
+                    swappedSau = true;
+                    break;
+                  }
+                }
+                if (swappedSau) break;
+              }
+              if (swappedSau) break;
+            }
+            if (!swappedSau) break;
+          }
+
+          // 2B-ter. Règle des IRM d'après-midi : maximum 1 IRM PM par semaine par interne (sauf exception)
+          const allIidsJs = (st.internes || []).map(x => x.id);
+          for (let iterIrm = 0; iterIrm < 20; iterIrm++) {
+            const irmCounts = {};
+            allIidsJs.forEach(id => { irmCounts[id] = countWeekIrmPmJs(id); });
+            const overIrmIds = allIidsJs.filter(id => irmCounts[id] > 1);
+            if (!overIrmIds.length) break;
+            let swappedIrm = false;
+            for (const overId of overIrmIds) {
+              const zeroIrmIds = allIidsJs.filter(id => irmCounts[id] === 0 && id !== overId);
+              for (const dIso of activeIsos) {
+                if (dIso === "2026-11-02") continue;
+                if (custom[dIso + "__" + overId] && custom[dIso + "__" + overId].pm) continue;
+                const byInt = st.schedule[dIso].byInterne;
+                if (!byInt[overId] || byInt[overId].pm !== "IRM") continue;
+                for (const candId of zeroIrmIds) {
+                  if (custom[dIso + "__" + candId] && custom[dIso + "__" + candId].pm) continue;
+                  if (!byInt[candId]) continue;
+                  const candPm = byInt[candId].pm;
+                  if (!candPm || nonActivePostes.includes(candPm) || candPm === "IRM") continue;
+                  if (candPm === "TDM SAU" && (candId === "noe" || overId === "noe" || countWeekSauJs(overId) >= 2)) continue;
+                  if (isSamePosteDayJs(byInt[overId].am, candPm) || isSamePosteDayJs(byInt[candId].am, "IRM")) continue;
+                  const nOver = byInt[overId].notePm || "";
+                  const nCand = byInt[candId].notePm || "";
+                  byInt[overId].pm = candPm;
+                  byInt[overId].notePm = nCand;
+                  byInt[candId].pm = "IRM";
+                  byInt[candId].notePm = nOver;
+                  swappedIrm = true;
+                  break;
+                }
+                if (swappedIrm) break;
+              }
+              if (swappedIrm) break;
+            }
+            if (!swappedIrm) break;
+          }
+
+          // 2B-quater. Règle stricte : un interne ne peut pas faire le même poste toute la journée (am !== pm)
+          for (let iterSame = 0; iterSame < 25; iterSame++) {
+            let fixedSame = false;
+            for (const dIso of activeIsos) {
+              const byInt = st.schedule[dIso].byInterne;
+              for (const iid of allIidsJs) {
+                const sl = byInt[iid];
+                if (!sl || !isSamePosteDayJs(sl.am, sl.pm)) continue;
+                for (const h of ["pm", "am"]) {
+                  if (dIso === "2026-11-02" && h === "am") continue;
+                  if (custom[dIso + "__" + iid] && custom[dIso + "__" + iid][h]) continue;
+                  const otherH = h === "am" ? "pm" : "am";
+                  const curP = sl[h];
+                  const swapPool = seniorIds.includes(iid) ? seniorIds : allIidsJs;
+                  for (const otherId of swapPool) {
+                    if (otherId === iid) continue;
+                    if (custom[dIso + "__" + otherId] && custom[dIso + "__" + otherId][h]) continue;
+                    const oSl = byInt[otherId];
+                    if (!oSl) continue;
+                    const candP = oSl[h];
+                    if (!candP || nonActivePostes.includes(candP) || candP === curP) continue;
+                    if ((curP === "TDM SAU" || candP === "TDM SAU") && (iid === "noe" || otherId === "noe")) continue;
+                    if (isSamePosteDayJs(candP, sl[otherH]) || isSamePosteDayJs(curP, oSl[otherH])) continue;
+                    if (h === "pm" && candP === "IRM" && countWeekIrmPmJs(iid) >= 1) continue;
+                    if (h === "pm" && curP === "IRM" && countWeekIrmPmJs(otherId) >= 1) continue;
+                    const nk = h === "am" ? "noteAm" : "notePm";
+                    const n1 = sl[nk] || "";
+                    const n2 = oSl[nk] || "";
+                    sl[h] = candP;
+                    sl[nk] = n2;
+                    oSl[h] = curP;
+                    oSl[nk] = n1;
+                    fixedSame = true;
+                    break;
+                  }
+                  if (fixedSame) break;
+                }
+                if (fixedSame) break;
+              }
+              if (fixedSame) break;
+            }
+            if (!fixedSame) break;
+          }
         }
 
         // 2C. Mise à jour des notes de binôme de Noé (Phase Socle)
@@ -2972,7 +3205,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           casMardi: 0,
           biblioVendredi: 0,
           coursInternes: 0,
-          byModality: { TDM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, LECTURE_CS: 0 }
+          byModality: { TDM_SAU: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, LECTURE_CS: 0 }
         };
       });
 
@@ -2995,9 +3228,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (!stats[iid]) return;
           const isOver = Boolean(overrideSlot && overrideSlot.iso === iso && overrideSlot.iid === iid);
           const slots = isOver
-            ? [overrideSlot.am, overrideSlot.pm]
-            : [d.byInterne[iid].am, d.byInterne[iid].pm];
-          slots.forEach(p => {
+            ? [["am", overrideSlot.am], ["pm", overrideSlot.pm]]
+            : [["am", d.byInterne[iid].am], ["pm", d.byInterne[iid].pm]];
+          slots.forEach(([hKey, p]) => {
             const up = String(p || "").toUpperCase();
             if (up.includes("LIBRE")) {
               stats[iid].freeHalfDays++;
@@ -3007,9 +3240,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               stats[iid].rgHalfDays++;
             } else if (up !== "FÉRIÉ" && !up.includes("FORMATION")) {
               stats[iid].activeHalfDays++;
-              if (up.includes("IRM")) stats[iid].byModality.IRM++;
+              if (up.includes("IRM")) {
+                stats[iid].byModality.IRM++;
+                if (hKey === "pm") stats[iid].byModality.IRM_PM++;
+                else stats[iid].byModality.IRM_AM++;
+              }
               else if (up.includes("ECHO")) stats[iid].byModality.ECHO++;
-              else if (up.includes("GESTES") || up.includes("ACHARD") || up.includes("ALLURA")) stats[iid].byModality.RI_GESTES++;
+              else if (up.includes("ACHARD")) stats[iid].byModality.SCAN_ACHARD++;
+              else if (up.includes("OLLIER DIAG") || up.includes("OLLIER 3") || up === "TDM OLLIER" || up === "SCAN OLLIER") {
+                stats[iid].byModality.TDM_OLLIER++;
+                stats[iid].byModality.TDM++;
+              }
+              else if (up.includes("SAU") || up.includes("OLLIER 4")) {
+                stats[iid].byModality.TDM_SAU++;
+                stats[iid].byModality.TDM++;
+              }
+              else if (up.includes("GESTES") || up.includes("ALLURA")) stats[iid].byModality.RI_GESTES++;
               else if (up.includes("LECTURE") || up.includes("CS")) stats[iid].byModality.LECTURE_CS++;
               else stats[iid].byModality.TDM++;
             }
@@ -3037,6 +3283,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           weekVac: 0,
           weekOff: 0,
           weekOffSlots: [],
+          weekSau: 0,
+          weekAchard: 0,
+          weekOllier: 0,
+          weekIrmAm: 0,
+          weekIrmPm: 0,
+          sauTarget: i.isSocle ? 3 : 2,
           weekCongesHalf: 0,
           weekRgHalf: 0
         };
@@ -3064,6 +3316,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               weekStats[iid].weekRgHalf++;
             } else if (up !== "FÉRIÉ") {
               weekStats[iid].weekVac++;
+              if (up.includes("SAU") || up.includes("OLLIER 4")) weekStats[iid].weekSau++;
+              else if (up.includes("ACHARD")) weekStats[iid].weekAchard++;
+              else if (up.includes("OLLIER DIAG") || up.includes("OLLIER 3") || up === "TDM OLLIER") weekStats[iid].weekOllier++;
+              else if (up.includes("IRM")) {
+                if (hKey === "pm") weekStats[iid].weekIrmPm++;
+                else weekStats[iid].weekIrmAm++;
+              }
             }
           });
         });
@@ -3083,7 +3342,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       let cardsHtml = "";
       STATE.internes.forEach(i => {
-        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekCongesHalf: 0, weekRgHalf: 0 };
+        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, weekIrmPm: 0, sauTarget: i.isSocle ? 3 : 2, weekCongesHalf: 0, weekRgHalf: 0 };
         const absHalf = w.weekCongesHalf + w.weekRgHalf;
         const isFullWeekAbs = absHalf >= 8;
 
@@ -3096,6 +3355,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           offPillClass = "off-warn";
           cardQuotaClass = "warn-quota";
         }
+        const sauPillClass = w.weekSau > w.sauTarget ? "off-warn" : "off-ok";
+        const irmPmPillClass = w.weekIrmPm > 1 ? "off-warn" : "off-ok";
 
         const slotParts = [];
         if (w.weekOffSlots.length > 0) slotParts.push(`Off : ${w.weekOffSlots.join(" • ")}`);
@@ -3114,6 +3375,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
               <div class="chef-offvac-badges">
                 <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
+                <span class="offvac-pill ${sauPillClass}" title="Quota Scanner SAU : ${w.sauTarget} / semaine (plus exceptionnellement)">${w.weekSau}/${w.sauTarget} SAU</span>
+                <span class="offvac-pill ${irmPmPillClass}" title="Quota IRM d'après-midi : max 1 / semaine (sauf exception)">${w.weekIrmPm}/1 IRM PM</span>
                 <span class="offvac-pill vac-count">${w.weekVac}v</span>
               </div>
             </div>
@@ -4128,6 +4391,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!source || !target) return;
 
       const srcInterne = getInterneById(source.interneId);
+      const nonActList = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
 
       // Si on dépose directement sur un autre interne (ou si on échange deux internes, même jour ou autre jour)
       if (target.targetInterneId && (target.targetInterneId !== source.interneId || target.dIso !== source.dIso || target.periodKey !== source.periodKey)) {
@@ -4151,6 +4415,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           selectedForMove = null;
           renderAll();
           return;
+        }
+
+        // Vérifier qu'aucun des deux internes ne se retrouve avec le même poste toute la journée (Matin == Après-midi)
+        if (!(source.interneId === target.targetInterneId && source.dIso === target.dIso)) {
+          const srcOtherPeriod = source.periodKey === "am" ? "pm" : "am";
+          const tgtOtherPeriod = target.periodKey === "am" ? "pm" : "am";
+          const srcOtherPoste = srcDayObj && srcDayObj.byInterne && srcDayObj.byInterne[source.interneId]
+            ? srcDayObj.byInterne[source.interneId][srcOtherPeriod]
+            : "";
+          const tgtOtherPoste = tgtDayObj && tgtDayObj.byInterne && tgtDayObj.byInterne[target.targetInterneId]
+            ? tgtDayObj.byInterne[target.targetInterneId][tgtOtherPeriod]
+            : "";
+          if (!nonActList.includes(tgtPoste) && tgtPoste === srcOtherPoste) {
+            showToast(`⛔ Règle : ${srcInterne.shortName} ne peut pas faire le même poste toute la journée (${tgtPoste}).`);
+            selectedForMove = null;
+            renderAll();
+            return;
+          }
+          if (!nonActList.includes(srcPoste) && srcPoste === tgtOtherPoste) {
+            showToast(`⛔ Règle : ${tgtInterne.shortName} ne peut pas faire le même poste toute la journée (${srcPoste}).`);
+            selectedForMove = null;
+            renderAll();
+            return;
+          }
         }
 
         pushChefHistorySnapshot();
@@ -4185,8 +4473,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
 
-      pushChefHistorySnapshot();
       const daySlotsMove = (STATE.schedule[source.dIso] && STATE.schedule[source.dIso].byInterne) || {};
+      const otherPeriodMove = source.periodKey === "am" ? "pm" : "am";
+      const myOtherPoste = daySlotsMove[source.interneId] ? daySlotsMove[source.interneId][otherPeriodMove] : "";
+      if (!nonActList.includes(target.toPoste) && target.toPoste === myOtherPoste) {
+        showToast(`⛔ Règle : ${srcInterne.shortName} ne peut pas faire le même poste toute la journée (${target.toPoste}).`);
+        selectedForMove = null;
+        renderAll();
+        return;
+      }
+
+      pushChefHistorySnapshot();
       const seniorListMove = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
       if (source.fromPoste === "TDM SAU" && target.toPoste !== "TDM SAU" && seniorListMove.includes(source.interneId)) {
         const otherSauSeniors = seniorListMove.filter(sId => sId !== source.interneId && daySlotsMove[sId] && daySlotsMove[sId][source.periodKey] === "TDM SAU");
@@ -4453,12 +4750,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="avatar-sm" style="background:#0284C7">6</div>
             <div>
               <div class="summary-title">Tous les internes & DJ (6)</div>
-              <div class="summary-sub">Oussama Docteur Junior (DJ) • Noé en Phase Socle (systématiquement avec un co-interne au TDM SAU, ~50 % SAU)</div>
+              <div class="summary-sub">2 SAU / sem. par interne (3 pour Noé en binôme) • Plus exceptionnellement • Scanners séparés (SAU, Achard, Ollier)</div>
             </div>
           </div>
           <div class="summary-stats">
             <span>Moyenne : <strong>${avgVac}</strong> postes</span>
-            <span>Demi-offs : <strong>max 2 / sem.</strong></span>
+            <span>SAU : <strong>2/sem. (Noé 3)</strong></span>
+            <span>Demi-offs : <strong>2 / sem.</strong></span>
           </div>
         `;
         return;
@@ -4895,9 +5193,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         { label: "GESTES (C)", chefMatch: ["GESTES"], intMatch: ["GESTES (C)"], defaultPosteAm: "GESTES (C)", defaultPostePm: "GESTES (C)" },
         { label: "TDM SAU", chefMatch: ["SAU", "OLLIER 4"], intMatch: ["TDM SAU"], defaultPosteAm: "TDM SAU", defaultPostePm: "TDM SAU" },
         { label: "SCAN ACHARD", chefMatch: ["ACHARD"], intMatch: ["SCAN ACHARD"], defaultPosteAm: "SCAN ACHARD", defaultPostePm: "SCAN ACHARD" },
+        { label: "TDM OLLIER", chefMatch: ["OLLIER 3"], intMatch: ["TDM OLLIER DIAG"], defaultPosteAm: "TDM OLLIER DIAG", defaultPostePm: "TDM OLLIER DIAG" },
         { label: "ALLURA", chefMatch: ["ALLURA"], intMatch: ["ALLURA"], defaultPosteAm: "ALLURA", defaultPostePm: "ALLURA" },
         { label: "IRM", chefMatch: ["IRM"], intMatch: ["IRM 3T", "IRM 1,5T", "IRM"], defaultPosteAm: "IRM 3T", defaultPostePm: "IRM" },
-        { label: "TDM OLLIER", chefMatch: ["OLLIER 3"], intMatch: ["TDM OLLIER DIAG"], defaultPosteAm: "TDM OLLIER DIAG", defaultPostePm: "TDM OLLIER DIAG" },
         { label: "CONSULT / LECTURE", chefMatch: ["CONSULT", "UCSA"], intMatch: ["LECTURE/CS"], defaultPosteAm: "LECTURE/CS", defaultPostePm: "LECTURE/CS" },
         { label: "DEMI-OFF", chefMatch: ["LIBRE"], intMatch: ["1/2 journée libre"], defaultPosteAm: "1/2 journée libre", defaultPostePm: "1/2 journée libre" },
         { label: "REPOS DE GARDE (RG)", chefMatch: [], intMatch: ["RG"], defaultPosteAm: "RG", defaultPostePm: "RG", onlyIfPresent: true }
@@ -5017,8 +5315,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function renderWeekPlanningView(monIso) {
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
-      const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "SCAN ACHARD", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
-      const postesPm = ["GESTES (C)", "TDM OLLIER DIAG", "TDM SAU", "IRM", "ECHO", "ALLURA", "SCAN ACHARD", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
+      const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
+      const postesPm = ["GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "ECHO", "ALLURA", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
       const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
       const blocking = inChefSpace ? computeBlockingDays(STATE) : { byDate: {}, list: [] };
 
@@ -5518,9 +5816,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       STATE.internes.forEach(i => {
         if (isSingleInterneSelected && !isChefPlanningMode && i.id !== selectedInterneId) return;
         const s = statsAll[i.id];
-        const w = weekStatsAll[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [] };
+        const w = weekStatsAll[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, weekIrmPm: 0, sauTarget: (i.isSocle || i.id === "noe") ? 3 : 2 };
         const isDJ = Boolean(i.isDJ || i.id === "oussama");
         const offClass = w.weekOff > 2 ? "off-danger" : (w.weekOff < 2 ? "off-warn" : "off-ok");
+        const sauTarget = w.sauTarget || ((i.isSocle || i.id === "noe") ? 3 : 2);
+        const sauClass = w.weekSau > sauTarget ? "off-warn" : (w.weekSau === sauTarget ? "off-ok" : "vac-count");
+        const irmPmClass = (w.weekIrmPm || 0) > 1 ? "off-warn" : ((w.weekIrmPm || 0) === 1 ? "off-ok" : "vac-count");
         rows += `
           <tr>
             <td style="font-weight:700;">
@@ -5533,11 +5834,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <span class="offvac-pill ${offClass}">${w.weekOff}/2 Off</span>
               ${w.weekOffSlots.length ? `<div style="font-size:10px; color:#64748B; margin-top:2px;">${w.weekOffSlots.join(" • ")}</div>` : ""}
             </td>
+            <td><span class="offvac-pill ${sauClass}">${w.weekSau}/${sauTarget} SAU</span></td>
+            <td><span class="offvac-pill ${irmPmClass}">${w.weekIrmPm || 0}/1 IRM PM</span></td>
             <td><span class="offvac-pill vac-count">${w.weekVac} vac.</span></td>
             <td><strong>${s.activeHalfDays}</strong></td>
             <td><strong>${s.freeHalfDays}</strong></td>
-            <td>${s.byModality.TDM}</td>
-            <td>${s.byModality.IRM}</td>
+            <td><strong>${s.byModality.TDM_SAU || 0}</strong></td>
+            <td>${s.byModality.SCAN_ACHARD || 0}</td>
+            <td>${s.byModality.TDM_OLLIER || 0}</td>
+            <td>${s.byModality.IRM_AM || 0}</td>
+            <td><strong>${s.byModality.IRM_PM || 0}</strong></td>
             <td>${s.byModality.ECHO}</td>
             <td>${s.byModality.RI_GESTES}</td>
             <td>${s.byModality.LECTURE_CS}</td>
@@ -5552,7 +5858,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return `
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Répartition des Offs, Vacations & Gardes (Semaine & Semestre)</div>
+            <div class="card-title">Répartition des Offs, Scanners (SAU / Achard / Ollier), IRM (Matin / PM), Vacations & Gardes</div>
             <button class="btn btn-sm" onclick="toggleStatsTable()">Masquer</button>
           </div>
           <div class="week-table-wrap">
@@ -5561,11 +5867,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <tr>
                   <th>Interne / DJ</th>
                   <th>Offs (Sem.)</th>
+                  <th>SAU (Sem.)</th>
+                  <th>IRM PM (Sem.)</th>
                   <th>Vac. (Sem.)</th>
                   <th>Total Vac. (Semestre)</th>
                   <th>Total Demi-offs</th>
-                  <th>TDM</th>
-                  <th>IRM</th>
+                  <th>Scan SAU</th>
+                  <th>Scan Achard</th>
+                  <th>Scan Ollier</th>
+                  <th>IRM Mat.</th>
+                  <th>IRM PM</th>
                   <th>Écho</th>
                   <th>Gestes</th>
                   <th>CS</th>
@@ -6415,23 +6726,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const overrideSlot = { iso, iid, am, pm };
       const weekStats = computeWeekStatsByInterne(monIso, overrideSlot);
       const semStats = computeStatsByInterne(overrideSlot);
-      const w = weekStats[iid] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekCongesHalf: 0, weekRgHalf: 0 };
-      const s = semStats[iid] || { activeHalfDays: 0, freeHalfDays: 0, vacHalfDays: 0, rgHalfDays: 0 };
+      const w = weekStats[iid] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekCongesHalf: 0, weekRgHalf: 0, weekSau: 0, sauTarget: (iObj.isSocle || iid === "noe") ? 3 : 2 };
+      const s = semStats[iid] || { activeHalfDays: 0, freeHalfDays: 0, vacHalfDays: 0, rgHalfDays: 0, byModality: {} };
 
       const [yy, mm, dd] = iso.split("-").map(Number);
       const jsDay = new Date(yy, mm - 1, dd).getDay();
+      const nonActList = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
+      const samePosteAllDay = Boolean(am && pm && !nonActList.includes(am) && !nonActList.includes(pm) && am === pm);
       const forbiddenPmOff = (jsDay === 2 || jsDay === 5) && pm === "1/2 journée libre";
       const overOffQuota = w.weekOff > 2;
       const offPillClass = overOffQuota ? "off-danger" : (w.weekOff < 2 ? "off-warn" : "off-ok");
+      const sauTarget = w.sauTarget || ((iObj.isSocle || iid === "noe") ? 3 : 2);
+      const sauPillClass = w.weekSau > sauTarget ? "off-warn" : (w.weekSau === sauTarget ? "off-ok" : "vac-count");
+      const irmPmPillClass = (w.weekIrmPm || 0) > 1 ? "off-warn" : ((w.weekIrmPm || 0) === 1 ? "off-ok" : "vac-count");
 
       const otherChips = STATE.internes.map(other => {
-        const ow = weekStats[other.id] || { weekVac: 0, weekOff: 0 };
+        const ow = weekStats[other.id] || { weekVac: 0, weekOff: 0, weekSau: 0, weekIrmPm: 0, sauTarget: (other.isSocle || other.id === "noe") ? 3 : 2 };
         const os = semStats[other.id] || { activeHalfDays: 0, freeHalfDays: 0 };
         const isCur = other.id === iid;
-        const oClass = ow.weekOff > 2 ? "off-danger" : (ow.weekOff < 2 ? "off-warn" : "off-ok");
+        const oSauTarget = ow.sauTarget || ((other.isSocle || other.id === "noe") ? 3 : 2);
         return `<span onclick="document.getElementById('vacEditInterneId').value='${other.id}'; refreshVacationModalFields();" style="display:inline-flex; align-items:center; gap:3px; padding:2px 6px; border-radius:6px; font-size:10.5px; cursor:pointer; border:1px solid ${isCur ? '#0284C7' : '#CBD5E1'}; background:${isCur ? '#E0F2FE' : '#FFFFFF'}; font-weight:${isCur ? '800' : '600'};" title="Semestre : ${os.activeHalfDays} vac • ${os.freeHalfDays} off">
           <span style="width:6px;height:6px;border-radius:50%;background:${other.color};display:inline-block;"></span>
-          ${other.shortName}: <strong>${ow.weekOff}/2 off</strong> • ${ow.weekVac}v <span style="color:#64748B; font-size:9.5px;">(${os.activeHalfDays}v/${os.freeHalfDays}o)</span>
+          ${other.shortName}: <strong>${ow.weekOff}/2 off</strong> • <strong>${ow.weekSau}/${oSauTarget} SAU</strong> • <strong>${ow.weekIrmPm || 0}/1 IRM PM</strong> • ${ow.weekVac}v
         </span>`;
       }).join(" ");
 
@@ -6441,6 +6757,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <strong style="color:#0F172A; font-size:12px;">📊 Bilan ${iObj.shortName} (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</strong>
           <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
             <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
+            <span class="offvac-pill ${sauPillClass}">${w.weekSau}/${sauTarget} SAU</span>
+            <span class="offvac-pill ${irmPmPillClass}">${w.weekIrmPm || 0}/1 IRM PM</span>
             <span class="offvac-pill vac-count">${w.weekVac} Vac. sem.</span>
             ${w.weekCongesHalf > 0 ? `<span class="offvac-pill conges-count">${w.weekCongesHalf / 2}j Cong.</span>` : ""}
             ${w.weekRgHalf > 0 ? `<span class="offvac-pill off-danger">${w.weekRgHalf / 2}j RG</span>` : ""}
@@ -6450,10 +6768,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <strong>Créneaux Off cette semaine :</strong> ${w.weekOffSlots.length ? w.weekOffSlots.join(" • ") : "Aucun demi-off"}
         </div>
         <div style="font-size:11px; color:#475569; margin-bottom:6px;">
-          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. travaillées • <strong>${s.freeHalfDays}</strong> demi-offs • <strong>${Math.round(s.vacHalfDays / 2)}j</strong> congés • <strong>${Math.round((s.rgHalfDays || 0) / 2)}j</strong> RG
+          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. (SAU: <strong>${(s.byModality && s.byModality.TDM_SAU) || 0}</strong> • Achard: <strong>${(s.byModality && s.byModality.SCAN_ACHARD) || 0}</strong> • Ollier: <strong>${(s.byModality && s.byModality.TDM_OLLIER) || 0}</strong> • IRM Mat: <strong>${(s.byModality && s.byModality.IRM_AM) || 0}</strong> • IRM PM: <strong>${(s.byModality && s.byModality.IRM_PM) || 0}</strong>) • <strong>${s.freeHalfDays}</strong> demi-offs
         </div>
+        ${samePosteAllDay ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).</div>` : ""}
         ${forbiddenPmOff ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.</div>` : ""}
         ${overOffQuota ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⚠️ Attention : ${w.weekOff} demi-offs sur cette semaine (max 2 autorisés).</div>` : ""}
+        ${(w.weekIrmPm || 0) > 1 ? `<div style="font-size:11px; color:#B45309; font-weight:800; margin-bottom:5px;">⚠️ Quota IRM d'après-midi dépassé : ${w.weekIrmPm}/1 IRM PM cette semaine (acceptable uniquement à titre exceptionnel).</div>` : ""}
+        ${w.weekSau > sauTarget ? `<div style="font-size:11px; color:#B45309; font-weight:800; margin-bottom:5px;">⚠️ Quota SAU dépassé : ${w.weekSau}/${sauTarget} TDM SAU cette semaine (acceptable uniquement à titre exceptionnel).</div>` : ""}
         <div style="border-top:1px dashed #CBD5E1; padding-top:5px; margin-top:4px;">
           <div style="font-size:10px; font-weight:700; color:#64748B; margin-bottom:3px;">COMPARATIF DES 6 INTERNES (SEMAINE & SEMESTRE) :</div>
           <div style="display:flex; flex-wrap:wrap; gap:4px;">${otherChips}</div>
@@ -6474,6 +6795,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
 
+      // Vérification stricte : un interne ne peut pas faire le même poste toute la journée (Matin == Après-midi)
+      const nonActSave = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
+      if (am && pm && !nonActSave.includes(am) && !nonActSave.includes(pm) && am === pm) {
+        alert(`Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).`);
+        return;
+      }
+
       // Vérification stricte : pas de demi-off le mardi après-midi ni le vendredi après-midi
       const [yyV, mmV, ddV] = iso.split("-").map(Number);
       const jsDayV = new Date(yyV, mmV - 1, ddV).getDay();
@@ -6482,24 +6810,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
 
-      // Vérification stricte : maximum 2 demi-offs ('1/2 journée libre') par semaine par interne
+      // Vérification stricte : maximum 2 demi-offs ('1/2 journée libre') par semaine par interne + max 1 IRM PM / semaine (sauf exception)
       let weekDemiOffs = 0;
+      let weekIrmPmCnt = 0;
       for (let d = 0; d < 5; d++) {
         const curIso = addDaysIso(monIso, d);
         if (curIso === iso) {
           if (am === "1/2 journée libre") weekDemiOffs++;
           if (pm === "1/2 journée libre") weekDemiOffs++;
+          if (pm === "IRM") weekIrmPmCnt++;
         } else {
           const dayObj = STATE.schedule[curIso];
           if (dayObj && !dayObj.holiday && dayObj.byInterne && dayObj.byInterne[iid]) {
             if (dayObj.byInterne[iid].am === "1/2 journée libre") weekDemiOffs++;
             if (dayObj.byInterne[iid].pm === "1/2 journée libre") weekDemiOffs++;
+            if (dayObj.byInterne[iid].pm === "IRM") weekIrmPmCnt++;
           }
         }
       }
       if (weekDemiOffs > 2) {
         alert(`Règle du service : 2 demi-offs par semaine maximum par interne (${weekDemiOffs} demi-offs sur cette semaine).`);
         return;
+      }
+      if (weekIrmPmCnt > 1 && pm === "IRM") {
+        const okIrm = confirm(`Règle du service : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (${weekIrmPmCnt} IRM PM sur cette semaine). Confirmer cette affectation à titre exceptionnel ?`);
+        if (!okIrm) return;
       }
 
       if (!STATE.customVacations) STATE.customVacations = {};

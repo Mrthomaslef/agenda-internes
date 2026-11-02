@@ -272,15 +272,15 @@ CHEFS_LIST = [
 
 # Postes officiels de la trame des internes de Radiologie B (Cochin) avec horaires officiels
 POSTES_META = [
-    {"code": "TDM SAU", "label": "TDM SAU (Scanner des U — Ollier 4)", "cat": "tdm", "color": "#D97706", "horaire": "08h00 – 18h30", "horaireAm": "08h00 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "TDM SAU", "label": "Scanner SAU (TDM SAU — Ollier 4)", "cat": "tdm_sau", "color": "#D97706", "horaire": "08h00 – 18h30", "horaireAm": "08h00 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "SCAN ACHARD", "label": "Scanner Achard (TDM Achard 1)", "cat": "scan_achard", "color": "#DB2777", "horaire": "08h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "TDM OLLIER DIAG", "label": "Scanner Ollier (TDM Ollier 3 Diag)", "cat": "tdm_ollier", "color": "#0284C7", "horaire": "08h30 – 18h00", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h00"},
     {"code": "IRM 3T", "label": "IRM 3T (dès 07h45)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
     {"code": "IRM 1,5T", "label": "IRM 1,5T (dès 07h45)", "cat": "irm", "color": "#6D28D9", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
-    {"code": "IRM", "label": "IRM (Matin 07h45 / Après-midi)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "IRM", "label": "IRM Après-midi (13h30 – 18h30)", "cat": "irm", "color": "#7C3AED", "horaire": "13h30 – 18h30", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
     {"code": "ECHO", "label": "Échographie Ostéo-Articulaire (dès 09h00)", "cat": "echo", "color": "#0D9488", "horaire": "Dès 09h00", "horaireAm": "09h00 – 13h00", "horairePm": "13h30 – 18h00"},
     {"code": "GESTES (C)", "label": "Poste C / Gestes Interventionnels (dès 09h00)", "cat": "gestes", "color": "#E11D48", "horaire": "Dès 09h00", "horaireAm": "09h00 – 13h00", "horairePm": "13h30 – 18h00"},
-    {"code": "SCAN ACHARD", "label": "Scanner Achard 1 (Interventionnel)", "cat": "gestes", "color": "#DB2777", "horaire": "08h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
     {"code": "ALLURA", "label": "Salle Allura (Vasculaire / Os)", "cat": "gestes", "color": "#BE123C", "horaire": "13h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
-    {"code": "TDM OLLIER DIAG", "label": "TDM Ollier Diag (Ollier 3)", "cat": "tdm", "color": "#0284C7", "horaire": "08h30 – 18h00", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h00"},
     {"code": "LECTURE/CS", "label": "Consultation Internes / Relecture Pr Drapé (Mardi PM & Vendredi PM)", "cat": "cs", "color": "#2563EB", "horaire": "13h30 – 18h00 (Mardi PM : Relecture Pr Drapé • Vendredi PM : CS)", "horaireAm": "—", "horairePm": "13h30 – 18h00"},
     {"code": "FORMATION / ACCUEIL", "label": "Accueil & Formation obligatoire des nouveaux arrivants (08h15 – 12h00)", "cat": "cs", "color": "#0284C7", "horaire": "08h15 – 12h00", "horaireAm": "08h15 – 12h00", "horairePm": "—"},
     {"code": "1/2 journée libre", "label": "Demi-off (1/2 journée libre)", "cat": "off", "color": "#64748B", "horaire": "Demi-journée libre", "horaireAm": "Demi-off matin", "horairePm": "Demi-off après-midi"},
@@ -362,25 +362,23 @@ def build_balanced_trame() -> dict:
     """
     Construit la trame hebdomadaire officielle calée sur la base envoyée par le Dr Hippolyte MONNIER
     pour le lundi 2 novembre 2026 après-midi :
-      - R0 (Gabriel en S1) : Lundi PM = TDM OLLIER DIAG (TDM3)
+      - R0 (Gabriel en S1) : Lundi PM = TDM OLLIER DIAG (Scanner Ollier 3)
       - R1 (Marwane en S1) : Lundi PM = IRM (avec Pr A. Feydy)
       - R2 (Milan en S1)   : Lundi PM = ECHO (US avec Dr H. Monnier)
       - R3 (Nathanaël en S1): Lundi PM = TDM SAU (au U le 02/11 PM, puis demi-off les lundis suivants)
       - R4 (Oussama en S1) : Lundi PM = GESTES (C) (ou 1/2 journée libre si Poste C fermé)
-    - 5 rôles tournants (R0..R4) pour les 5 internes DES hors socle (Gabriel, Marwane, Milan, Nathanaël, Oussama)
-      avec 8 vacations actives + 2 demi-offs ('1/2 journée libre') par semaine chacun :
+    - Séparation stricte des 3 scanners :
+      * TDM SAU (Scanner des Urgences — Ollier 4)
+      * SCAN ACHARD (Scanner Achard 1 — Diagnostique & Interventionnel)
+      * TDM OLLIER DIAG (Scanner Ollier 3 — Diagnostique ostéo-articulaire)
+    - Quota hebdomadaire de TDM SAU :
+      * 2 TDM SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama),
+        et 3 uniquement à titre exceptionnel (en cas de congés / RG multiples la même semaine).
+      * 3 TDM SAU par semaine pour Noé GRANDVAL ('noe', Phase Socle, toujours en binôme avec un co-interne senior),
+        et plus uniquement à titre exceptionnel.
+    - 2 demi-offs ('1/2 journée libre') par semaine chacun :
       * Consultation ('LECTURE/CS') pour les internes UNIQUEMENT le Mardi après-midi et le Vendredi après-midi.
       * Relecture avec Pr Jean-Luc DRAPÉ le Mardi après-midi SYSTÉMATIQUE sur le créneau LECTURE/CS.
-      * Autres créneaux non obligatoires si les demi-offs ne sont pas suffisants pour garantir 2 demi-offs / semaine.
-    - 1 trame spécifique Phase Socle pour Noé GRANDVAL ('noe') :
-      * Posté principalement au Scanner des Urgences ('TDM SAU') avec un ratio équilibré (~50-55 % de ses vacations actives,
-        soit 4 à 4,5 demi-journées / semaine posté au TDM SAU) et le reste réparti sur IRM (3T / 1,5T), Échographie,
-        TDM Ollier Diag (TDM3) et Consultation du vendredi après-midi.
-      * Lundi 02/11 après-midi : en binôme avec Gabriel en TDM OLLIER DIAG (TDM3) selon le planning de Dr H. Monnier,
-        puis posté en alternance au TDM SAU et en TDM OLLIER DIAG les lundis après-midi suivants.
-      * Le Mardi matin des 3 premières semaines (03/11, 10/11, 17/11), Noé est posté avec Dr Macil HAMADOUCHE (MH)
-        au TDM SAU (Urgences Ollier 4), puis alterne 1 semaine sur 2 entre TDM SAU (avec MH) et IRM 1,5T.
-      * 2 demi-offs ('1/2 journée libre') par semaine (Mardi après-midi et Jeudi après-midi).
     """
     weekly_roles = {
         0: {  # LUNDI (calé sur la base du Dr H. Monnier du 02/11 après-midi : TDM3, IRM, US/ECHO, U/TDM SAU, GESTES C)
@@ -390,15 +388,15 @@ def build_balanced_trame() -> dict:
                 2: "GESTES (C)",
                 3: "ECHO",
                 4: "TDM SAU",
-                "socle": "TDM SAU",  # Posté au TDM SAU en binôme
+                "socle": "TDM SAU",  # TDM SAU n°1 de Noé (en binôme)
             },
             "pm": {
-                0: "TDM OLLIER DIAG",  # S1: Gabriel en TDM3 (avec Noé le 02/11 PM, puis alterne TDM3 / TDM SAU)
+                0: "TDM OLLIER DIAG",  # S1: Gabriel en Scanner Ollier 3 (TDM3)
                 1: "IRM",              # S1: Marwane en IRM (avec Pr A. Feydy)
                 2: "ECHO",             # S1: Milan en US / Écho (avec Dr H. Monnier)
                 3: "1/2 journée libre",# S1: Nathanaël au U le 02/11 PM, puis demi-off les lundis suivants
                 4: "GESTES (C)",       # S1: Oussama (Poste C fermé le 02/11 PM -> 1/2 journée libre)
-                "socle": "TDM SAU",    # Posté au TDM SAU (1 sem/2) ou TDM OLLIER DIAG (1 sem/2, et binôme TDM3 le 02/11 PM)
+                "socle": "TDM OLLIER DIAG",  # Scanner Ollier 3 (TDM3)
             },
         },
         1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi PM : pas de demi-off, Relecture systématique avec Pr Drapé)
@@ -408,8 +406,8 @@ def build_balanced_trame() -> dict:
                 2: "ECHO",
                 3: "GESTES (C)",
                 4: "IRM 1,5T",
-                "socle_w1_3": "TDM SAU",  # 3 premières semaines : posté avec Dr Macil HAMADOUCHE (MH) au TDM SAU (en binôme)
-                "socle_after": "IRM 1,5T",  # Ensuite : alterne 1 sem/2 IRM 1,5T (en binôme) et 1 sem/2 TDM SAU (avec MH, en binôme)
+                "socle_w1_3": "TDM SAU",  # TDM SAU n°2 de Noé avec Dr Macil HAMADOUCHE (MH) en binôme
+                "socle_after": "TDM SAU",
             },
             "pm": {
                 0: "SCAN ACHARD",
@@ -417,7 +415,7 @@ def build_balanced_trame() -> dict:
                 2: "GESTES (C)",
                 3: "LECTURE/CS",  # Relecture avec Pr Drapé (systématique)
                 4: "TDM SAU",
-                "socle": "TDM SAU",  # Posté Socle Urgences en binôme (pas de demi-off le mardi après-midi)
+                "socle": "SCAN ACHARD",  # Scanner Achard ou Écho (pas de demi-off le mardi après-midi)
             },
         },
         2: {  # MERCREDI
@@ -425,7 +423,7 @@ def build_balanced_trame() -> dict:
                 0: "IRM 1,5T",
                 1: "IRM 3T",
                 2: "1/2 journée libre",
-                3: "GESTES (C)",
+                3: "TDM OLLIER DIAG",
                 4: "TDM SAU",
                 "socle": "1/2 journée libre",  # Demi-off n°1 de Noé
             },
@@ -445,7 +443,7 @@ def build_balanced_trame() -> dict:
                 2: "TDM SAU",
                 3: "GESTES (C)",
                 4: "1/2 journée libre",
-                "socle": "TDM SAU",  # Posté au TDM SAU avec Dr Macil HAMADOUCHE (MH) en binôme avec co-interne
+                "socle": "TDM SAU",  # TDM SAU n°3 de Noé avec Dr Macil HAMADOUCHE (MH) en binôme
             },
             "pm": {
                 0: "ALLURA",
@@ -467,11 +465,11 @@ def build_balanced_trame() -> dict:
             },
             "pm": {
                 0: "IRM",
-                1: "GESTES (C)",
-                2: "TDM SAU",
+                1: "TDM SAU",
+                2: "SCAN ACHARD",
                 3: "LECTURE/CS",  # Consultation du vendredi après-midi (avec Dr Macil HAMADOUCHE / Internes)
-                4: "SCAN ACHARD",
-                "socle": "TDM SAU",  # Posté Socle Urgences en binôme avec co-interne (pas de demi-off le vendredi après-midi)
+                4: "GESTES (C)",
+                "socle": "LECTURE/CS",  # Consultation Internes / Scanner Achard le vendredi après-midi (TDM SAU en S1)
             },
         },
     }
@@ -842,25 +840,25 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "ECHO",
                     "GESTES (C)",
                 ],
-                1: [  # Mardi AM (4 seniors actifs : Gabriel demi-off fixe) — Obligatoires : TDM SAU, GESTES (C), IRM 3T (+ IRM 1,5T, ECHO, SCAN ACHARD)
+                1: [  # Mardi AM (4 seniors actifs : Gabriel demi-off fixe) — Obligatoires : TDM SAU, GESTES (C), IRM 3T (+ SCAN ACHARD, IRM 1,5T, ECHO)
                     "TDM SAU",
                     "GESTES (C)",
                     "IRM 3T",
-                    "IRM 1,5T" if (week_idx < 3 or week_idx % 2 == 0) else "SCAN ACHARD",
+                    "SCAN ACHARD" if (week_idx % 2 == 1) else "IRM 1,5T",
                     "ECHO",
                 ],
-                2: [  # Mercredi AM (3 seniors actifs : 2 demi-offs) — Obligatoires : TDM SAU, IRM 3T, IRM 1,5T (+ GESTES C)
+                2: [  # Mercredi AM (3 seniors actifs : 2 demi-offs) — Obligatoires : TDM SAU, IRM 3T, IRM 1,5T (+ TDM OLLIER DIAG, GESTES C)
                     "TDM SAU",
                     "IRM 3T",
                     "IRM 1,5T",
+                    "TDM OLLIER DIAG",
                     "GESTES (C)",
                 ],
-                3: [  # Jeudi AM (4 seniors actifs : Marwane demi-off fixe) — Obligatoires : TDM SAU, ECHO, GESTES (C) (+ SCAN ACHARD, TDM OLLIER DIAG)
+                3: [  # Jeudi AM (4 seniors actifs : Marwane demi-off fixe) — Obligatoires : TDM SAU, ECHO, GESTES (C) (+ SCAN ACHARD)
                     "TDM SAU",
                     "ECHO",
                     "GESTES (C)",
                     "SCAN ACHARD",
-                    "TDM OLLIER DIAG",
                 ],
                 4: [  # Vendredi AM (4 seniors actifs, Noé en IRM 3T) — Obligatoires : TDM SAU, IRM 3T (+ ECHO, GESTES C, IRM 1,5T)
                     "TDM SAU",
@@ -870,9 +868,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 ],
             }
             pm_pools_w2 = {
-                0: [  # Lundi PM (4 seniors actifs : 1 demi-off) — Obligatoires : TDM SAU, IRM (+ ECHO, GESTES C)
+                0: [  # Lundi PM (4 seniors actifs : 1 demi-off) — Obligatoires : TDM SAU, IRM (+ TDM OLLIER DIAG, ECHO, GESTES C)
                     "TDM SAU",
                     "IRM",
+                    "TDM OLLIER DIAG",
                     "ECHO",
                     "GESTES (C)",
                 ],
@@ -921,7 +920,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             pool_am = am_pools_w2[wd]
             used_am_turn = set()
             for idx_a, iid in enumerate(active_am_seniors):
-                rot_am = [pool_am[(idx_a + week_idx + k) % len(pool_am)] for k in range(len(pool_am))]
+                rot_am = [pool_am[(idx_a + week_idx + (week_idx // 2) + wd * 2 + k) % len(pool_am)] for k in range(len(pool_am))]
                 chosen_am = next((p for p in rot_am if p not in used_am_turn), rot_am[0])
                 used_am_turn.add(chosen_am)
                 by_interne[iid]["am"] = chosen_am
@@ -940,7 +939,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             pool_pm = pm_pools_w2[wd]
             used_pm_turn = set()
             for idx_p, iid in enumerate(active_pm_seniors):
-                rot_pm = [pool_pm[(idx_p + week_idx + k) % len(pool_pm)] for k in range(len(pool_pm))]
+                rot_pm = [pool_pm[(idx_p + week_idx + (week_idx // 2) + wd * 2 + 1 + k) % len(pool_pm)] for k in range(len(pool_pm))]
                 chosen_pm = next((p for p in rot_pm if p not in used_pm_turn), rot_pm[0])
                 used_pm_turn.add(chosen_pm)
                 by_interne[iid]["pm"] = chosen_pm
@@ -953,30 +952,46 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if not by_interne[iid]["note"]:
                     by_interne[iid]["note"] = by_interne[iid]["noteAm"] or by_interne[iid]["notePm"]
 
-        # 2. Attribution pour Noé (Phase Socle — systématiquement avec un co-interne au TDM SAU)
-        if wd == 1:  # Mardi matin : 3 premières semaines (week_idx 0, 1, 2 -> 03/11, 10/11, 17/11) posté avec Macil (MH) au TDM SAU
-            if week_idx < 3:
-                noe_am = "TDM SAU"
-                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
+        # 2. Attribution pour Noé (Phase Socle — 3 TDM SAU / semaine, systématiquement en binôme avec un co-interne au TDM SAU)
+        #    En S1 (week_idx == 0, lundi matin = Formation), les 3 TDM SAU de Noé sont : Mardi AM, Jeudi AM, Vendredi PM.
+        #    À partir de S2 (week_idx >= 1), les 3 TDM SAU de Noé sont : Lundi AM, Mardi AM (avec Dr M. Hamadouche) et Jeudi AM (avec Dr M. Hamadouche).
+        if wd == 0:
+            noe_am = "TDM SAU"
+            noe_note_am = "Posté Socle Urgences"
+            if week_idx % 3 == 0:
+                noe_pm = "TDM OLLIER DIAG"
+                noe_note_pm = "Scanner Ollier 3 (TDM3)"
+            elif week_idx % 3 == 1:
+                noe_pm = "ECHO"
+                noe_note_pm = "Échographie (Phase Socle)"
             else:
-                noe_am = "IRM 1,5T" if (week_idx % 2 == 1) else "TDM SAU"
-                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences" if noe_am == "TDM SAU" else "Phase Socle"
+                noe_pm = "GESTES (C)"
+                noe_note_pm = "Salle C — Gestes (Phase Socle)"
+        elif wd == 1:
+            noe_am = "TDM SAU"
+            noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
+            noe_pm = "SCAN ACHARD" if (week_idx % 2 == 0) else "ECHO"
+            noe_note_pm = "Scanner Achard 1" if noe_pm == "SCAN ACHARD" else "Échographie"
+        elif wd == 2:
+            noe_am = "1/2 journée libre"
+            noe_note_am = "Demi-off hebdomadaire"
+            noe_pm = "ECHO"
+            noe_note_pm = "Échographie (avec Dr Mihoubi)"
         elif wd == 3:
-            noe_am = day_roles["am"]["socle"]
-            noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences" if noe_am == "TDM SAU" else ""
-        elif wd == 4:
+            noe_am = "TDM SAU"
+            noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
+            noe_pm = "1/2 journée libre"
+            noe_note_pm = "Demi-off hebdomadaire"
+        else:  # wd == 4 (Vendredi)
             noe_am = "IRM 3T"
             noe_note_am = "IRM 3T (Vendredi matin)"
-        else:
-            noe_am = day_roles["am"]["socle"]
-            noe_note_am = "Posté Socle Urgences" if noe_am == "TDM SAU" else ""
+            if week_idx == 0:
+                noe_pm = "TDM SAU"
+                noe_note_pm = "Posté Socle Urgences"
+            else:
+                noe_pm = "LECTURE/CS" if (week_idx % 2 == 1) else "SCAN ACHARD"
+                noe_note_pm = "Consultation Internes (Vendredi PM)" if noe_pm == "LECTURE/CS" else "Scanner Achard 1"
 
-        if wd == 0:  # Lundi après-midi (hors 02/11) : alterne 1 sem/2 TDM SAU et 1 sem/2 TDM OLLIER DIAG
-            noe_pm = "TDM OLLIER DIAG" if (week_idx % 2 == 0) else "TDM SAU"
-            noe_note_pm = "Posté Socle Urgences" if noe_pm == "TDM SAU" else "Phase Socle (TDM3)"
-        else:
-            noe_pm = day_roles["pm"]["socle"]
-            noe_note_pm = "Posté Socle Urgences" if noe_pm == "TDM SAU" else ""
         by_interne["noe"] = {
             "am": noe_am,
             "pm": noe_pm,
@@ -1019,7 +1034,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if not has_sau:
                 nk_sau = "noteAm" if h_sau == "am" else "notePm"
                 ph_sau_set = get_ph_interne_postes_for_halfday(chefs_day, h_sau, wd, iso)
-                all_donors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM"]
+                all_donors = ["ALLURA", "GESTES (C)", "ECHO", "IRM 1,5T", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 3T", "IRM"]
                 donor_order = [d for d in all_donors if d not in ph_sau_set] + [d for d in all_donors if d in ph_sau_set]
                 for donor_poste in donor_order:
                     replaced_sau = False
@@ -1067,7 +1082,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if p not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL") and p not in closed_map:
                     used_by_seniors.add(p)
 
-            base_fallbacks = ["SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "TDM OLLIER DIAG", "ALLURA"]
+            base_fallbacks = ["TDM OLLIER DIAG", "SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "ALLURA"]
             if half == "pm" and wd in (1, 4):
                 base_fallbacks.insert(0, "LECTURE/CS")
             no_interne_thevenin_nov = (half == "am" and wd == 2 and iso.startswith("2026-11"))
@@ -1117,14 +1132,29 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
             noe_p = by_interne["noe"][half]
             if noe_p not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
-                if noe_p in closed_map:
-                    status_lbl = closed_map[noe_p]
-                    by_interne["noe"][half] = "TDM SAU"
-                    by_interne["noe"][note_key] = f"{noe_p} {status_lbl.lower()} → TDM SAU"
-                    by_interne["noe"]["note"] = by_interne["noe"][note_key]
-                elif noe_p != "TDM SAU" and noe_p in used_by_seniors:
-                    by_interne["noe"][half] = "TDM SAU"
-                    by_interne["noe"][note_key] = "Posté Socle Urgences"
+                if noe_p in closed_map or (noe_p != "TDM SAU" and noe_p in used_by_seniors):
+                    noe_cands = ["TDM OLLIER DIAG", "SCAN ACHARD", "ECHO", "IRM 1,5T", "IRM 3T", "IRM", "GESTES (C)"]
+                    if half == "pm" and wd in (1, 4):
+                        noe_cands.insert(2, "LECTURE/CS")
+                    if no_interne_thevenin_nov:
+                        noe_cands = [c for c in noe_cands if c != "ECHO"]
+                    reassigned_noe = None
+                    for cand in noe_cands:
+                        if cand in open_set and cand not in closed_map and cand not in used_by_seniors:
+                            reassigned_noe = cand
+                            break
+                    if reassigned_noe:
+                        by_interne["noe"][half] = reassigned_noe
+                        by_interne["noe"][note_key] = f"Phase Socle ({reassigned_noe})"
+                    elif noe_p in closed_map:
+                        status_lbl = closed_map[noe_p]
+                        by_interne["noe"][half] = "TDM SAU"
+                        by_interne["noe"][note_key] = f"{noe_p} {status_lbl.lower()} → TDM SAU"
+                    else:
+                        by_interne["noe"][half] = "TDM SAU"
+                        by_interne["noe"][note_key] = "Posté Socle Urgences"
+                    if not by_interne["noe"]["note"]:
+                        by_interne["noe"]["note"] = by_interne["noe"][note_key]
 
         schedule[iso] = {
             "holiday": None,
@@ -1152,7 +1182,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             for st in day_obj["byInterne"].values()
             if st[half_key] not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ")
         }
-        base_cands = ["SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "TDM OLLIER DIAG", "ALLURA"]
+        base_cands = ["TDM OLLIER DIAG", "SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "ALLURA"]
         if half_key == "pm" and wd_cur in (1, 4):
             base_cands.insert(0, "LECTURE/CS")
         if half_key == "am" and wd_cur == 2 and day_iso.startswith("2026-11"):
@@ -1164,11 +1194,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
     non_active_codes = ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL")
     non_mandatory_priority = [
         "ALLURA",
-        "TDM OLLIER DIAG",
-        "IRM 1,5T",
-        "SCAN ACHARD",
         "GESTES (C)",
         "ECHO",
+        "IRM 1,5T",
+        "SCAN ACHARD",
+        "TDM OLLIER DIAG",
         "IRM 3T",
         "IRM",
         "LECTURE/CS",
@@ -1176,6 +1206,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
     # Suivi du solde de demi-offs à reporter sur les semaines suivantes (carry-over)
     carry_over_offs: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    # Suivi cumulé des IRM d'après-midi sur le semestre pour équilibrer entre internes
+    total_irm_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
 
     for w_idx, iso_list in sorted(weeks_map.items()):
         active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
@@ -1327,9 +1359,16 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                 fixed = True
                                 break
                             elif iid != "noe":
+                                noe_sau_w = sum(
+                                    1
+                                    for d_chk in active_isos
+                                    for h_chk in ("am", "pm")
+                                    if schedule[d_chk]["byInterne"]["noe"][h_chk] == "TDM SAU"
+                                )
                                 noe_st = schedule[d_iso]["byInterne"]["noe"]
                                 noe_p = noe_st[h]
-                                if noe_p not in non_active_codes and noe_p != "TDM SAU":
+                                other_h_n = "pm" if h == "am" else "am"
+                                if noe_sau_w < 3 and noe_p not in non_active_codes and noe_p != "TDM SAU" and noe_st[other_h_n] != "TDM SAU":
                                     nk = "noteAm" if h == "am" else "notePm"
                                     st[h] = noe_p
                                     st[nk] = ""
@@ -1502,7 +1541,590 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             new_debt = carry_over_offs[iid] + (2 - final_off_cnt)
             carry_over_offs[iid] = max(0, new_debt)
 
-        # 5C. Mise à jour des notes de binôme de Noé (Phase Socle)
+        # 5B-bis. QUOTAS HEBDOMADAIRES & RÈGLES DE VARIÉTÉ DES POSTES :
+        #   1. TDM SAU : 2 SAU/semaine pour chacun des 5 internes seniors, 3 SAU/semaine pour Noé (Phase Socle)
+        #   2. IRM d'après-midi ("IRM" en PM) séparée des IRM du matin : max 1 IRM d'après-midi par semaine par interne (sauf exception)
+        #   3. Variété sur la journée : un interne ne peut JAMAIS faire le même poste toute la journée (am != pm)
+        def count_week_sau(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "TDM SAU"
+            )
+
+        def count_week_irm_pm(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if schedule[d_chk]["byInterne"][interne_id]["pm"] == "IRM"
+            )
+
+        def is_same_poste_am_pm(p_am: str, p_pm: str, avoid_irm_both: bool = True) -> bool:
+            if p_am in non_active_codes or p_pm in non_active_codes:
+                return False
+            if p_am == p_pm:
+                return True
+            if avoid_irm_both and ("IRM" in p_am and "IRM" in p_pm):
+                return True
+            return False
+
+        # A) Éviter les doublons de seniors au TDM SAU sur la même demi-journée
+        for d_iso in active_isos:
+            for h in ("am", "pm"):
+                if d_iso == "2026-11-02" and h == "am":
+                    continue
+                by_int = schedule[d_iso]["byInterne"]
+                sau_sids = [s_id for s_id in senior_interne_ids if by_int[s_id][h] == "TDM SAU"]
+                while len(sau_sids) > 1:
+                    avail = get_available_open_postes(d_iso, h)
+                    if not avail:
+                        break
+                    sau_sids.sort(key=lambda x: count_week_sau(x), reverse=True)
+                    move_sid = sau_sids[0]
+                    other_h = "pm" if h == "am" else "am"
+                    other_p = by_int[move_sid][other_h]
+                    # Choisir un poste ouvert qui ne crée pas de doublon matin/après-midi ni >1 IRM PM/semaine
+                    valid_avail = [
+                        c for c in avail
+                        if not is_same_poste_am_pm(c, other_p)
+                        and not (h == "pm" and c == "IRM" and count_week_irm_pm(move_sid) >= 1)
+                    ]
+                    if not valid_avail:
+                        valid_avail = [c for c in avail if c != other_p] or avail
+                    nk = "noteAm" if h == "am" else "notePm"
+                    by_int[move_sid][h] = valid_avail[0]
+                    by_int[move_sid][nk] = ""
+                    sau_sids.pop(0)
+
+        # B) Équilibrer les TDM SAU entre les 5 internes seniors : cible = 2 TDM SAU / semaine (max 3 exceptionnellement)
+        for _ in range(35):
+            sau_counts = {s_id: count_week_sau(s_id) for s_id in senior_interne_ids}
+            over_sids = [s_id for s_id, c in sau_counts.items() if c > 2]
+            if not over_sids:
+                break
+            over_sids.sort(key=lambda x: sau_counts[x], reverse=True)
+            swapped_sau = False
+
+            for over_sid in over_sids:
+                under_sids = sorted(
+                    [s_id for s_id in senior_interne_ids if sau_counts[s_id] < 2],
+                    key=lambda x: sau_counts[x],
+                )
+                if sau_counts[over_sid] > 3:
+                    under_sids += [s_id for s_id in senior_interne_ids if sau_counts[s_id] == 2]
+
+                # 1. Échange direct sur la même demi-journée (en évitant de créer le même poste matin/PM)
+                for strict_mode in (True, False):
+                    for under_sid in under_sids:
+                        for d_iso in active_isos:
+                            if d_iso == "2026-11-02":
+                                continue
+                            for h in ("am", "pm"):
+                                other_h = "pm" if h == "am" else "am"
+                                by_int = schedule[d_iso]["byInterne"]
+                                if by_int[over_sid][h] != "TDM SAU":
+                                    continue
+                                other_p = by_int[under_sid][h]
+                                if other_p in non_active_codes or other_p == "TDM SAU":
+                                    continue
+                                if is_same_poste_am_pm(other_p, by_int[over_sid][other_h], avoid_irm_both=strict_mode):
+                                    continue
+                                if is_same_poste_am_pm("TDM SAU", by_int[under_sid][other_h], avoid_irm_both=strict_mode):
+                                    continue
+                                if strict_mode and h == "pm" and other_p == "IRM" and count_week_irm_pm(over_sid) >= 1:
+                                    continue
+                                nk = "noteAm" if h == "am" else "notePm"
+                                other_note = by_int[under_sid].get(nk, "")
+                                by_int[over_sid][h] = other_p
+                                by_int[over_sid][nk] = other_note
+                                by_int[under_sid][h] = "TDM SAU"
+                                by_int[under_sid][nk] = ""
+                                swapped_sau = True
+                                break
+                            if swapped_sau:
+                                break
+                        if swapped_sau:
+                            break
+                    if swapped_sau:
+                        break
+                if swapped_sau:
+                    break
+
+                # 2. Échange en 2 étapes via un senior intermédiaire (mid_sid)
+                for strict_mode in (True, False):
+                    for under_sid in under_sids:
+                        for mid_sid in senior_interne_ids:
+                            if mid_sid in (over_sid, under_sid):
+                                continue
+                            step1_slot = None
+                            for d_iso in active_isos:
+                                if d_iso == "2026-11-02":
+                                    continue
+                                for h in ("am", "pm"):
+                                    other_h = "pm" if h == "am" else "am"
+                                    by_int = schedule[d_iso]["byInterne"]
+                                    p_mid = by_int[mid_sid][h]
+                                    if by_int[over_sid][h] == "TDM SAU" and p_mid not in non_active_codes and p_mid != "TDM SAU":
+                                        if is_same_poste_am_pm(p_mid, by_int[over_sid][other_h], avoid_irm_both=strict_mode):
+                                            continue
+                                        if is_same_poste_am_pm("TDM SAU", by_int[mid_sid][other_h], avoid_irm_both=strict_mode):
+                                            continue
+                                        if strict_mode and h == "pm" and p_mid == "IRM" and count_week_irm_pm(over_sid) >= 1:
+                                            continue
+                                        step1_slot = (d_iso, h)
+                                        break
+                                if step1_slot:
+                                    break
+                            if not step1_slot:
+                                continue
+                            step2_slot = None
+                            for d_iso in active_isos:
+                                if d_iso == "2026-11-02":
+                                    continue
+                                for h in ("am", "pm"):
+                                    if (d_iso, h) == step1_slot:
+                                        continue
+                                    other_h = "pm" if h == "am" else "am"
+                                    by_int = schedule[d_iso]["byInterne"]
+                                    p_und = by_int[under_sid][h]
+                                    if by_int[mid_sid][h] == "TDM SAU" and p_und not in non_active_codes and p_und != "TDM SAU":
+                                        if is_same_poste_am_pm(p_und, by_int[mid_sid][other_h], avoid_irm_both=strict_mode):
+                                            continue
+                                        if is_same_poste_am_pm("TDM SAU", by_int[under_sid][other_h], avoid_irm_both=strict_mode):
+                                            continue
+                                        if strict_mode and h == "pm" and p_und == "IRM" and count_week_irm_pm(mid_sid) >= 1:
+                                            continue
+                                        step2_slot = (d_iso, h)
+                                        break
+                                if step2_slot:
+                                    break
+                            if step1_slot and step2_slot:
+                                d1, h1 = step1_slot
+                                nk1 = "noteAm" if h1 == "am" else "notePm"
+                                by1 = schedule[d1]["byInterne"]
+                                p1, n1 = by1[mid_sid][h1], by1[mid_sid].get(nk1, "")
+                                by1[over_sid][h1] = p1
+                                by1[over_sid][nk1] = n1
+                                by1[mid_sid][h1] = "TDM SAU"
+                                by1[mid_sid][nk1] = ""
+
+                                d2, h2 = step2_slot
+                                nk2 = "noteAm" if h2 == "am" else "notePm"
+                                by2 = schedule[d2]["byInterne"]
+                                p2, n2 = by2[under_sid][h2], by2[under_sid].get(nk2, "")
+                                by2[mid_sid][h2] = p2
+                                by2[mid_sid][nk2] = n2
+                                by2[under_sid][h2] = "TDM SAU"
+                                by2[under_sid][nk2] = ""
+                                swapped_sau = True
+                                break
+                        if swapped_sau:
+                            break
+                    if swapped_sau:
+                        break
+                if swapped_sau:
+                    break
+            if not swapped_sau:
+                break
+
+        # C) Quota hebdomadaire de TDM SAU pour Noé (Phase Socle) : cible = 3 TDM SAU / semaine (jamais matin ET après-midi le même jour)
+        while count_week_sau("noe") > 3 or any(
+            schedule[d]["byInterne"]["noe"]["am"] == "TDM SAU" and schedule[d]["byInterne"]["noe"]["pm"] == "TDM SAU"
+            for d in active_isos
+        ):
+            noe_sau_slots = [
+                (d_iso, h)
+                for d_iso in active_isos
+                for h in ("am", "pm")
+                if schedule[d_iso]["byInterne"]["noe"][h] == "TDM SAU"
+            ]
+            def noe_slot_drop_priority(slot: tuple[str, str]) -> int:
+                d_s, h_s = slot
+                wd_s = datetime.date.fromisoformat(d_s).weekday()
+                other_h_s = "pm" if h_s == "am" else "am"
+                if schedule[d_s]["byInterne"]["noe"][other_h_s] == "TDM SAU":
+                    return -2 if h_s == "pm" else -1  # Retirer en priorité le PM si Noé a TDM SAU matin ET après-midi le même jour
+                if h_s == "am" and wd_s in (1, 3):
+                    return 3   # Garder en priorité Mardi AM et Jeudi AM avec MH
+                if h_s == "am" and wd_s == 0:
+                    return 2   # Garder Lundi AM
+                return 0
+
+            noe_sau_slots.sort(key=noe_slot_drop_priority)
+            reduced_noe = False
+            for d_iso, h in noe_sau_slots:
+                other_h = "pm" if h == "am" else "am"
+                other_p_noe = schedule[d_iso]["byInterne"]["noe"][other_h]
+                avail = get_available_open_postes(d_iso, h)
+                avail_filtered = [
+                    p for p in avail
+                    if not is_same_poste_am_pm(p, other_p_noe)
+                    and not (h == "pm" and p == "IRM" and count_week_irm_pm("noe") >= 1)
+                ]
+                if not avail_filtered:
+                    avail_filtered = [p for p in avail if p != other_p_noe]
+                avail_sorted = sorted(
+                    avail_filtered,
+                    key=lambda p: 0 if p == "TDM OLLIER DIAG" else (1 if p == "SCAN ACHARD" else 2),
+                )
+                if avail_sorted:
+                    nk = "noteAm" if h == "am" else "notePm"
+                    new_p = avail_sorted[0]
+                    schedule[d_iso]["byInterne"]["noe"][h] = new_p
+                    schedule[d_iso]["byInterne"]["noe"][nk] = f"Phase Socle ({new_p})"
+                    reduced_noe = True
+                    break
+                wd_s = datetime.date.fromisoformat(d_iso).weekday()
+                if h == "pm" and wd_s in (1, 4):
+                    nk = "noteAm" if h == "am" else "notePm"
+                    by_int = schedule[d_iso]["byInterne"]
+                    swapped_achard = False
+                    for s_id in senior_interne_ids:
+                        if by_int[s_id][h] == "SCAN ACHARD" and other_p_noe != "SCAN ACHARD" and by_int[s_id]["am"] != "LECTURE/CS":
+                            by_int["noe"][h] = "SCAN ACHARD"
+                            by_int["noe"][nk] = "Scanner Achard 1"
+                            by_int[s_id][h] = "LECTURE/CS"
+                            by_int[s_id][nk] = "Relecture avec Pr Drapé" if wd_s == 1 else "Consultation Internes (Vendredi PM)"
+                            swapped_achard = True
+                            break
+                    if not swapped_achard and other_p_noe != "LECTURE/CS":
+                        by_int["noe"][h] = "LECTURE/CS"
+                        by_int["noe"][nk] = "Relecture avec Pr Drapé" if wd_s == 1 else "Consultation Internes (Vendredi PM)"
+                        swapped_achard = True
+                    if swapped_achard:
+                        reduced_noe = True
+                        break
+                # Si les 5 seniors occupent tous les postes ouverts sur cette demi-journée, Noé (Phase Socle)
+                # va en binôme sur un poste diagnostique ouvert (SCAN ACHARD, TDM OLLIER DIAG, ECHO) différent de son autre demi-journée
+                ch_day_s = (chefs_planning or {}).get(d_iso, {})
+                open_set_s = get_open_interne_postes_for_halfday(ch_day_s, h, wd_s)
+                closed_s = {c["poste"] for c in (schedule[d_iso]["closedAm"] if h == "am" else schedule[d_iso]["closedPm"])}
+                binome_cands = ["SCAN ACHARD", "TDM OLLIER DIAG", "ECHO", "IRM 1,5T", "IRM 3T", "IRM"]
+                if h == "am" and wd_s == 2 and d_iso.startswith("2026-11"):
+                    binome_cands = [c for c in binome_cands if c != "ECHO"]
+                binome_valid = [
+                    c for c in binome_cands
+                    if c in open_set_s and c not in closed_s
+                    and not is_same_poste_am_pm(c, other_p_noe)
+                    and not (h == "pm" and c == "IRM" and count_week_irm_pm("noe") >= 1)
+                ]
+                if not binome_valid:
+                    binome_valid = [c for c in binome_cands if c in open_set_s and c not in closed_s and c != other_p_noe]
+                if binome_valid:
+                    nk = "noteAm" if h == "am" else "notePm"
+                    new_p = binome_valid[0]
+                    schedule[d_iso]["byInterne"]["noe"][h] = new_p
+                    schedule[d_iso]["byInterne"]["noe"][nk] = f"Phase Socle ({new_p})"
+                    reduced_noe = True
+                    break
+            if not reduced_noe:
+                break
+
+        noe_active_halfdays = sum(
+            1
+            for d_iso in active_isos
+            for h in ("am", "pm")
+            if schedule[d_iso]["byInterne"]["noe"][h] not in non_active_codes
+        )
+        noe_target_sau = min(3, noe_active_halfdays)
+        while count_week_sau("noe") < noe_target_sau:
+            added_noe = False
+            for d_iso in active_isos:
+                if d_iso == "2026-11-02":
+                    continue
+                wd_cur = datetime.date.fromisoformat(d_iso).weekday()
+                ch_day = (chefs_planning or {}).get(d_iso, {})
+                by_int = schedule[d_iso]["byInterne"]
+                for h in ("am", "pm"):
+                    other_h = "pm" if h == "am" else "am"
+                    noe_p = by_int["noe"][h]
+                    if noe_p in non_active_codes or noe_p == "TDM SAU":
+                        continue
+                    if by_int["noe"][other_h] == "TDM SAU":
+                        continue
+                    if not any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids):
+                        continue
+                    ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
+                    if noe_p in ph_set:
+                        # Si un autre interne couvre déjà noe_p ou si un poste ouvert permet à un senior de reprendre noe_p, autoriser
+                        other_covers = any(by_int[s_id][h] == noe_p for s_id in senior_interne_ids)
+                        if not other_covers:
+                            continue
+                    nk = "noteAm" if h == "am" else "notePm"
+                    by_int["noe"][h] = "TDM SAU"
+                    by_int["noe"][nk] = "Posté Socle Urgences"
+                    added_noe = True
+                    break
+                if added_noe:
+                    break
+            if not added_noe:
+                break
+
+        # D) RÈGLE DES IRM D'APRÈS-MIDI ("IRM" en PM) :
+        #    - Les IRM d'après-midi sont séparées des IRM du matin (IRM 3T / IRM 1,5T)
+        #    - Maximum 1 IRM d'après-midi par semaine par interne (sauf exception en cas d'absences/RG multiples)
+        for _ in range(30):
+            irm_pm_counts = {iid: count_week_irm_pm(iid) for iid in all_interne_ids}
+            over_irm = [iid for iid, c in irm_pm_counts.items() if c > 1]
+            if not over_irm:
+                break
+            over_irm.sort(key=lambda x: (irm_pm_counts[x], total_irm_pm_counts[x]), reverse=True)
+            fixed_irm = False
+
+            for over_id in over_irm:
+                irm_days = [
+                    d_iso for d_iso in active_isos
+                    if schedule[d_iso]["byInterne"][over_id]["pm"] == "IRM" and d_iso != "2026-11-02"
+                ]
+                # Déplacer en priorité un jour où l'interne faisait déjà une IRM le matin
+                irm_days.sort(key=lambda d: 0 if "IRM" in schedule[d]["byInterne"][over_id]["am"] else 1)
+
+                for d_iso in irm_days:
+                    by_int = schedule[d_iso]["byInterne"]
+                    wd_cur = datetime.date.fromisoformat(d_iso).weekday()
+                    ch_day = (chefs_planning or {}).get(d_iso, {})
+                    ph_pm = get_ph_interne_postes_for_halfday(ch_day, "pm", wd_cur, d_iso)
+
+                    # Cas 1 : si "IRM" n'est pas obligatoire ce jour-là (ex: Vendredi PM), remplacer par un poste ouvert
+                    if "IRM" not in ph_pm:
+                        avail = [
+                            c for c in get_available_open_postes(d_iso, "pm")
+                            if c != "IRM" and not is_same_poste_am_pm(by_int[over_id]["am"], c)
+                        ]
+                        if avail:
+                            by_int[over_id]["pm"] = avail[0]
+                            by_int[over_id]["notePm"] = ""
+                            fixed_irm = True
+                            break
+
+                    # Cas 2 : Échange direct le même après-midi avec un interne ayant 0 IRM PM cette semaine
+                    zero_irm_cands = sorted(
+                        [iid for iid in all_interne_ids if irm_pm_counts[iid] == 0 and iid != over_id],
+                        key=lambda x: (0 if x in senior_interne_ids else 1, total_irm_pm_counts[x]),
+                    )
+                    for strict_irm in (True, False):
+                        for cand_id in zero_irm_cands:
+                            cand_pm = by_int[cand_id]["pm"]
+                            if cand_pm in non_active_codes or cand_pm == "IRM":
+                                continue
+                            if cand_pm == "TDM SAU":
+                                if cand_id == "noe" or over_id == "noe":
+                                    continue
+                                if count_week_sau(over_id) >= 2:
+                                    continue
+                            if is_same_poste_am_pm(by_int[over_id]["am"], cand_pm, avoid_irm_both=strict_irm):
+                                continue
+                            if is_same_poste_am_pm(by_int[cand_id]["am"], "IRM", avoid_irm_both=strict_irm):
+                                continue
+                            cand_note = by_int[cand_id].get("notePm", "")
+                            over_note = by_int[over_id].get("notePm", "")
+                            by_int[over_id]["pm"] = cand_pm
+                            by_int[over_id]["notePm"] = cand_note
+                            by_int[cand_id]["pm"] = "IRM"
+                            by_int[cand_id]["notePm"] = over_note
+                            fixed_irm = True
+                            break
+                        if fixed_irm:
+                            break
+                    if fixed_irm:
+                        break
+                if fixed_irm:
+                    break
+            if not fixed_irm:
+                break
+
+        # E) RÈGLE STRICTE : UN INTERNE NE PEUT PAS FAIRE LE MÊME POSTE TOUTE LA JOURNÉE (am != pm)
+        #    Résolution multi-passes des conflits matin == après-midi (et IRM matin + IRM après-midi)
+        for pass_num in range(45):
+            avoid_irm_both_flag = (pass_num < 30)
+            resolved_conflict = False
+            for d_iso in active_isos:
+                by_int = schedule[d_iso]["byInterne"]
+                wd_cur = datetime.date.fromisoformat(d_iso).weekday()
+                ch_day = (chefs_planning or {}).get(d_iso, {})
+
+                for iid in all_interne_ids:
+                    p_am = by_int[iid]["am"]
+                    p_pm = by_int[iid]["pm"]
+                    if not is_same_poste_am_pm(p_am, p_pm, avoid_irm_both=avoid_irm_both_flag):
+                        continue
+
+                    # Tester une réaffectation ou un échange sur PM puis sur AM
+                    for h in ("pm", "am"):
+                        if d_iso == "2026-11-02" and h == "am":
+                            continue
+                        other_h = "am" if h == "pm" else "pm"
+                        cur_p = by_int[iid][h]
+                        other_p = by_int[iid][other_h]
+                        nk = "noteAm" if h == "am" else "notePm"
+                        ph_req = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
+
+                        # 1. Si le poste actuel n'est pas obligatoire (ou est doublonné), prendre un poste ouvert disponible
+                        if cur_p == "TDM SAU":
+                            is_duplicated_post = (
+                                iid in senior_interne_ids
+                                and sum(1 for s_id in senior_interne_ids if by_int[s_id][h] == "TDM SAU") > 1
+                            )
+                        else:
+                            is_duplicated_post = sum(1 for k_id in all_interne_ids if by_int[k_id][h] == cur_p) > 1
+                        if (cur_p != "TDM SAU" and cur_p not in ph_req) or is_duplicated_post:
+                            avail = [
+                                c for c in get_available_open_postes(d_iso, h)
+                                if not is_same_poste_am_pm(c, other_p, avoid_irm_both=avoid_irm_both_flag)
+                                and not (h == "pm" and c == "IRM" and count_week_irm_pm(iid) >= 1)
+                            ]
+                            if avail:
+                                by_int[iid][h] = avail[0]
+                                by_int[iid][nk] = f"Phase Socle ({avail[0]})" if iid == "noe" else ""
+                                resolved_conflict = True
+                                break
+
+                        # 2. Échange sur la même demi-journée avec un co-interne
+                        if d_iso == "2026-11-02" and h == "pm":
+                            continue
+                        swap_cands = senior_interne_ids if iid in senior_interne_ids else all_interne_ids
+                        for other_id in swap_cands:
+                            if other_id == iid:
+                                continue
+                            cand_p = by_int[other_id][h]
+                            if cand_p in non_active_codes or cand_p == cur_p:
+                                continue
+                            # Préserver les quotas de TDM SAU
+                            if cur_p == "TDM SAU" or cand_p == "TDM SAU":
+                                if "noe" in (iid, other_id):
+                                    continue
+                                # Si l'un des deux prend TDM SAU en plus, vérifier qu'on peut rééquilibrer avec un 2e échange dans la semaine
+                                giver_id = iid if cur_p == "TDM SAU" else other_id
+                                taker_id = other_id if cur_p == "TDM SAU" else iid
+                                if count_week_sau(taker_id) >= 2:
+                                    # Chercher un autre créneau de la semaine où taker_id est au TDM SAU et giver_id sur un autre poste
+                                    comp_slot = None
+                                    for d2 in active_isos:
+                                        if d2 == "2026-11-02":
+                                            continue
+                                        for h2 in ("am", "pm"):
+                                            if (d2, h2) == (d_iso, h):
+                                                continue
+                                            by2 = schedule[d2]["byInterne"]
+                                            if by2[taker_id][h2] == "TDM SAU" and by2[giver_id][h2] not in non_active_codes and by2[giver_id][h2] != "TDM SAU":
+                                                other_h2 = "am" if h2 == "pm" else "pm"
+                                                p_giv2 = by2[giver_id][h2]
+                                                if is_same_poste_am_pm(p_giv2, by2[taker_id][other_h2], avoid_irm_both=avoid_irm_both_flag):
+                                                    continue
+                                                if is_same_poste_am_pm("TDM SAU", by2[giver_id][other_h2], avoid_irm_both=avoid_irm_both_flag):
+                                                    continue
+                                                if h2 == "pm" and p_giv2 == "IRM" and count_week_irm_pm(taker_id) >= 1:
+                                                    continue
+                                                comp_slot = (d2, h2)
+                                                break
+                                        if comp_slot:
+                                            break
+                                    if not comp_slot:
+                                        continue
+                                    # Valider aussi le créneau (d_iso, h) avant d'appliquer le double échange
+                                    if is_same_poste_am_pm(cand_p, other_p, avoid_irm_both=avoid_irm_both_flag):
+                                        continue
+                                    if is_same_poste_am_pm(cur_p, by_int[other_id][other_h], avoid_irm_both=avoid_irm_both_flag):
+                                        continue
+                                    if h == "pm" and cand_p == "IRM" and count_week_irm_pm(iid) >= 1:
+                                        continue
+                                    if h == "pm" and cur_p == "IRM" and count_week_irm_pm(other_id) >= 1:
+                                        continue
+                                    # Appliquer l'échange sur (d_iso, h) + compensation sur comp_slot
+                                    n_iid = by_int[iid].get(nk, "")
+                                    n_oth = by_int[other_id].get(nk, "")
+                                    by_int[iid][h] = cand_p
+                                    by_int[iid][nk] = n_oth
+                                    by_int[other_id][h] = cur_p
+                                    by_int[other_id][nk] = n_iid
+
+                                    d2, h2 = comp_slot
+                                    nk2 = "noteAm" if h2 == "am" else "notePm"
+                                    by2 = schedule[d2]["byInterne"]
+                                    p_g2, n_g2 = by2[giver_id][h2], by2[giver_id].get(nk2, "")
+                                    by2[taker_id][h2] = p_g2
+                                    by2[taker_id][nk2] = n_g2
+                                    by2[giver_id][h2] = "TDM SAU"
+                                    by2[giver_id][nk2] = ""
+                                    resolved_conflict = True
+                                    break
+
+                            if is_same_poste_am_pm(cand_p, other_p, avoid_irm_both=avoid_irm_both_flag):
+                                continue
+                            if is_same_poste_am_pm(cur_p, by_int[other_id][other_h], avoid_irm_both=avoid_irm_both_flag):
+                                continue
+                            if h == "pm" and cand_p == "IRM" and cur_p != "IRM" and count_week_irm_pm(iid) >= 1:
+                                continue
+                            if h == "pm" and cur_p == "IRM" and cand_p != "IRM" and count_week_irm_pm(other_id) >= 1:
+                                continue
+
+                            n_iid = by_int[iid].get(nk, "")
+                            n_oth = by_int[other_id].get(nk, "")
+                            by_int[iid][h] = cand_p
+                            by_int[iid][nk] = n_oth
+                            by_int[other_id][h] = cur_p
+                            by_int[other_id][nk] = n_iid
+                            resolved_conflict = True
+                            break
+                        if resolved_conflict:
+                            break
+
+                        # 3. Pour un senior bloqué (hors TDM SAU), tenter un échange avec Noé si Noé est sur un poste diagnostique (hors TDM SAU)
+                        if not resolved_conflict and iid in senior_interne_ids and cur_p != "TDM SAU":
+                            noe_p = by_int["noe"][h]
+                            if noe_p not in non_active_codes and noe_p != "TDM SAU" and noe_p != cur_p:
+                                if (
+                                    not is_same_poste_am_pm(noe_p, other_p, avoid_irm_both=avoid_irm_both_flag)
+                                    and not is_same_poste_am_pm(cur_p, by_int["noe"][other_h], avoid_irm_both=avoid_irm_both_flag)
+                                    and not (h == "pm" and noe_p == "IRM" and count_week_irm_pm(iid) >= 1)
+                                    and not (h == "pm" and cur_p == "IRM" and count_week_irm_pm("noe") >= 1)
+                                ):
+                                    by_int[iid][h] = noe_p
+                                    by_int[iid][nk] = ""
+                                    by_int["noe"][h] = cur_p
+                                    by_int["noe"][nk] = f"Phase Socle ({cur_p})"
+                                    resolved_conflict = True
+                                    break
+                    if resolved_conflict:
+                        break
+                if resolved_conflict:
+                    break
+            if not resolved_conflict and pass_num >= 30:
+                break
+
+        # Mettre à jour le compteur cumulé d'IRM PM du semestre
+        for iid in all_interne_ids:
+            total_irm_pm_counts[iid] += count_week_irm_pm(iid)
+
+        # 5C. Mise à jour des notes de binôme de Noé (Phase Socle) et des remplacements exceptionnels (TDM SAU / IRM PM)
+        final_senior_sau = {s_id: count_week_sau(s_id) for s_id in senior_interne_ids}
+        for s_id, s_cnt in final_senior_sau.items():
+            if s_cnt > 2:
+                seen_sau = 0
+                for d_iso in active_isos:
+                    for h in ("am", "pm"):
+                        st_s = schedule[d_iso]["byInterne"][s_id]
+                        if st_s[h] == "TDM SAU":
+                            seen_sau += 1
+                            if seen_sau > 2:
+                                nk = "noteAm" if h == "am" else "notePm"
+                                st_s[nk] = "3e TDM SAU exceptionnel (remplacement congés/RG)"
+                                if not st_s.get("note"):
+                                    st_s["note"] = st_s[nk]
+
+        for iid in all_interne_ids:
+            if count_week_irm_pm(iid) > 1:
+                seen_irm_pm = 0
+                for d_iso in active_isos:
+                    st_i = schedule[d_iso]["byInterne"][iid]
+                    if st_i["pm"] == "IRM":
+                        seen_irm_pm += 1
+                        if seen_irm_pm > 1:
+                            st_i["notePm"] = "2e IRM d'après-midi exceptionnelle (remplacement congés/RG)"
+                            if not st_i.get("note"):
+                                st_i["note"] = st_i["notePm"]
+
         for d_iso in active_isos:
             wd_cur = datetime.date.fromisoformat(d_iso).weekday()
             by_int = schedule[d_iso]["byInterne"]
@@ -1528,6 +2150,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         if not day_obj.get("holiday"):
             wd_chk = datetime.date.fromisoformat(d_iso).weekday()
             ch_chk = (chefs_planning or {}).get(d_iso, {})
+            # Vérifier qu'aucun interne ne fait le même poste actif toute la journée (am == pm)
+            for iid_chk, st_chk in day_obj["byInterne"].items():
+                p_am_chk, p_pm_chk = st_chk["am"], st_chk["pm"]
+                if p_am_chk not in non_active_codes and p_pm_chk not in non_active_codes and p_am_chk == p_pm_chk:
+                    raise RuntimeError(f"ERREUR : L'interne {iid_chk} a le même poste toute la journée ({p_am_chk}) le {d_iso}")
             for h_chk in ("am", "pm"):
                 if d_iso == "2026-11-02" and h_chk == "am":
                     continue
@@ -2822,7 +3449,7 @@ def build_full_dataset() -> dict:
     presentations = sorted(pres_map.values(), key=lambda x: x.get("date", ""))
 
     return {
-        "version": "1.8.0",
+        "version": "2.0.0",
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "chefValidatedAt": chef_validated_at,
         "chefRevision": chef_revision,
@@ -2835,20 +3462,23 @@ def build_full_dataset() -> dict:
             "endDate": "2027-04-30",
             "secretariat": "Anne-Marie FORTIN (01 58 41 24 83 / poste 12483)",
             "horairesVacations": {
-                "IRM": "Début à 07h45 (Matin : dès 07h45 • Après-midi : 13h30 – 18h30)",
+                "IRM": "IRM Matin (3T / 1,5T) : 07h45 – 13h00 • IRM Après-midi (séparée) : 13h30 – 18h30 (max 1/semaine par interne)",
                 "ECHO": "Début à 09h00 (Matin : dès 09h00 • Après-midi : 13h30 – 18h00)",
                 "GESTES_C": "Début à 09h00 (Matin : dès 09h00 • Après-midi : 13h30 – 18h00)",
                 "TDM_SAU": "08h00 – 18h30 (Scanner des Urgences : début à 08h00, fin à 18h30)",
                 "LECTURE_CS": "Consultation Internes le Mardi après-midi (Relecture systématique avec Pr Drapé) et le Vendredi après-midi (13h30 – 18h00)",
             },
             "rules": [
-                "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
-                "Permanence Scanner SAU (toujours un interne matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
+                "Interdiction de faire le même poste toute la journée : un interne ne peut jamais être affecté au même poste le matin et l'après-midi d'une même journée.",
+                "IRM d'après-midi séparées des IRM du matin (3T / 1,5T) : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (sauf exception en cas de congés / RG).",
+                "Horaires des vacations : IRM du matin commence à 07h45 (IRM d'après-midi de 13h30 à 18h30) • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
+                "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
+                "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
+                "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
-                "Noé GRANDVAL (Phase Socle) est systématiquement en binôme avec un co-interne pour le TDM SAU (Scanner des Urgences, ~50-55 % de ses vacations actives, jamais seul au SAU) tout en gardant un ratio équilibré sur les autres modalités (IRM, Écho, TDM Diag) et avec Dr Macil HAMADOUCHE (MH) le mardi matin les 3 premières semaines.",
                 "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin).",
                 "Les vacations fermées (FERMÉ / MAINTENANCE) sont affichées directement sur le planning.",
             ],
