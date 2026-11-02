@@ -1244,6 +1244,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       margin-top: 10px;
     }
 
+    .chef-alert-strip-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chef-dashboard-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #FDE68A;
+    }
+
     .chef-notif-section {
       background: #F8FAFC;
       border: 1px solid #CBD5E1;
@@ -1251,19 +1268,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       padding: 11px;
     }
 
-    .chef-notif-section.blocking-sec {
-      background: #FFF5F5;
-      border-color: #FCA5A5;
-    }
-
-    .chef-notif-section.vacances-sec {
-      background: #F0FDF4;
-      border-color: #86EFAC;
-    }
-
-    .chef-sec-header {
+    .chef-notif-section-title {
       font-size: 13px;
       font-weight: 800;
+      color: #0F172A;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -1274,6 +1282,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .chef-item-card {
       background: #FFFFFF;
       border: 1px solid #E2E8F0;
+      border-left: 4px solid #DC2626;
       border-radius: 9px;
       padding: 9px 11px;
       margin-bottom: 8px;
@@ -1282,19 +1291,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       margin-bottom: 0;
     }
 
-    .chef-item-card.blocking-card {
-      border-left: 4px solid #DC2626;
+    .chef-item-card.warn {
+      border-left-color: #F59E0B;
     }
 
-    .chef-item-card.pending-vac-card {
-      border-left: 4px solid #F59E0B;
+    .chef-item-card.ok {
+      border-left-color: #16A34A;
+      background: #F0FDF4;
     }
 
-    .chef-item-card.approved-vac-card {
-      border-left: 4px solid #16A34A;
+    .chef-item-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
     }
 
-    .chef-decision-chips {
+    .chef-item-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+
+    .chef-item-desc {
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.35;
+      margin-bottom: 6px;
+    }
+
+    .chef-decision-btns {
       display: flex;
       flex-wrap: wrap;
       gap: 5px;
@@ -1303,9 +1331,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     .btn-approve {
       background: #16A34A;
-      border-color: #15803D;
+      border: 1px solid #15803D;
       color: #FFFFFF;
       font-weight: 700;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
     }
     .btn-approve:hover {
       background: #15803D;
@@ -1315,9 +1347,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     .btn-reject {
       background: #FEF2F2;
-      border-color: #FCA5A5;
+      border: 1px solid #FCA5A5;
       color: #B91C1C;
       font-weight: 700;
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: 6px;
+      cursor: pointer;
     }
     .btn-reject:hover {
       background: #FEE2E2;
@@ -1356,39 +1392,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       white-space: nowrap;
     }
 
-    .cell-blocking-alert {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 6px;
-      border-radius: 6px;
-      background: #FEE2E2;
-      border: 1px dashed #DC2626;
-      color: #991B1B;
-      font-size: 10px;
-      font-weight: 800;
-      cursor: pointer;
-      line-height: 1.15;
-    }
-    .cell-blocking-alert:hover {
-      background: #FECACA;
+    td.cell-blocking-alert {
+      background: #FEF2F2 !important;
+      outline: 1.5px dashed #DC2626;
+      outline-offset: -2px;
     }
 
     .status-pill-pending {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 800;
       background: #FEF3C7;
       color: #92400E;
       border: 1px solid #FCD34D;
+      white-space: nowrap;
     }
     .status-pill-approved {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 800;
       background: #DCFCE7;
       color: #166534;
       border: 1px solid #86EFAC;
+      white-space: nowrap;
     }
     .status-pill-rejected {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 800;
       background: #F1F5F9;
       color: #64748B;
       border: 1px solid #CBD5E1;
       text-decoration: line-through;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -1986,56 +2028,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             dayObj.byInterne[iid] = { am, pm, note, noteAm, notePm, isSocle, absStatus };
           });
 
-          // Garantie systématique : TDM SAU (Matin & Après-midi) couvert par au moins un interne présent (y compris Noé Socle posté)
-          if (iso !== "2026-11-02") {
-            ["am", "pm"].forEach(hSau => {
-              const hasSau = Object.keys(dayObj.byInterne).some(iid => dayObj.byInterne[iid] && dayObj.byInterne[iid][hSau] === "TDM SAU");
-              if (!hasSau) {
-                const nkSau = hSau === "am" ? "noteAm" : "notePm";
-                const donorSau = ["ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM"];
-                let replacedSau = false;
-                for (const dp of donorSau) {
-                  for (const iid of seniorIds) {
-                    const cKey = iso + "__" + iid;
-                    if (dayObj.byInterne[iid] && dayObj.byInterne[iid][hSau] === dp && !(custom[cKey] && custom[cKey][hSau])) {
-                      dayObj.byInterne[iid][hSau] = "TDM SAU";
-                      dayObj.byInterne[iid][nkSau] = "Remplacement TDM SAU (congés/RG)";
-                      if (!dayObj.byInterne[iid].note) {
-                        dayObj.byInterne[iid].note = dayObj.byInterne[iid][nkSau];
-                      }
-                      replacedSau = true;
-                      break;
-                    }
-                  }
-                  if (replacedSau) break;
-                }
-              }
-            });
-          }
-
-          // Garantie systématique : Relecture avec Pr Drapé le Mardi après-midi (jsDay === 2)
-          if (jsDay === 2) {
-            const hasTueCs = Object.keys(dayObj.byInterne).some(iid => dayObj.byInterne[iid].pm === "LECTURE/CS");
-            if (!hasTueCs) {
-              const donorPostes = ["ECHO", "GESTES (C)", "SCAN ACHARD"];
-              let replaced = false;
-              for (const dp of donorPostes) {
-                for (const iid of seniorIds) {
-                  const cKey = iso + "__" + iid;
-                  if (dayObj.byInterne[iid] && dayObj.byInterne[iid].pm === dp && !(custom[cKey] && custom[cKey].pm)) {
-                    dayObj.byInterne[iid].pm = "LECTURE/CS";
-                    dayObj.byInterne[iid].notePm = "Relecture avec Pr Drapé (systématique)";
-                    if (!dayObj.byInterne[iid].note) {
-                      dayObj.byInterne[iid].note = "Relecture avec Pr Drapé (systématique)";
-                    }
-                    replaced = true;
-                    break;
-                  }
-                }
-                if (replaced) break;
-              }
-            }
-          }
+          // Note : Lorsqu'un congé ou RG laisse un poste obligatoire (TDM SAU Matin/PM ou Relecture Pr Drapé le Mardi PM)
+          // sans interne, on ne remplace plus silencieusement en arrière-plan : le jour est signalé comme "Jour qui bloque"
+          // dans l'Espace Chef afin qu'une décision soit prise par le Chef (affectation en 1 clic ou maintien en l'état).
         }
         st.schedule[iso] = dayObj;
       });
