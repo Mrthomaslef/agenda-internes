@@ -3103,7 +3103,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const [yy, mm, dd] = dIso.split("-").map(Number);
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
                 for (const h of ["pm", "am"]) {
-                  if (h === "pm" && jsDay === 2) continue;
+                  if (h === "pm" && (jsDay === 2 || jsDay === 5)) continue;
                   if (iid === "noe" && jsDay === 2 && h === "am") continue;
                   const slChk = st.schedule[dIso].byInterne[iid];
                   if (!slChk || nonActivePostes.includes(slChk[h])) continue;
@@ -3112,9 +3112,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
 
               const slotCandidates = rawCands.slice().sort((a, b) => {
-                const friA = (a[2] === 5 && a[1] === "pm") ? 1 : 0;
-                const friB = (b[2] === 5 && b[1] === "pm") ? 1 : 0;
-                if (friA !== friB) return friA - friB;
                 const othA = a[1] === "am" ? "pm" : "am";
                 const othB = b[1] === "am" ? "pm" : "am";
                 const sameDayA = st.schedule[a[0]].byInterne[iid][othA] === "1/2 journée libre" ? 1 : 0;

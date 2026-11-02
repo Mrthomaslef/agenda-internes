@@ -1610,7 +1610,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         continue
                     wd_cand = datetime.date.fromisoformat(d_iso).weekday()
                     for h in ("pm", "am"):
-                        if h == "pm" and wd_cand == 1:
+                        if h == "pm" and wd_cand in (1, 4):
                             continue
                         if iid == "noe" and wd_cand == 1 and h == "am":
                             continue
@@ -1619,15 +1619,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         raw_slots.append((d_iso, h))
 
                 # Trier les créneaux candidats pour :
-                # 1. Éviter le vendredi après-midi sauf dernier recours
-                # 2. Éviter de poser 2 demi-offs le même jour (AM + PM sur le même jour)
-                # 3. Privilégier la demi-journée (AM ou PM) manquante pour avoir 1 AM + 1 PM
-                # 4. Pour Noé, éviter d'écraser ses créneaux TDM SAU de la semaine tant qu'un autre poste est libérable
-                # 5. Privilégier la demi-journée fixe demandée si c'est le matin
+                # 1. Éviter de poser 2 demi-offs le même jour (AM + PM sur le même jour)
+                # 2. Privilégier la demi-journée (AM ou PM) manquante pour avoir 1 AM + 1 PM
+                # 3. Pour Noé, éviter d'écraser ses créneaux TDM SAU de la semaine tant qu'un autre poste est libérable
+                # 4. Privilégier la demi-journée fixe demandée si c'est le matin
                 slot_candidates = sorted(
                     raw_slots,
                     key=lambda s: (
-                        1 if (datetime.date.fromisoformat(s[0]).weekday() == 4 and s[1] == "pm") else 0,
                         1 if schedule[s[0]]["byInterne"][iid]["pm" if s[1] == "am" else "am"] == "1/2 journée libre" else 0,
                         0 if s[1] == preferred_h else 1,
                         1 if (iid == "noe" and schedule[s[0]]["byInterne"]["noe"][s[1]] == "TDM SAU") else 0,
@@ -1635,7 +1633,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     ),
                 )
 
-                # Pour chaque créneau candidat (dans l'ordre de priorité : hors Ven PM, jour différent,
+                # Pour chaque créneau candidat (dans l'ordre de priorité : hors Mar/Ven PM, jour différent,
                 # demi-journée AM/PM manquante, demi-journée fixe), tenter :
                 # - Passe 1 : libérer directement une vacation non obligatoire occupée par l'interne
                 # - Passe 2 : échanger sur la même demi-journée avec un co-interne qui occupe une vacation non obligatoire
@@ -1823,7 +1821,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     d_iso for d_iso in active_isos
                     if d_iso != "2026-11-02"
                     and schedule[d_iso]["byInterne"][iid][to_h] not in non_active_codes
-                    and not (to_h == "pm" and datetime.date.fromisoformat(d_iso).weekday() == 1)
+                    and not (to_h == "pm" and datetime.date.fromisoformat(d_iso).weekday() in (1, 4))
                     and not (iid == "noe" and to_h == "am" and datetime.date.fromisoformat(d_iso).weekday() == 1)
                 ]
 
@@ -1834,7 +1832,6 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         to_days_sorted = sorted(
                             to_days,
                             key=lambda d: (
-                                1 if (to_h == "pm" and datetime.date.fromisoformat(d).weekday() == 4) else 0,
                                 1 if (d != d_from and schedule[d]["byInterne"][iid][other_to_h] == "1/2 journée libre") else 0,
                                 1 if (iid == "noe" and schedule[d]["byInterne"]["noe"][to_h] == "TDM SAU") else 0,
                                 0 if is_protected_fixed_off(iid, d, to_h) else 1,
@@ -1936,6 +1933,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                     if is_protected_fixed_off(o_id, d_to, to_h):
                                         continue
                                     if schedule[d_to]["byInterne"][o_id][to_h] != "1/2 journée libre":
+                                        continue
+                                    if from_h == "pm" and datetime.date.fromisoformat(d_from).weekday() in (1, 4):
                                         continue
                                     o_from_p = schedule[d_from]["byInterne"][o_id][from_h]
                                     if o_from_p in non_active_codes:
@@ -2639,10 +2638,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             wd_chk = datetime.date.fromisoformat(d_iso).weekday()
             ch_chk = (chefs_planning or {}).get(d_iso, {})
             # Vérifier qu'aucun interne ne fait le même poste actif toute la journée (am == pm)
+            # et qu'aucun interne n'a de demi-off le mardi après-midi ni le vendredi après-midi
             for iid_chk, st_chk in day_obj["byInterne"].items():
                 p_am_chk, p_pm_chk = st_chk["am"], st_chk["pm"]
                 if p_am_chk not in non_active_codes and p_pm_chk not in non_active_codes and p_am_chk == p_pm_chk:
                     raise RuntimeError(f"ERREUR : L'interne {iid_chk} a le même poste toute la journée ({p_am_chk}) le {d_iso}")
+                if wd_chk in (1, 4) and p_pm_chk == "1/2 journée libre":
+                    raise RuntimeError(f"ERREUR : Demi-off interdit le {'mardi' if wd_chk == 1 else 'vendredi'} après-midi pour {iid_chk} le {d_iso}")
             for h_chk in ("am", "pm"):
                 if d_iso == "2026-11-02" and h_chk == "am":
                     continue
@@ -3749,7 +3751,7 @@ def build_full_dataset() -> dict:
                 "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle : imposé en solo sans doublure exceptionnellement chaque mardi matin avec Dr Macil HAMADOUCHE, + 2 créneaux en binôme avec un co-interne senior sur le reste de la semaine) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
                 "Permanence Scanner SAU (un interne senior matin et après-midi, sauf le mardi matin assuré en solo par Noé avec Dr Macil HAMADOUCHE) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
-                "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
+                "2 demi-offs (1/2 journée libre) par semaine par interne (jamais de demi-off le mardi après-midi ni le vendredi après-midi) : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
                 "Présentations des internes (Cas du Mardi & Biblio du Vendredi) : début en semaine 2 (mardi 10/11/2026 pour les Cas, vendredi 13/11/2026 pour la Biblio) avec espacement garanti d'au moins 2,5 à 3,5 semaines (18 à 24 jours minimum) entre deux présentations d'un même interne et 6 semaines entre deux Cas ou deux Biblios.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
