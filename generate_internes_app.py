@@ -1905,8 +1905,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       </div>
       <div class="action-choice-grid">
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openAbsenceModal();">
-          <strong>Poser un congé / RG</strong>
-          <span>Congés annuels, formation ou repos de garde</span>
+          <strong>Poser un congé</strong>
+          <span>Congés annuels, formation ou autre absence</span>
         </button>
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openNextPresentationModal();">
           <strong>S'inscrire à un cours</strong>
@@ -1928,11 +1928,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Modal : Poser un congé / RG -->
+  <!-- Modal : Poser un congé -->
   <div class="modal-backdrop" id="modalAbsence">
     <div class="modal-box">
       <div class="card-header">
-        <div class="card-title">Poser un congé ou repos de garde</div>
+        <div class="card-title">Poser un congé</div>
         <button class="btn btn-sm" onclick="closeModal('modalAbsence')">Fermer</button>
       </div>
       <div class="note-box">
@@ -1948,7 +1948,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <option value="CA 1">Congés Annuels (CA 1)</option>
           <option value="CA 2">Congés Annuels (CA 2)</option>
           <option value="CF">Congé Formation / Congrès (CF)</option>
-          <option value="Repos de garde">Repos de garde (RG)</option>
           <option value="Autre">Autre absence</option>
         </select>
       </div>
@@ -6292,174 +6291,151 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* =========================================================================
-     * ONGLET 2 : CONGÉS & RG
+     * ONGLET 2 : CONGÉS (ORGANISÉ PAR INTERNE, SANS REPOS DE GARDE)
      * ========================================================================= */
-    function setVacFilter(f) {
-      vacFilter = f;
-      renderTabContent();
-    }
-
     function renderVacancesTab() {
       const absences = (STATE.absences || []).slice().sort((a, b) => a.date.localeCompare(b.date));
       const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
-      const byInterneFiltered = (selectedInterneId === "all" || inChefSpace)
-        ? absences
-        : absences.filter(a => a.interneId === selectedInterneId);
 
-      const congesOnly = byInterneFiltered.filter(a => !String(a.type || "").toLowerCase().includes("garde"));
-      const rgOnly = byInterneFiltered.filter(a => String(a.type || "").toLowerCase().includes("garde"));
+      const isRgType = (a) => {
+        const t = String((a && a.type) || "").toLowerCase();
+        return t.includes("garde") || t === "rg";
+      };
 
-      const gardesEntries = Object.keys(STATE.interneGardes || {})
-        .sort()
-        .map(d => Object.assign({ date: d }, STATE.interneGardes[d]))
-        .filter(g => g.isRadioB && g.interneId && (selectedInterneId === "all" || inChefSpace || g.interneId === selectedInterneId));
-
-      const filtered = vacFilter === "conges"
-        ? congesOnly
-        : (vacFilter === "rg" ? rgOnly : byInterneFiltered);
-
+      const allConges = absences.filter(a => a && !isRgType(a));
       const countByDate = {};
-      absences.forEach(a => {
+      allConges.forEach(a => {
         if (a.status === "rejected") return;
-        if (a.type !== "Repos de garde") {
-          countByDate[a.date] = (countByDate[a.date] || 0) + 1;
-        }
+        countByDate[a.date] = (countByDate[a.date] || 0) + 1;
       });
 
-      if (vacFilter === "gardes_cal") {
-        let gRows = "";
-        gardesEntries.forEach(g => {
-          const iObj = getInterneById(g.interneId);
-          const rgDate = g.rgDate || addDaysIso(g.date, 1);
-          const rgWorking = Boolean(STATE.schedule && STATE.schedule[rgDate] && !STATE.schedule[rgDate].holiday);
-          gRows += `
-            <tr>
-              <td style="font-weight:700;">${formatDateFr(g.date, true)}</td>
-              <td>
-                <span class="interne-badge" onclick="setCurrentDate('${g.date}'); switchTab('planning');">
-                  <span style="width:7px;height:7px;border-radius:50%;background:${iObj.color};display:inline-block;"></span>
-                  ${iObj.fullName}
-                </span>
-              </td>
-              <td><span class="poste-pill ${g.isWeekendOrHoliday ? 'poste-rg' : 'poste-irm'}">${g.isWeekendOrHoliday ? 'Garde WE / Férié' : 'Garde Semaine'}</span></td>
-              <td style="font-weight:700;">${formatDateFr(rgDate, true)}</td>
-              <td>${rgWorking ? `<span class="poste-pill poste-rg">✓ RG posé sur le planning</span>` : `<span class="poste-pill poste-off">Week-end / Férié (hors vac.)</span>`}</td>
-            </tr>
-          `;
-        });
+      const internesToShow = (selectedInterneId === "all" || inChefSpace)
+        ? STATE.internes
+        : STATE.internes.filter(i => i.id === selectedInterneId);
+
+      const totalVisibleConges = allConges.filter(a =>
+        a.status !== "rejected" &&
+        ((selectedInterneId === "all" || inChefSpace) || a.interneId === selectedInterneId)
+      ).length;
+
+      const colSpanCount = inChefSpace ? 6 : 5;
+
+      const interneCardsHtml = internesToShow.map(iObj => {
+        const iConges = allConges.filter(a => a.interneId === iObj.id);
+        const activeDays = iConges.filter(a => a.status !== "rejected").length;
+        const pendingDays = iConges.filter(a => (a.status || "pending") === "pending").length;
+        const approvedDays = iConges.filter(a => a.status === "approved").length;
+
+        const groups = groupAbsenceRequests(iConges);
+        const periodsSummary = groups
+          .filter(g => g.status !== "rejected")
+          .map(g => {
+            const pLbl = g.startDate === g.endDate
+              ? formatDateFr(g.startDate)
+              : `${formatDateFr(g.startDate)} → ${formatDateFr(g.endDate)} (${g.dates.length} j.)`;
+            return `<span class="poste-pill poste-vac" style="font-size:11px;">${g.type} : ${pLbl}</span>`;
+          })
+          .join(" ");
+
+        let rowsHtml = "";
+        if (iConges.length === 0) {
+          rowsHtml = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:14px; color:var(--text-muted);">Aucun congé posé pour ${iObj.shortName}.</td></tr>`;
+        } else {
+          iConges.forEach(a => {
+            const simCount = countByDate[a.date] || 1;
+            const isOverLimit = simCount > 2;
+            const st = a.status || "pending";
+            const statusHtml = st === "approved"
+              ? `<span class="status-pill-approved">✓ Validé</span>`
+              : (st === "rejected"
+                ? `<span class="status-pill-rejected">✕ Refusé</span>`
+                : `<span class="status-pill-pending">À valider</span>`);
+
+            rowsHtml += `
+              <tr style="${st === 'rejected' ? 'opacity:0.55; text-decoration:line-through;' : ''}">
+                <td style="font-weight:700; white-space:nowrap;">${formatDateFr(a.date, true)}</td>
+                <td><span class="poste-pill poste-vac">${a.type}</span></td>
+                <td style="color:var(--text-muted);">${a.comment || "—"}</td>
+                <td>
+                  ${isOverLimit
+                    ? `<span class="poste-pill poste-rg">${simCount} absents (max 2)</span>`
+                    : `<span class="poste-pill poste-vac">Quota OK (${simCount}/2)</span>`}
+                </td>
+                ${inChefSpace ? `<td>${statusHtml}</td>` : ""}
+                <td style="width:1%; white-space:nowrap;">
+                  <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                    ${inChefSpace && st !== "approved" ? `<button class="btn-approve" onclick="setSingleAbsenceStatus('${a.id}', 'approved')">✓ Valider</button>` : ""}
+                    ${inChefSpace && st !== "rejected" ? `<button class="btn-reject" onclick="setSingleAbsenceStatus('${a.id}', 'rejected')">✕ Refuser</button>` : ""}
+                    <button class="btn btn-sm" onclick="deleteAbsence('${a.id}')" style="color:#64748B;">Suppr.</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+        }
+
+        const roleBadge = iObj.isDJ
+          ? `<span class="tag-dj">DJ</span>`
+          : (iObj.isSocle ? `<span class="tag-sm">Socle</span>` : "");
+
         return `
-          <div class="card">
-            <div class="card-header">
-              <div>
-                <div class="card-title">Congés, Repos de garde & Planning des Gardes Internes (Hiver 2026–2027)</div>
-                <div style="font-size:12px; color:var(--text-muted);">68 gardes Radio B sur le semestre • Repos de garde automatique le lendemain</div>
-              </div>
-              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-                <div class="segmented">
-                  <button class="seg-btn ${vacFilter === 'all' ? 'active' : ''}" onclick="setVacFilter('all')">Tous (${byInterneFiltered.length})</button>
-                  <button class="seg-btn ${vacFilter === 'conges' ? 'active' : ''}" onclick="setVacFilter('conges')">Congés (${congesOnly.length})</button>
-                  <button class="seg-btn ${vacFilter === 'rg' ? 'active' : ''}" onclick="setVacFilter('rg')">Repos de garde (${rgOnly.length})</button>
-                  <button class="seg-btn ${vacFilter === 'gardes_cal' ? 'active' : ''}" onclick="setVacFilter('gardes_cal')">🌙 Gardes (${gardesEntries.length})</button>
+          <div class="card" style="margin-bottom:12px;">
+            <div class="card-header" style="margin-bottom:${iConges.length > 0 ? '10px' : '6px'};">
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <div class="avatar-sm" style="background:${iObj.color};">${iObj.initials}</div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span class="card-title" style="font-size:14.5px;">${iObj.fullName}</span>
+                    ${roleBadge}
+                    <span class="offvac-pill conges-count">${activeDays} j. posé${activeDays > 1 ? 's' : ''}</span>
+                    ${approvedDays > 0 ? `<span class="status-pill-approved">${approvedDays} validé${approvedDays > 1 ? 's' : ''}</span>` : ""}
+                    ${pendingDays > 0 ? `<span class="status-pill-pending">${pendingDays} en attente</span>` : ""}
+                  </div>
+                  ${periodsSummary ? `<div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;">${periodsSummary}</div>` : `<div style="font-size:11.5px; color:var(--text-muted);">${iObj.role}</div>`}
                 </div>
-                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal()">+ Poser un congé</button>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                ${inChefSpace && groups.some(g => g.status === "pending")
+                  ? groups.filter(g => g.status === "pending").map(g =>
+                      `<button class="btn-approve" onclick="approveAbsenceGroup('${g.groupId}')">✓ Valider ${g.dates.length}j</button>`
+                    ).join("")
+                  : ""}
+                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${iObj.id}')">+ Poser un congé</button>
               </div>
             </div>
+
             <div class="week-table-wrap">
               <table class="planning-table">
                 <thead>
                   <tr>
-                    <th>Date de Garde</th>
-                    <th>Interne / DJ (Radio B)</th>
-                    <th>Nature</th>
-                    <th>Lendemain (Repos de garde)</th>
-                    <th>Impact Planning</th>
+                    <th style="width:150px;">Date</th>
+                    <th style="width:120px;">Type</th>
+                    <th>Note</th>
+                    <th style="width:150px;">Quota</th>
+                    ${inChefSpace ? `<th style="width:110px;">Statut</th>` : ""}
+                    <th style="width:140px;">Action</th>
                   </tr>
                 </thead>
-                <tbody>${gRows || `<tr><td colspan="5" style="text-align:center; padding:18px;">Aucune garde enregistrée.</td></tr>`}</tbody>
+                <tbody>${rowsHtml}</tbody>
               </table>
             </div>
           </div>
         `;
-      }
-
-      const colSpanCount = inChefSpace ? 7 : 6;
-      let rowsHtml = "";
-      if (filtered.length === 0) {
-        rowsHtml = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:18px; color:var(--text-muted);">Aucun congé ou repos de garde enregistré dans ce filtre. Utilisez le bouton "+ Poser un congé".</td></tr>`;
-      } else {
-        filtered.forEach(a => {
-          const iObj = getInterneById(a.interneId);
-          const isRg = String(a.type || "").toLowerCase().includes("garde");
-          const simCount = countByDate[a.date] || 1;
-          const isOverLimit = !isRg && simCount > 2;
-          const st = a.status || "pending";
-          const statusHtml = st === "approved"
-            ? `<span class="status-pill-approved">✓ Validé</span>`
-            : (st === "rejected"
-              ? `<span class="status-pill-rejected">✕ Refusé</span>`
-              : `<span class="status-pill-pending">À valider</span>`);
-
-          rowsHtml += `
-            <tr style="${st === 'rejected' ? 'opacity:0.55; text-decoration:line-through;' : ''}">
-              <td style="font-weight:700;">${formatDateFr(a.date, true)}</td>
-              <td>${iObj.shortName}</td>
-              <td><span class="poste-pill ${isRg ? 'poste-rg' : 'poste-vac'}">${a.type}</span></td>
-              <td style="color:var(--text-muted);">${a.comment || "—"}</td>
-              <td>
-                ${isRg
-                  ? `<span class="poste-pill poste-rg">Lendemain de garde</span>`
-                  : (isOverLimit
-                    ? `<span class="poste-pill poste-rg">${simCount} absents (max 2)</span>`
-                    : `<span class="poste-pill poste-vac">Quota OK (${simCount}/2)</span>`)}
-              </td>
-              ${inChefSpace ? `<td>${statusHtml}</td>` : ""}
-              <td>
-                <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                  ${inChefSpace && st !== "approved" ? `<button class="btn-approve" onclick="setSingleAbsenceStatus('${a.id}', 'approved')">✓ Valider</button>` : ""}
-                  ${inChefSpace && st !== "rejected" ? `<button class="btn-reject" onclick="setSingleAbsenceStatus('${a.id}', 'rejected')">✕ Refuser</button>` : ""}
-                  <button class="btn btn-sm" onclick="deleteAbsence('${a.id}')" style="color:#64748B;">Suppr.</button>
-                </div>
-              </td>
-            </tr>
-          `;
-        });
-      }
+      }).join("");
 
       return `
-        <div class="card">
-          <div class="card-header">
+        <div class="card" style="margin-bottom:12px;">
+          <div class="card-header" style="margin-bottom:0;">
             <div>
-              <div class="card-title">Congés & Repos de garde</div>
-              <div style="font-size:12px; color:var(--text-muted);">Max 2 internes en congés simultanément • Repos de garde automatiques le lendemain des gardes (${rgOnly.length} j. ouvrés)</div>
+              <div class="card-title">Congés des Internes — Organisé par interne</div>
+              <div style="font-size:12px; color:var(--text-muted);">Max 2 internes en congés simultanément • ${totalVisibleConges} jour${totalVisibleConges > 1 ? 's' : ''} de congés posé${totalVisibleConges > 1 ? 's' : ''} (hors repos de garde)</div>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-              <div class="segmented">
-                <button class="seg-btn ${vacFilter === 'all' ? 'active' : ''}" onclick="setVacFilter('all')">Tous (${byInterneFiltered.length})</button>
-                <button class="seg-btn ${vacFilter === 'conges' ? 'active' : ''}" onclick="setVacFilter('conges')">Congés (${congesOnly.length})</button>
-                <button class="seg-btn ${vacFilter === 'rg' ? 'active' : ''}" onclick="setVacFilter('rg')">Repos de garde (${rgOnly.length})</button>
-                <button class="seg-btn ${vacFilter === 'gardes_cal' ? 'active' : ''}" onclick="setVacFilter('gardes_cal')">🌙 Gardes (${gardesEntries.length})</button>
-              </div>
               <button class="btn btn-sm btn-primary" onclick="openAbsenceModal()">+ Poser un congé</button>
             </div>
           </div>
-
-          <div class="week-table-wrap">
-            <table class="planning-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Interne</th>
-                  <th>Type</th>
-                  <th>Note</th>
-                  <th>Quota / Motif</th>
-                  ${inChefSpace ? `<th>Statut</th>` : ""}
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>${rowsHtml}</tbody>
-            </table>
-          </div>
         </div>
+        ${interneCardsHtml}
       `;
     }
 
@@ -6485,9 +6461,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (jsDay >= 1 && jsDay <= 5) {
           weekdays++;
           if (jsDay === 2 || jsDay === 5) tueFriDates.push(formatDateFr(cur));
-          const otherAbs = (STATE.absences || []).filter(a => a.date === cur && a.interneId !== iid && a.status !== "rejected");
+          const otherAbs = (STATE.absences || []).filter(a => a.date === cur && a.interneId !== iid && a.status !== "rejected" && !String(a.type || "").toLowerCase().includes("garde"));
           if (otherAbs.length >= 2) {
-            warnings.push(`🚨 <strong>${formatDateFr(cur)}</strong> : déjà ${otherAbs.length} internes absents (${otherAbs.map(x => getInterneById(x.interneId).shortName).join(", ")}) — dépasse la limite de 2.`);
+            warnings.push(`🚨 <strong>${formatDateFr(cur)}</strong> : déjà ${otherAbs.length} internes en congés (${otherAbs.map(x => getInterneById(x.interneId).shortName).join(", ")}) — dépasse la limite de 2.`);
           }
           const baseSched = INITIAL_DATA.baseSchedule || INITIAL_DATA.schedule;
           const dOrig = baseSched[cur];
@@ -6543,6 +6519,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       while (cur <= endIso) {
         const id = `abs-${iid}-${cur}`;
         STATE.absences = (STATE.absences || []).filter(x => x.id !== id);
+        if (Array.isArray(STATE.deletedAbsenceIds)) {
+          STATE.deletedAbsenceIds = STATE.deletedAbsenceIds.filter(x => x !== id);
+        }
         STATE.absences.push({
           id,
           date: cur,
@@ -6567,10 +6546,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function deleteAbsence(absId) {
       const target = (STATE.absences || []).find(x => x.id === absId);
       STATE.absences = (STATE.absences || []).filter(x => x.id !== absId);
+      if (!Array.isArray(STATE.deletedAbsenceIds)) STATE.deletedAbsenceIds = [];
+      if (absId && !STATE.deletedAbsenceIds.includes(absId)) {
+        STATE.deletedAbsenceIds.push(absId);
+      }
       saveStateLocal();
       renderAll();
       showToast("Congé supprimé");
-      pushStateToCloud({ syncAbsenceSheet: true, deletedAbsence: target });
+      pushStateToCloud({
+        syncAbsenceSheet: true,
+        deletedAbsence: target,
+        removedDates: target ? [target.date] : [],
+        interneName: target ? target.interneName : ""
+      });
     }
 
     /* =========================================================================

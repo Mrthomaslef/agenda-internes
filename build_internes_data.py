@@ -389,11 +389,11 @@ def build_balanced_trame() -> dict:
     - Quota hebdomadaire de TDM SAU :
       * 2 TDM SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama),
         et 3 uniquement à titre exceptionnel (en cas de congés / RG multiples la même semaine).
-      * 3 TDM SAU par semaine pour Noé GRANDVAL ('noe', Phase Socle, toujours en binôme avec un co-interne senior),
-        et plus uniquement à titre exceptionnel.
+      * 3 TDM SAU par semaine pour Noé GRANDVAL ('noe', Phase Socle, toujours en binôme avec un co-interne senior,
+        sauf exceptionnellement le mardi matin où Noé est posté en solo au TDM SAU avec Dr Macil HAMADOUCHE).
     - 2 demi-offs ('1/2 journée libre') par semaine chacun :
-      * Consultation ('LECTURE/CS') pour les internes UNIQUEMENT le Mardi après-midi et le Vendredi après-midi.
-      * Relecture avec Pr Jean-Luc DRAPÉ le Mardi après-midi SYSTÉMATIQUE sur le créneau LECTURE/CS.
+      * Consultation ('CONSULTATION') et Lecture ('LECTURE') pour les internes le Mardi après-midi et le Vendredi après-midi.
+      * Relecture avec Pr Jean-Luc DRAPÉ le Mardi après-midi SYSTÉMATIQUE sur le créneau LECTURE.
     """
     weekly_roles = {
         0: {  # LUNDI (calé sur la base du Dr H. Monnier du 02/11 après-midi : TDM3, IRM, US/ECHO, U/TDM SAU, GESTES C)
@@ -414,14 +414,14 @@ def build_balanced_trame() -> dict:
                 "socle": "TDM OLLIER DIAG",  # Scanner Ollier 3 (TDM3)
             },
         },
-        1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi PM : pas de demi-off, Relecture systématique avec Pr Drapé)
+        1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi AM : Noé au TDM SAU solo avec Dr Macil Hamadouche • Mardi PM : pas de demi-off, Relecture systématique avec Pr Drapé)
             "am": {
                 0: "1/2 journée libre",  # Demi-off matin fixe de Gabriel dès S1
                 1: "IRM 3T",
                 2: "IRM 1,5T",
                 3: "GESTES (C)",
-                4: "TDM SAU",
-                "socle_w1_3": "TDM SAU",  # TDM SAU n°2 de Noé avec Dr Macil HAMADOUCHE (MH) en binôme
+                4: "SCAN ACHARD",
+                "socle_w1_3": "TDM SAU",  # TDM SAU de Noé en solo avec Dr Macil HAMADOUCHE (MH) le mardi matin
                 "socle_after": "TDM SAU",
             },
             "pm": {
@@ -882,8 +882,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "ECHO",
                     "GESTES (C)",
                 ],
-                1: [  # Mardi AM (4 seniors actifs : Gabriel demi-off fixe) — Obligatoires : TDM SAU, GESTES (C), IRM 3T, IRM 1,5T (+ SCAN ACHARD, ECHO)
-                    "TDM SAU",
+                1: [  # Mardi AM (4 seniors actifs : Gabriel demi-off fixe, Noé au TDM SAU solo avec Dr Macil Hamadouche) — Obligatoires : GESTES (C), IRM 3T, IRM 1,5T (+ SCAN ACHARD, ECHO)
                     "GESTES (C)",
                     "IRM 3T",
                     "IRM 1,5T",
@@ -1002,13 +1001,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if not by_interne[iid]["note"]:
                     by_interne[iid]["note"] = by_interne[iid]["noteAm"] or by_interne[iid]["notePm"]
 
-        # 2. Attribution pour Noé (Phase Socle — 3 TDM SAU / semaine, systématiquement en binôme avec un co-interne au TDM SAU)
+        # 2. Attribution pour Noé (Phase Socle — 3 TDM SAU / semaine, dont le mardi matin en solo avec Dr Macil Hamadouche)
         #    - 1er mois (Novembre, week_idx < 4) :
-        #      * S1 (week_idx == 0, lundi matin = Formation) : Mardi AM, Jeudi AM, Vendredi PM.
-        #      * S2 à S4 (1 <= week_idx < 4) : Lundi AM, Mardi AM (avec Dr M. Hamadouche) et Jeudi AM (avec Dr M. Hamadouche).
+        #      * S1 (week_idx == 0, lundi matin = Formation) : Mardi AM (solo avec Dr M. Hamadouche), Jeudi AM, Vendredi PM.
+        #      * S2 à S4 (1 <= week_idx < 4) : Lundi AM, Mardi AM (solo avec Dr M. Hamadouche) et Jeudi AM (avec Dr M. Hamadouche).
         #    - À partir du 2e mois (Décembre à Avril, week_idx >= 4) :
-        #      * Toujours 3 TDM SAU / semaine en binôme, mais les créneaux de TDM SAU (jours et Matin/Après-midi)
-        #        ainsi que les demi-offs (1 AM + 1 PM) et les autres postes varient chaque semaine (cycle sur 5 semaines).
+        #      * Toujours au TDM SAU le mardi matin (solo avec Dr M. Hamadouche) + 2 autres TDM SAU en binôme qui varient chaque semaine.
         if week_idx < 4:
             if wd == 0:
                 noe_am = "TDM SAU"
@@ -1024,7 +1022,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     noe_note_pm = "Salle C — Gestes (Phase Socle)"
             elif wd == 1:
                 noe_am = "TDM SAU"
-                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
                 noe_pm = "CONSULTATION" if (week_idx % 2 == 0) else "ECHO"
                 noe_note_pm = "Consultation Internes (Mardi PM)" if noe_pm == "CONSULTATION" else "Échographie"
             elif wd == 2:
@@ -1049,34 +1047,34 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         else:
             rot_noe = (week_idx - 4) % 5
             if rot_noe == 0:
-                # SAU : Lun PM, Mer AM, Ven AM (2 AM + 1 PM) • Offs : Mar AM, Jeu PM
+                # SAU : Mar AM (solo MH), Lun PM, Ven AM (2 AM + 1 PM) • Offs : Mer AM, Jeu PM
                 noe_week_plan = {
                     0: ("ECHO", "TDM SAU"),
-                    1: ("1/2 journée libre", "CONSULTATION"),
-                    2: ("TDM SAU", "TDM OLLIER DIAG"),
+                    1: ("TDM SAU", "CONSULTATION"),
+                    2: ("1/2 journée libre", "TDM OLLIER DIAG"),
                     3: ("GESTES (C)", "1/2 journée libre"),
                     4: ("TDM SAU", "CONSULTATION"),
                 }
             elif rot_noe == 1:
-                # SAU : Mar PM, Jeu AM, Ven PM (1 AM + 2 PM) • Offs : Lun AM, Mer PM
+                # SAU : Mar AM (solo MH), Jeu AM, Ven PM (2 AM + 1 PM) • Offs : Lun AM, Mer PM
                 noe_week_plan = {
                     0: ("1/2 journée libre", "TDM OLLIER DIAG"),
-                    1: ("IRM 1,5T", "TDM SAU"),
+                    1: ("TDM SAU", "ECHO"),
                     2: ("IRM 3T", "1/2 journée libre"),
                     3: ("TDM SAU", "IRM"),
                     4: ("ECHO", "TDM SAU"),
                 }
             elif rot_noe == 2:
-                # SAU : Lun AM, Mer PM, Jeu PM (1 AM + 2 PM) • Offs : Lun PM, Jeu AM
+                # SAU : Mar AM (solo MH), Mer PM, Jeu PM (1 AM + 2 PM) • Offs : Lun PM, Jeu AM
                 noe_week_plan = {
-                    0: ("TDM SAU", "1/2 journée libre"),
-                    1: ("GESTES (C)", "ECHO"),
+                    0: ("GESTES (C)", "1/2 journée libre"),
+                    1: ("TDM SAU", "ECHO"),
                     2: ("TDM OLLIER DIAG", "TDM SAU"),
                     3: ("1/2 journée libre", "TDM SAU"),
                     4: ("IRM 3T", "LECTURE"),
                 }
             elif rot_noe == 3:
-                # SAU : Mar AM, Mer PM, Ven AM (2 AM + 1 PM) • Offs : Mer AM, Lun PM
+                # SAU : Mar AM (solo MH), Mer PM, Ven AM (2 AM + 1 PM) • Offs : Mer AM, Lun PM
                 noe_week_plan = {
                     0: ("GESTES (C)", "1/2 journée libre"),
                     1: ("TDM SAU", "LECTURE"),
@@ -1085,7 +1083,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     4: ("TDM SAU", "IRM" if (week_idx % 2 == 0) else "CONSULTATION"),
                 }
             else:  # rot_noe == 4
-                # SAU : Lun PM, Mar AM, Jeu PM (1 AM + 2 PM) • Offs : Mer PM, Ven AM
+                # SAU : Mar AM (solo MH), Lun PM, Jeu PM (1 AM + 2 PM) • Offs : Mer PM, Ven AM
                 noe_week_plan = {
                     0: ("ECHO", "TDM SAU"),
                     1: ("TDM SAU", "SCAN ACHARD"),
@@ -1097,6 +1095,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
             def _noe_slot_note(poste_code: str, weekday_i: int, half_s: str) -> str:
                 if poste_code == "TDM SAU":
+                    if weekday_i == 1 and half_s == "am":
+                        return "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
                     return "Posté Socle Urgences"
                 if poste_code == "1/2 journée libre":
                     return "Demi-off hebdomadaire"
@@ -1141,10 +1141,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 by_interne[iid]["notePm"] = abs_type
 
         # 3bis. Garantie SYSTÉMATIQUE du TDM SAU (Matin & Après-midi) par un co-interne hors socle
+        #       (sauf le mardi matin où Noé assure le TDM SAU en solo avec Dr Macil Hamadouche)
         #       et de la Relecture avec Pr Drapé le Mardi après-midi (wd == 1)
         #       Priorité : prélever d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
         for h_sau in ("am", "pm"):
-            has_sau = any(
+            is_tue_am_noe_solo = (wd == 1 and h_sau == "am" and by_interne["noe"]["am"] == "TDM SAU")
+            has_sau = is_tue_am_noe_solo or any(
                 by_interne[iid][h_sau] == "TDM SAU"
                 for iid in senior_interne_ids
             )
