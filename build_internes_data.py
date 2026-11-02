@@ -4917,25 +4917,23 @@ def build_full_dataset() -> dict:
     for _ in range(80):
         swapped_g = False
         counts_g = {iid: _total_cs_cnt(iid) for iid in all_iids_global}
-        over_iids = sorted(
-            [i for i in all_iids_global if counts_g[i] > target_cs_global[i]],
-            key=lambda x: (counts_g[x] - target_cs_global[x], 1 if x == "noe" else 0),
+        eff_g = {iid: counts_g[iid] - target_cs_global[iid] for iid in all_iids_global}
+        sorted_iids_g = sorted(
+            all_iids_global,
+            key=lambda x: (eff_g[x], 1 if x == "noe" else 0, counts_g[x]),
             reverse=True,
         )
-        under_iids = sorted(
-            [i for i in all_iids_global if counts_g[i] < target_cs_global[i]],
-            key=lambda x: (counts_g[x] - target_cs_global[x], 1 if x == "noe" else 0),
-        )
-        if not over_iids and not under_iids:
-            sen_cnts = [counts_g[s] for s in senior_iids_global]
-            if max(sen_cnts) - min(sen_cnts) <= 1:
-                break
-            over_iids = [s for s in senior_iids_global if counts_g[s] == max(sen_cnts)]
-            under_iids = [s for s in senior_iids_global if counts_g[s] == min(sen_cnts)]
+        if eff_g[sorted_iids_g[0]] - eff_g[sorted_iids_g[-1]] <= 1 and counts_g["noe"] <= 3:
+            break
         for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
-            for over_id in over_iids:
-                for under_id in under_iids:
+            for over_id in sorted_iids_g:
+                for under_id in reversed(sorted_iids_g):
                     if under_id == over_id:
+                        continue
+                    if under_id == "noe" and counts_g["noe"] >= 3:
+                        continue
+                    diff_eff = eff_g[over_id] - eff_g[under_id]
+                    if not (diff_eff >= 2 or (over_id == "noe" and counts_g["noe"] > 3 and diff_eff >= 1)):
                         continue
                     for mon_iso in unlocked_mons_global:
                         if under_id == "noe" and mon_iso < "2027-03-01":
@@ -5077,6 +5075,8 @@ def build_full_dataset() -> dict:
         echo_am = {i: 0 for i in all_iids_global}
         echo_pm = {i: 0 for i in all_iids_global}
         irm_am = {i: 0 for i in all_iids_global}
+        irm_3t = {i: 0 for i in all_iids_global}
+        irm_15t = {i: 0 for i in all_iids_global}
         irm_pm = {i: 0 for i in all_iids_global}
         achard = {i: 0 for i in all_iids_global}
         ollier = {i: 0 for i in all_iids_global}
@@ -5098,6 +5098,10 @@ def build_full_dataset() -> dict:
                             we[i] += 1
                         elif v in ("IRM 3T", "IRM 1,5T") and h_k == "am":
                             irm_am[i] += 1
+                            if v == "IRM 3T":
+                                irm_3t[i] += 1
+                            else:
+                                irm_15t[i] += 1
                             wi[i] += 1
                         elif v == "IRM" and h_k == "pm":
                             irm_pm[i] += 1
@@ -5123,6 +5127,8 @@ def build_full_dataset() -> dict:
             + 10.0 * _var_g(list(irm_pm.values()))
             + 3.0 * _var_g(list(echo_am.values()))
             + 3.0 * _var_g(list(echo_pm.values()))
+            + 2.0 * _var_g(list(irm_3t.values()))
+            + 2.0 * _var_g(list(irm_15t.values()))
             + 4.0 * _var_g([achard[s] for s in senior_iids_global])
             + 4.0 * _var_g([ollier[s] for s in senior_iids_global])
             + 1.5 * _var_g(list(achard.values()))

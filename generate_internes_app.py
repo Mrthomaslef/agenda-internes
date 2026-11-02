@@ -564,7 +564,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       gap: 10px;
-      cursor: pointer;
+      cursor: default;
       transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
 
@@ -900,7 +900,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       background: #F8FAFC;
       color: #0F172A;
       border: 1px solid #CBD5E1;
-      cursor: pointer;
+      cursor: default;
     }
     .interne-badge:hover {
       background: #E2E8F0;
@@ -2180,10 +2180,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openNextPresentationModal();">
           <strong>S'inscrire à un cours</strong>
           <span>Cas du mardi ou biblio du vendredi</span>
-        </button>
-        <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openQuickVacationPicker();">
-          <strong>Échanger un poste</strong>
-          <span>Modifier une demi-journée du planning</span>
         </button>
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openMeetingModal();">
           <strong>Ajouter une réunion</strong>
@@ -6400,7 +6396,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function onInterneBadgeClick(ev, dIso, periodKey, interneId, posteName) {
       ev.stopPropagation();
       if (!isChefPlanningMode) {
-        openVacationEditModal(dIso, interneId);
         return;
       }
       // En mode Chef de Planning : clic 1 sélectionne l'interne, clic 2 sur un autre interne les échange
@@ -7123,7 +7118,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
           const isActDay = (dIso === currentDateIso);
           cardsHtml += `
-            <div class="perso-day-card ${isActDay ? 'active-day' : ''} ${isMeOnGarde ? 'garde-day' : ''}" onclick="openVacationEditModal('${dIso}', '${me.id}')">
+            <div class="perso-day-card ${isActDay ? 'active-day' : ''} ${isMeOnGarde ? 'garde-day' : ''}">
               <div class="perso-day-header">
                 <div class="perso-day-title">
                   <span class="perso-day-dow">${dFullNames[offset]}</span>
@@ -8729,10 +8724,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function openVacationEditModal(iso, iid) {
       const targetIso = STATE.schedule[iso] ? iso : "2026-11-02";
       const targetIid = getInterneById(iid).id;
-      const monIso = getMondayOfWeek(targetIso);
 
-      if (isWeekLocked(monIso) && !isChefPlanningMode) {
-        showToast("🔒 Ce planning hebdomadaire est validé et fixé par le Chef. Déverrouillez avec le code Chef pour modifier.");
+      if (!isChefPlanningMode) {
+        showToast("🔒 Seul le Chef peut modifier le planning. Déverrouillez l'Espace Chef.");
         requireChefUnlockThen(() => openVacationEditModal(targetIso, targetIid));
         return;
       }
@@ -8840,11 +8834,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const pm = document.getElementById("vacEditPm").value;
       const note = document.getElementById("vacEditNote").value.trim();
 
-      const monIso = getMondayOfWeek(iso);
-      if (isWeekLocked(monIso) && !isChefPlanningMode) {
-        alert("Ce planning hebdomadaire a été validé et fixé par le Chef. Déverrouillez l'Espace Chef pour le modifier.");
+      if (!isChefPlanningMode) {
+        alert("Seul le Chef peut modifier le planning. Déverrouillez l'Espace Chef pour modifier un poste.");
         return;
       }
+
+      const monIso = getMondayOfWeek(iso);
 
       // Vérification des règles : même poste toute la journée, demi-off mardi/vendredi PM, >2 demi-offs/semaine, >1 IRM PM/semaine
       const nonActSave = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
@@ -8872,44 +8867,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
       }
 
-      if (isChefPlanningMode) {
-        const chefWarnings = [];
-        if (sameDayViolation) {
-          chefWarnings.push(`• Même poste toute la journée (${am} matin et après-midi).`);
-        }
-        if (tueFriPmOffViolation) {
-          chefWarnings.push("• Pas de demi-off le mardi après-midi ni le vendredi après-midi.");
-        }
-        if (weekDemiOffs > 2 && (am === "1/2 journée libre" || pm === "1/2 journée libre")) {
-          chefWarnings.push(`• ${weekDemiOffs} demi-offs sur cette semaine (maximum 2 demi-offs / semaine).`);
-        }
-        if (weekIrmPmCnt > 1 && pm === "IRM") {
-          chefWarnings.push(`• ${weekIrmPmCnt} IRM d'après-midi sur cette semaine (max 1 IRM PM / semaine).`);
-        }
-        if (chefWarnings.length > 0) {
-          const okChef = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${chefWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
-          if (!okChef) return;
-        }
-      } else {
-        if (sameDayViolation) {
-          alert(`Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).`);
-          return;
-        }
-        if (tueFriPmOffViolation) {
-          alert("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi pour les internes.");
-          return;
-        }
-        if (weekDemiOffs > 2) {
-          alert(`Règle du service : 2 demi-offs par semaine maximum par interne (${weekDemiOffs} demi-offs sur cette semaine).`);
-          return;
-        }
-        if (weekIrmPmCnt > 1 && pm === "IRM") {
-          const okIrm = confirm(`Règle du service : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (${weekIrmPmCnt} IRM PM sur cette semaine). Confirmer cette affectation à titre exceptionnel ?`);
-          if (!okIrm) return;
-        }
+      const chefWarnings = [];
+      if (sameDayViolation) {
+        chefWarnings.push(`• Même poste toute la journée (${am} matin et après-midi).`);
+      }
+      if (tueFriPmOffViolation) {
+        chefWarnings.push("• Pas de demi-off le mardi après-midi ni le vendredi après-midi.");
+      }
+      if (weekDemiOffs > 2 && (am === "1/2 journée libre" || pm === "1/2 journée libre")) {
+        chefWarnings.push(`• ${weekDemiOffs} demi-offs sur cette semaine (maximum 2 demi-offs / semaine).`);
+      }
+      if (weekIrmPmCnt > 1 && pm === "IRM") {
+        chefWarnings.push(`• ${weekIrmPmCnt} IRM d'après-midi sur cette semaine (max 1 IRM PM / semaine).`);
+      }
+      if (chefWarnings.length > 0) {
+        const okChef = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${chefWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+        if (!okChef) return;
       }
 
-      if (isChefPlanningMode) pushChefHistorySnapshot();
+      pushChefHistorySnapshot();
 
       if (!STATE.customVacations) STATE.customVacations = {};
       const seniorListVac = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
@@ -8930,7 +8906,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         });
       }
-      const nowIso = isChefPlanningMode ? markChefValidationStamp() : new Date().toISOString();
+      const nowIso = markChefValidationStamp();
       const cKey = iso + "__" + iid;
       STATE.customVacations[cKey] = {
         am,
@@ -8938,9 +8914,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         note,
         prevAm,
         prevPm,
-        status: isChefPlanningMode ? "approved" : "pending",
-        validatedBy: isChefPlanningMode ? "Chef" : undefined,
-        validatedAt: isChefPlanningMode ? nowIso : undefined,
+        status: "approved",
+        validatedBy: "Chef",
+        validatedAt: nowIso,
         updatedAt: nowIso
       };
       if (Array.isArray(STATE.deletedCustomKeys)) {
@@ -8950,27 +8926,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       saveStateLocal();
       closeModal("modalVacationEdit");
       renderAll();
-      showToast(isChefPlanningMode ? "✓ Poste validé par le Chef" : "Poste mis à jour (en attente de validation)");
-      pushStateToCloud({ isChefValidation: Boolean(isChefPlanningMode) });
+      showToast("✓ Poste validé par le Chef");
+      pushStateToCloud({ isChefValidation: true });
     }
 
     function resetSingleVacation() {
       const iso = document.getElementById("vacEditDate").value;
       const iid = document.getElementById("vacEditInterneId").value;
-      const monIso = getMondayOfWeek(iso);
-      if (isWeekLocked(monIso) && !isChefPlanningMode) {
-        alert("Ce planning hebdomadaire a été validé et fixé par le Chef. Déverrouillez l'Espace Chef pour le réinitialiser.");
+      if (!isChefPlanningMode) {
+        alert("Seul le Chef peut modifier le planning. Déverrouillez l'Espace Chef pour le réinitialiser.");
         return;
       }
       const cKey = iso + "__" + iid;
-      const resetIso = isChefPlanningMode ? markChefValidationStamp() : new Date().toISOString();
+      const resetIso = markChefValidationStamp();
       if (STATE.customVacations) delete STATE.customVacations[cKey];
       tombstoneCustomKey(cKey, resetIso);
       saveStateLocal();
       closeModal("modalVacationEdit");
       renderAll();
       showToast("Poste réinitialisé");
-      pushStateToCloud({ isChefValidation: Boolean(isChefPlanningMode) });
+      pushStateToCloud({ isChefValidation: true });
     }
 
     function closeModal(id) {
