@@ -6184,6 +6184,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         return cnt;
       };
+      const countInterneWeekIrmPm = (iid, anyDayIso) => {
+        const mon = getMondayOfWeek(anyDayIso);
+        let cnt = 0;
+        for (let off = 0; off < 5; off++) {
+          const d = addDaysIso(mon, off);
+          const dayObj = STATE.schedule[d];
+          if (!dayObj || dayObj.holiday || !dayObj.byInterne || !dayObj.byInterne[iid]) continue;
+          if (dayObj.byInterne[iid].pm === "IRM") cnt++;
+        }
+        return cnt;
+      };
 
       // Si on dépose directement sur un autre interne (ou si on échange deux internes, même jour ou autre jour)
       if (target.targetInterneId && (target.targetInterneId !== source.interneId || target.dIso !== source.dIso || target.periodKey !== source.periodKey)) {
@@ -6197,30 +6208,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           ? tgtDayObj.byInterne[target.targetInterneId][target.periodKey]
           : target.toPoste;
 
+        const swapWarnings = [];
         const [yyS, mmS, ddS] = source.dIso.split("-").map(Number);
         const jsDayS = new Date(yyS, mmS - 1, ddS).getDay();
         const [yyT, mmT, ddT] = target.dIso.split("-").map(Number);
         const jsDayT = new Date(yyT, mmT - 1, ddT).getDay();
         if ((source.periodKey === "pm" && (jsDayS === 2 || jsDayS === 5) && tgtPoste === "1/2 journée libre") ||
             (target.periodKey === "pm" && (jsDayT === 2 || jsDayT === 5) && srcPoste === "1/2 journée libre")) {
-          showToast("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.");
-          selectedForMove = null;
-          renderAll();
-          return;
+          swapWarnings.push("• Pas de demi-off le mardi après-midi ni le vendredi après-midi.");
         }
 
         if (source.interneId !== target.targetInterneId) {
           if (tgtPoste === "1/2 journée libre" && srcPoste !== "1/2 journée libre" && countInterneWeekOffs(source.interneId, source.dIso) >= 2) {
-            showToast(`⛔ Règle : ${srcInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
-            selectedForMove = null;
-            renderAll();
-            return;
+            swapWarnings.push(`• ${srcInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
           }
           if (srcPoste === "1/2 journée libre" && tgtPoste !== "1/2 journée libre" && countInterneWeekOffs(target.targetInterneId, target.dIso) >= 2) {
-            showToast(`⛔ Règle : ${tgtInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
-            selectedForMove = null;
-            renderAll();
-            return;
+            swapWarnings.push(`• ${tgtInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
+          }
+          if (source.periodKey === "pm" && tgtPoste === "IRM" && srcPoste !== "IRM" && countInterneWeekIrmPm(source.interneId, source.dIso) >= 1) {
+            swapWarnings.push(`• ${srcInterne.shortName} a déjà une IRM d'après-midi cette semaine (max 1 IRM PM / semaine).`);
+          }
+          if (target.periodKey === "pm" && srcPoste === "IRM" && tgtPoste !== "IRM" && countInterneWeekIrmPm(target.targetInterneId, target.dIso) >= 1) {
+            swapWarnings.push(`• ${tgtInterne.shortName} a déjà une IRM d'après-midi cette semaine (max 1 IRM PM / semaine).`);
           }
         }
 
@@ -6235,13 +6244,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             ? tgtDayObj.byInterne[target.targetInterneId][tgtOtherPeriod]
             : "";
           if (!nonActList.includes(tgtPoste) && tgtPoste === srcOtherPoste) {
-            showToast(`⛔ Règle : ${srcInterne.shortName} ne peut pas faire le même poste toute la journée (${tgtPoste}).`);
-            selectedForMove = null;
-            renderAll();
-            return;
+            swapWarnings.push(`• ${srcInterne.shortName} ferait le même poste toute la journée (${tgtPoste} matin et après-midi).`);
           }
           if (!nonActList.includes(srcPoste) && srcPoste === tgtOtherPoste) {
-            showToast(`⛔ Règle : ${tgtInterne.shortName} ne peut pas faire le même poste toute la journée (${srcPoste}).`);
+            swapWarnings.push(`• ${tgtInterne.shortName} ferait le même poste toute la journée (${srcPoste} matin et après-midi).`);
+          }
+        }
+
+        if (swapWarnings.length > 0) {
+          const okSwap = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${swapWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+          if (!okSwap) {
             selectedForMove = null;
             renderAll();
             return;
@@ -6271,30 +6283,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
 
+      const moveWarnings = [];
       const [yyM, mmM, ddM] = source.dIso.split("-").map(Number);
       const jsDayM = new Date(yyM, mmM - 1, ddM).getDay();
       if (source.periodKey === "pm" && (jsDayM === 2 || jsDayM === 5) && target.toPoste === "1/2 journée libre") {
-        showToast("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.");
-        selectedForMove = null;
-        renderAll();
-        return;
+        moveWarnings.push("• Pas de demi-off le mardi après-midi ni le vendredi après-midi.");
       }
 
       const daySlotsMove = (STATE.schedule[source.dIso] && STATE.schedule[source.dIso].byInterne) || {};
       const curSlotPosteMove = daySlotsMove[source.interneId] ? daySlotsMove[source.interneId][source.periodKey] : source.fromPoste;
       if (target.toPoste === "1/2 journée libre" && curSlotPosteMove !== "1/2 journée libre" && countInterneWeekOffs(source.interneId, source.dIso) >= 2) {
-        showToast(`⛔ Règle : ${srcInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
-        selectedForMove = null;
-        renderAll();
-        return;
+        moveWarnings.push(`• ${srcInterne.shortName} a déjà 2 demi-offs cette semaine (maximum 2 demi-offs / semaine).`);
+      }
+      if (source.periodKey === "pm" && target.toPoste === "IRM" && curSlotPosteMove !== "IRM" && countInterneWeekIrmPm(source.interneId, source.dIso) >= 1) {
+        moveWarnings.push(`• ${srcInterne.shortName} a déjà une IRM d'après-midi cette semaine (max 1 IRM PM / semaine).`);
       }
       const otherPeriodMove = source.periodKey === "am" ? "pm" : "am";
       const myOtherPoste = daySlotsMove[source.interneId] ? daySlotsMove[source.interneId][otherPeriodMove] : "";
       if (!nonActList.includes(target.toPoste) && target.toPoste === myOtherPoste) {
-        showToast(`⛔ Règle : ${srcInterne.shortName} ne peut pas faire le même poste toute la journée (${target.toPoste}).`);
-        selectedForMove = null;
-        renderAll();
-        return;
+        moveWarnings.push(`• ${srcInterne.shortName} ferait le même poste toute la journée (${target.toPoste} matin et après-midi).`);
+      }
+
+      if (moveWarnings.length > 0) {
+        const okMove = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${moveWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+        if (!okMove) {
+          selectedForMove = null;
+          renderAll();
+          return;
+        }
       }
 
       pushChefHistorySnapshot();
@@ -8830,22 +8846,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
 
-      // Vérification stricte : un interne ne peut pas faire le même poste toute la journée (Matin == Après-midi)
+      // Vérification des règles : même poste toute la journée, demi-off mardi/vendredi PM, >2 demi-offs/semaine, >1 IRM PM/semaine
       const nonActSave = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
-      if (am && pm && !nonActSave.includes(am) && !nonActSave.includes(pm) && am === pm) {
-        alert(`Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).`);
-        return;
-      }
+      const sameDayViolation = Boolean(am && pm && !nonActSave.includes(am) && !nonActSave.includes(pm) && am === pm);
 
-      // Vérification stricte : pas de demi-off le mardi après-midi ni le vendredi après-midi
       const [yyV, mmV, ddV] = iso.split("-").map(Number);
       const jsDayV = new Date(yyV, mmV - 1, ddV).getDay();
-      if ((jsDayV === 2 || jsDayV === 5) && pm === "1/2 journée libre") {
-        alert("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi pour les internes.");
-        return;
-      }
+      const tueFriPmOffViolation = (jsDayV === 2 || jsDayV === 5) && pm === "1/2 journée libre";
 
-      // Vérification stricte : maximum 2 demi-offs ('1/2 journée libre') par semaine par interne + max 1 IRM PM / semaine (sauf exception)
       let weekDemiOffs = 0;
       let weekIrmPmCnt = 0;
       for (let d = 0; d < 5; d++) {
@@ -8863,14 +8871,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         }
       }
-      if (weekDemiOffs > 2) {
-        alert(`Règle du service : 2 demi-offs par semaine maximum par interne (${weekDemiOffs} demi-offs sur cette semaine).`);
-        return;
+
+      if (isChefPlanningMode) {
+        const chefWarnings = [];
+        if (sameDayViolation) {
+          chefWarnings.push(`• Même poste toute la journée (${am} matin et après-midi).`);
+        }
+        if (tueFriPmOffViolation) {
+          chefWarnings.push("• Pas de demi-off le mardi après-midi ni le vendredi après-midi.");
+        }
+        if (weekDemiOffs > 2 && (am === "1/2 journée libre" || pm === "1/2 journée libre")) {
+          chefWarnings.push(`• ${weekDemiOffs} demi-offs sur cette semaine (maximum 2 demi-offs / semaine).`);
+        }
+        if (weekIrmPmCnt > 1 && pm === "IRM") {
+          chefWarnings.push(`• ${weekIrmPmCnt} IRM d'après-midi sur cette semaine (max 1 IRM PM / semaine).`);
+        }
+        if (chefWarnings.length > 0) {
+          const okChef = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${chefWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+          if (!okChef) return;
+        }
+      } else {
+        if (sameDayViolation) {
+          alert(`Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).`);
+          return;
+        }
+        if (tueFriPmOffViolation) {
+          alert("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi pour les internes.");
+          return;
+        }
+        if (weekDemiOffs > 2) {
+          alert(`Règle du service : 2 demi-offs par semaine maximum par interne (${weekDemiOffs} demi-offs sur cette semaine).`);
+          return;
+        }
+        if (weekIrmPmCnt > 1 && pm === "IRM") {
+          const okIrm = confirm(`Règle du service : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (${weekIrmPmCnt} IRM PM sur cette semaine). Confirmer cette affectation à titre exceptionnel ?`);
+          if (!okIrm) return;
+        }
       }
-      if (weekIrmPmCnt > 1 && pm === "IRM") {
-        const okIrm = confirm(`Règle du service : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (${weekIrmPmCnt} IRM PM sur cette semaine). Confirmer cette affectation à titre exceptionnel ?`);
-        if (!okIrm) return;
-      }
+
+      if (isChefPlanningMode) pushChefHistorySnapshot();
 
       if (!STATE.customVacations) STATE.customVacations = {};
       const seniorListVac = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
