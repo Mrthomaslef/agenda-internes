@@ -7180,7 +7180,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!showStatsTable) {
         return `
           <div style="text-align:center; margin-top:8px;">
-            <button class="btn btn-sm" onclick="toggleStatsTable()">${isSingleInterneSelected ? `Afficher le décompte des postes (${getInterneById(selectedInterneId).shortName})` : 'Afficher le décompte des postes par interne'}</button>
+            <button class="btn btn-sm" onclick="toggleStatsTable()">${isSingleInterneSelected ? `📊 Afficher le décompte des postes (${getInterneById(selectedInterneId).shortName})` : '📊 Afficher le décompte des postes par interne'}</button>
           </div>
         `;
       }
@@ -7192,12 +7192,47 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const statsAll = computeStatsByInterne();
       let rows = "";
 
-      const renderSlotSub = (slots) => (slots && slots.length)
-        ? `<div style="font-size:10px; color:#64748B; margin-top:2px; line-height:1.2;">${slots.join(" • ")}</div>`
-        : "";
+      const renderSlotChips = (slots, customClass = "") => {
+        if (!slots || !slots.length) return "";
+        const chips = slots.map(sl => {
+          const cls = customClass || (sl.includes("Mat") ? "slot-am" : (sl.includes("PM") ? "slot-pm" : ""));
+          return `<span class="decompte-slot-chip ${cls}">${sl}</span>`;
+        }).join("");
+        return `<div class="decompte-slots-wrap">${chips}</div>`;
+      };
+
+      const renderModalityWeekCell = (count, pillClass, slots, amCount = null, pmCount = null, isGroupEnd = false) => {
+        const tdCls = isGroupEnd ? ` class="grp-end"` : "";
+        if (!count) {
+          return `<td${tdCls}><span class="decompte-zero">—</span></td>`;
+        }
+        const subBreakdown = (amCount !== null && pmCount !== null)
+          ? `<div class="decompte-sub">${amCount}M · ${pmCount}PM</div>`
+          : "";
+        return `
+          <td${tdCls}>
+            <div class="decompte-cell-stack">
+              <span class="decompte-mod-pill ${pillClass}">${count}</span>
+              ${subBreakdown}
+              ${renderSlotChips(slots)}
+            </div>
+          </td>
+        `;
+      };
+
+      const totals = {
+        vac: 0, off: 0, offAm: 0, offPm: 0,
+        sau: 0, sauAm: 0, sauPm: 0,
+        achard: 0, ollier: 0, irmAm: 0, irmPm: 0,
+        echo: 0, gestes: 0, gestesAm: 0, gestesPm: 0,
+        cs: 0, lecture: 0,
+        gardes: 0, gardesWe: 0, rgDays: 0, congesDays: 0,
+        cas: 0, biblio: 0, cours: 0, countInternes: 0
+      };
 
       STATE.internes.forEach(i => {
         if (isSingleInterneSelected && !isChefPlanningMode && i.id !== selectedInterneId) return;
+        totals.countInternes++;
         const s = statsAll[i.id];
         const w = weekStatsAll[i.id] || {
           weekVac: 0, weekOff: 0, weekOffAm: 0, weekOffPm: 0, weekOffSlots: [],
@@ -7207,7 +7242,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           weekIrmAm: 0, weekIrmAmSlots: [],
           weekIrmPm: 0, weekIrmPmSlots: [],
           weekEcho: 0, weekEchoSlots: [],
-          weekGestes: 0, weekGestesSlots: [],
+          weekGestes: 0, weekGestesAm: 0, weekGestesPm: 0, weekGestesSlots: [],
           weekCs: 0, weekCsSlots: [],
           weekLecture: 0, weekLectureSlots: [],
           weekGardes: 0, weekGardesWeekend: 0, weekGardesDays: [],
@@ -7217,11 +7252,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         };
         const isDJ = Boolean(i.isDJ || i.id === "oussama");
         const nameCell = `
-          <td style="font-weight:700;">
-            <span style="width:7px;height:7px;border-radius:50%;background:${i.color};display:inline-block;margin-right:4px;"></span>
-            ${i.shortName}
-            ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
-            ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
+          <td class="col-interne-sticky" style="font-weight:800;">
+            <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
+              <span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>
+              <span style="color:#0F172A; font-size:12.5px;">${i.shortName}</span>
+              ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
+              ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
+            </div>
           </td>
         `;
 
@@ -7230,135 +7267,253 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const offClass = w.weekOff > 2 ? "off-danger" : ((w.weekOff < 2 && absHalf < 6) ? "off-warn" : "off-ok");
           const sauTarget = w.sauTarget || ((i.isSocle || i.id === "noe") ? 3 : 2);
           const sauClass = w.weekSau > sauTarget ? "off-warn" : (w.weekSau === sauTarget ? "off-ok" : "vac-count");
-          const irmPmClass = (w.weekIrmPm || 0) > 1 ? "off-warn" : ((w.weekIrmPm || 0) === 1 ? "off-ok" : "vac-count");
+          const irmPmClass = (w.weekIrmPm || 0) > 1 ? "off-warn" : "off-ok";
+
+          totals.vac += (w.weekVac || 0);
+          totals.off += (w.weekOff || 0);
+          totals.offAm += (w.weekOffAm || 0);
+          totals.offPm += (w.weekOffPm || 0);
+          totals.sau += (w.weekSau || 0);
+          totals.sauAm += (w.weekSauAm || 0);
+          totals.sauPm += (w.weekSauPm || 0);
+          totals.achard += (w.weekAchard || 0);
+          totals.ollier += (w.weekOllier || 0);
+          totals.irmAm += (w.weekIrmAm || 0);
+          totals.irmPm += (w.weekIrmPm || 0);
+          totals.echo += (w.weekEcho || 0);
+          totals.gestes += (w.weekGestes || 0);
+          totals.gestesAm += (w.weekGestesAm || 0);
+          totals.gestesPm += (w.weekGestesPm || 0);
+          totals.cs += (w.weekCs || 0);
+          totals.lecture += (w.weekLecture || 0);
+          totals.gardes += (w.weekGardes || 0);
+          totals.rgDays += (w.weekRgHalf || 0) / 2;
+          totals.congesDays += (w.weekCongesHalf || 0) / 2;
+          totals.cas += (w.weekCasMardi || 0);
+          totals.biblio += (w.weekBiblioVendredi || 0);
+          totals.cours += (w.weekCoursInternes || 0);
+
+          const irmPmCellHtml = (w.weekIrmPm || 0) > 0
+            ? `<td class="grp-end">
+                 <div class="decompte-cell-stack">
+                   <span class="offvac-pill ${irmPmClass}">${w.weekIrmPm}/1 IRM PM</span>
+                   ${renderSlotChips(w.weekIrmPmSlots)}
+                 </div>
+               </td>`
+            : `<td class="grp-end"><span class="decompte-quota-zero" title="Quota max 1 IRM PM / semaine">0/1</span></td>`;
+
+          const gardesCellHtml = (w.weekGardes || 0) > 0
+            ? `<td>
+                 <div class="decompte-cell-stack">
+                   <span class="decompte-mod-pill poste-rg">${w.weekGardes}</span>
+                   ${renderSlotChips(w.weekGardesDays, "slot-garde")}
+                 </div>
+               </td>`
+            : `<td><span class="decompte-zero">—</span></td>`;
+
+          const absBadges = [];
+          if (w.weekRgHalf) absBadges.push(`<span class="decompte-mod-pill poste-rg">${w.weekRgHalf / 2}j RG</span>`);
+          if (w.weekCongesHalf) absBadges.push(`<span class="decompte-mod-pill poste-vac">${w.weekCongesHalf / 2}j Congé</span>`);
+          const absCellHtml = absBadges.length
+            ? `<td><div class="decompte-cell-stack">${absBadges.join("")}</div></td>`
+            : `<td><span class="decompte-zero">—</span></td>`;
+
+          const staffBadges = [];
+          if (w.weekCasMardi) staffBadges.push(`<span class="decompte-slot-chip" style="background:#F3E8FF;color:#6D28D9;border-color:#D8B4FE;">Cas Mar.</span>`);
+          if (w.weekBiblioVendredi) staffBadges.push(`<span class="decompte-slot-chip" style="background:#FEF3C7;color:#B45309;border-color:#FCD34D;">Biblio Ven.</span>`);
+          if (w.weekCoursInternes) staffBadges.push(`<span class="decompte-slot-chip" style="background:#DBEAFE;color:#1D4ED8;border-color:#93C5FD;">Cours (${w.weekCoursInternes})</span>`);
+          const staffCellHtml = staffBadges.length
+            ? `<td><div class="decompte-cell-stack">${staffBadges.join("")}</div></td>`
+            : `<td><span class="decompte-zero">—</span></td>`;
 
           rows += `
             <tr>
               ${nameCell}
-              <td><span class="offvac-pill vac-count">${w.weekVac} vac.</span></td>
               <td>
-                <span class="offvac-pill ${offClass}">${w.weekOff}/2 Off</span>
-                ${renderSlotSub(w.weekOffSlots)}
+                <div class="decompte-cell-stack">
+                  <span class="offvac-pill vac-count">${w.weekVac} vac.</span>
+                </div>
+              </td>
+              <td class="grp-end">
+                <div class="decompte-cell-stack">
+                  <span class="offvac-pill ${offClass}">${w.weekOff}/2 Off</span>
+                  ${w.weekOff ? `<div class="decompte-sub">${w.weekOffAm || 0}M · ${w.weekOffPm || 0}PM</div>` : ""}
+                  ${renderSlotChips(w.weekOffSlots)}
+                </div>
               </td>
               <td>
-                <span class="offvac-pill ${sauClass}">${w.weekSau}/${sauTarget} SAU</span>
-                ${w.weekSau ? `<div style="font-size:10px; color:#64748B; margin-top:2px;">${w.weekSauAm || 0}M / ${w.weekSauPm || 0}PM${w.weekSauSlots && w.weekSauSlots.length ? ` (${w.weekSauSlots.join(" • ")})` : ""}</div>` : ""}
+                <div class="decompte-cell-stack">
+                  <span class="offvac-pill ${sauClass}">${w.weekSau}/${sauTarget} SAU</span>
+                  ${w.weekSau ? `<div class="decompte-sub">${w.weekSauAm || 0}M · ${w.weekSauPm || 0}PM</div>` : ""}
+                  ${renderSlotChips(w.weekSauSlots)}
+                </div>
               </td>
-              <td>
-                <strong>${w.weekAchard || 0}</strong>
-                ${renderSlotSub(w.weekAchardSlots)}
-              </td>
-              <td>
-                <strong>${w.weekOllier || 0}</strong>
-                ${renderSlotSub(w.weekOllierSlots)}
-              </td>
-              <td>
-                <strong>${w.weekIrmAm || 0}</strong>
-                ${renderSlotSub(w.weekIrmAmSlots)}
-              </td>
-              <td>
-                <span class="offvac-pill ${irmPmClass}">${w.weekIrmPm || 0}/1 IRM PM</span>
-                ${renderSlotSub(w.weekIrmPmSlots)}
-              </td>
-              <td>
-                <strong>${w.weekEcho || 0}</strong>
-                ${renderSlotSub(w.weekEchoSlots)}
-              </td>
-              <td>
-                <strong>${w.weekGestes || 0}</strong>
-                ${renderSlotSub(w.weekGestesSlots)}
-              </td>
-              <td>
-                <strong>${w.weekCs || 0}</strong>
-                ${renderSlotSub(w.weekCsSlots)}
-              </td>
-              <td>
-                <strong>${w.weekLecture || 0}</strong>
-                ${renderSlotSub(w.weekLectureSlots)}
-              </td>
-              <td>
-                <strong>${w.weekGardes || 0}</strong>
-                ${w.weekGardesDays && w.weekGardesDays.length ? `<div style="font-size:10px; color:#B91C1C; font-weight:700; margin-top:2px;">${w.weekGardesDays.join(", ")}</div>` : ""}
-              </td>
-              <td>${w.weekRgHalf ? `${w.weekRgHalf / 2} j.` : "0"}</td>
-              <td>${w.weekCongesHalf ? `${w.weekCongesHalf / 2} j.` : "0"}</td>
-              <td>${w.weekCasMardi || 0} / ${w.weekBiblioVendredi || 0}${w.weekCoursInternes ? ` / ${w.weekCoursInternes}` : ""}</td>
+              ${renderModalityWeekCell(w.weekAchard || 0, "poste-achard", w.weekAchardSlots)}
+              ${renderModalityWeekCell(w.weekOllier || 0, "poste-tdm-ollier", w.weekOllierSlots, null, null, true)}
+              ${renderModalityWeekCell(w.weekIrmAm || 0, "poste-irm", w.weekIrmAmSlots)}
+              ${irmPmCellHtml}
+              ${renderModalityWeekCell(w.weekEcho || 0, "poste-echo", w.weekEchoSlots)}
+              ${renderModalityWeekCell(w.weekGestes || 0, "poste-gestes", w.weekGestesSlots, w.weekGestesAm || 0, w.weekGestesPm || 0)}
+              ${renderModalityWeekCell(w.weekCs || 0, "poste-cs", w.weekCsSlots)}
+              ${renderModalityWeekCell(w.weekLecture || 0, "poste-lecture", w.weekLectureSlots, null, null, true)}
+              ${gardesCellHtml}
+              ${absCellHtml}
+              ${staffCellHtml}
             </tr>
           `;
         } else {
+          const rgDaysSem = Math.round((s.rgHalfDays || 0) / 2);
+          const vacDaysSem = Math.round((s.vacHalfDays || 0) / 2);
+
+          totals.vac += (s.activeHalfDays || 0);
+          totals.off += (s.freeHalfDays || 0);
+          totals.offAm += (s.freeAmHalfDays || 0);
+          totals.offPm += (s.freePmHalfDays || 0);
+          totals.sau += (s.byModality.TDM_SAU || 0);
+          totals.sauAm += (s.byModality.TDM_SAU_AM || 0);
+          totals.sauPm += (s.byModality.TDM_SAU_PM || 0);
+          totals.achard += (s.byModality.SCAN_ACHARD || 0);
+          totals.ollier += (s.byModality.TDM_OLLIER || 0);
+          totals.irmAm += (s.byModality.IRM_AM || 0);
+          totals.irmPm += (s.byModality.IRM_PM || 0);
+          totals.echo += (s.byModality.ECHO || 0);
+          totals.gestes += (s.byModality.RI_GESTES || 0);
+          totals.gestesAm += (s.byModality.RI_GESTES_AM || 0);
+          totals.gestesPm += (s.byModality.RI_GESTES_PM || 0);
+          totals.cs += (s.byModality.CONSULTATION || 0);
+          totals.lecture += (s.byModality.LECTURE || 0);
+          totals.gardes += (s.gardesCount || 0);
+          totals.gardesWe += (s.gardesWeekendCount || 0);
+          totals.rgDays += rgDaysSem;
+          totals.congesDays += vacDaysSem;
+          totals.cas += (s.casMardi || 0);
+          totals.biblio += (s.biblioVendredi || 0);
+          totals.cours += (s.coursInternes || 0);
+
           rows += `
             <tr>
               ${nameCell}
-              <td><strong>${s.activeHalfDays}</strong></td>
-              <td><strong>${s.freeHalfDays}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.freeAmHalfDays || 0}M/${s.freePmHalfDays || 0}PM)</span></td>
-              <td><strong>${s.byModality.TDM_SAU || 0}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.byModality.TDM_SAU_AM || 0}M/${s.byModality.TDM_SAU_PM || 0}PM)</span></td>
-              <td>${s.byModality.SCAN_ACHARD || 0}</td>
-              <td>${s.byModality.TDM_OLLIER || 0}</td>
-              <td>${s.byModality.IRM_AM || 0}</td>
-              <td><strong>${s.byModality.IRM_PM || 0}</strong></td>
-              <td>${s.byModality.ECHO}</td>
-              <td><strong>${s.byModality.RI_GESTES}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.byModality.RI_GESTES_AM || 0}M/${s.byModality.RI_GESTES_PM || 0}PM)</span></td>
-              <td>${s.byModality.CONSULTATION || 0}</td>
-              <td>${s.byModality.LECTURE || 0}</td>
-              <td><strong>${s.gardesCount || 0}</strong>${s.gardesWeekendCount ? ` <span style="font-size:10px; color:var(--text-muted);">(${s.gardesWeekendCount} WE/Fér.)</span>` : ""}</td>
-              <td>${Math.round((s.rgHalfDays || 0) / 2)} j.</td>
-              <td>${Math.round(s.vacHalfDays / 2)} j.</td>
-              <td>${s.casMardi} / ${s.biblioVendredi}${s.coursInternes ? ` / ${s.coursInternes}` : ""}</td>
+              <td><span class="offvac-pill vac-count">${s.activeHalfDays} vac.</span></td>
+              <td class="grp-end">
+                <div class="decompte-cell-stack">
+                  <span class="decompte-mod-pill poste-off">${s.freeHalfDays}</span>
+                  <div class="decompte-sub">${s.freeAmHalfDays || 0}M · ${s.freePmHalfDays || 0}PM</div>
+                </div>
+              </td>
+              <td>
+                <div class="decompte-cell-stack">
+                  <span class="decompte-mod-pill poste-tdm-sau">${s.byModality.TDM_SAU || 0}</span>
+                  <div class="decompte-sub">${s.byModality.TDM_SAU_AM || 0}M · ${s.byModality.TDM_SAU_PM || 0}PM</div>
+                </div>
+              </td>
+              <td><span class="decompte-mod-pill poste-achard">${s.byModality.SCAN_ACHARD || 0}</span></td>
+              <td class="grp-end"><span class="decompte-mod-pill poste-tdm-ollier">${s.byModality.TDM_OLLIER || 0}</span></td>
+              <td><span class="decompte-mod-pill poste-irm">${s.byModality.IRM_AM || 0}</span></td>
+              <td class="grp-end"><span class="decompte-mod-pill poste-irm">${s.byModality.IRM_PM || 0}</span></td>
+              <td><span class="decompte-mod-pill poste-echo">${s.byModality.ECHO || 0}</span></td>
+              <td>
+                <div class="decompte-cell-stack">
+                  <span class="decompte-mod-pill poste-gestes">${s.byModality.RI_GESTES || 0}</span>
+                  <div class="decompte-sub">${s.byModality.RI_GESTES_AM || 0}M · ${s.byModality.RI_GESTES_PM || 0}PM</div>
+                </div>
+              </td>
+              <td><span class="decompte-mod-pill poste-cs">${s.byModality.CONSULTATION || 0}</span></td>
+              <td class="grp-end"><span class="decompte-mod-pill poste-lecture">${s.byModality.LECTURE || 0}</span></td>
+              <td>
+                <div class="decompte-cell-stack">
+                  <span class="decompte-mod-pill poste-rg">${s.gardesCount || 0}</span>
+                  ${s.gardesWeekendCount ? `<div class="decompte-sub">${s.gardesWeekendCount} WE/Fér.</div>` : ""}
+                </div>
+              </td>
+              <td>
+                <div class="decompte-cell-stack">
+                  <span class="decompte-sub" style="color:#B91C1C;">${rgDaysSem}j RG</span>
+                  <span class="decompte-sub" style="color:#15803D;">${vacDaysSem}j Congés</span>
+                </div>
+              </td>
+              <td>
+                <div class="decompte-cell-stack">
+                  <span style="font-weight:800; color:#334155;">${s.casMardi} Cas · ${s.biblioVendredi} Biblio</span>
+                  ${s.coursInternes ? `<div class="decompte-sub">${s.coursInternes} Cours</div>` : ""}
+                </div>
+              </td>
             </tr>
           `;
         }
       });
 
-      const tableHeadersHtml = isWeekTab
+      const tableHeadersHtml = `
+        <tr class="decompte-group-row">
+          <th rowspan="2" class="col-interne-sticky">Interne</th>
+          <th colspan="2" class="grp-synthese grp-end">${isWeekTab ? "Synthèse Semaine" : "Synthèse Semestre"}</th>
+          <th colspan="3" class="grp-tdm grp-end">Scanners (TDM)</th>
+          <th colspan="2" class="grp-irm grp-end">IRM (3T / 1,5T)</th>
+          <th colspan="4" class="grp-clinique grp-end">Écho, Poste C & Clinique</th>
+          <th colspan="3" class="grp-gardes">Gardes, Absences & Staff</th>
+        </tr>
+        <tr class="decompte-col-row">
+          <th>${isWeekTab ? "Vacations" : "Total Vac."}</th>
+          <th class="grp-end">${isWeekTab ? "Demi-Offs" : "Total Offs"}</th>
+          <th>TDM SAU</th>
+          <th>Scan Achard</th>
+          <th class="grp-end">Scan Ollier</th>
+          <th>IRM Matin</th>
+          <th class="grp-end">IRM PM</th>
+          <th>Écho</th>
+          <th>Poste C (Gestes)</th>
+          <th>Consult. (CS)</th>
+          <th class="grp-end">Lecture</th>
+          <th>Gardes</th>
+          <th>RG / Congés</th>
+          <th>Cas / Biblio</th>
+        </tr>
+      `;
+
+      const tableFooterHtml = totals.countInternes > 1
         ? `
-          <tr>
-            <th>Interne / DJ</th>
-            <th>Vac. (Sem.)</th>
-            <th>Offs (Sem.)</th>
-            <th>Scan SAU</th>
-            <th>Scan Achard</th>
-            <th>Scan Ollier</th>
-            <th>IRM Mat.</th>
-            <th>IRM PM</th>
-            <th>Écho</th>
-            <th>Gestes</th>
-            <th>CS</th>
-            <th>Lect.</th>
-            <th>Gardes (Sem.)</th>
-            <th>RG</th>
-            <th>Congés</th>
-            <th>Cas / Biblio</th>
-          </tr>
+          <tfoot>
+            <tr class="decompte-total-row">
+              <td class="col-interne-sticky">Total Équipe (${totals.countInternes})</td>
+              <td>${totals.vac} vac.</td>
+              <td class="grp-end">${totals.off} Off <span class="decompte-sub">(${totals.offAm}M/${totals.offPm}PM)</span></td>
+              <td>${totals.sau} <span class="decompte-sub">(${totals.sauAm}M/${totals.sauPm}PM)</span></td>
+              <td>${totals.achard}</td>
+              <td class="grp-end">${totals.ollier}</td>
+              <td>${totals.irmAm}</td>
+              <td class="grp-end">${totals.irmPm}</td>
+              <td>${totals.echo}</td>
+              <td>${totals.gestes} <span class="decompte-sub">(${totals.gestesAm}M/${totals.gestesPm}PM)</span></td>
+              <td>${totals.cs}</td>
+              <td class="grp-end">${totals.lecture}</td>
+              <td>${totals.gardes}${totals.gardesWe ? ` <span class="decompte-sub">(${totals.gardesWe} WE)</span>` : ""}</td>
+              <td>${totals.rgDays || totals.congesDays ? `${totals.rgDays}j RG · ${totals.congesDays}j Cong.` : "—"}</td>
+              <td>${totals.cas + totals.biblio + totals.cours ? `${totals.cas} Cas · ${totals.biblio} Bib.` : "—"}</td>
+            </tr>
+          </tfoot>
         `
-        : `
-          <tr>
-            <th>Interne / DJ</th>
-            <th>Total Vac. (Semestre)</th>
-            <th>Total Demi-offs</th>
-            <th>Scan SAU</th>
-            <th>Scan Achard</th>
-            <th>Scan Ollier</th>
-            <th>IRM Mat.</th>
-            <th>IRM PM</th>
-            <th>Écho</th>
-            <th>Gestes</th>
-            <th>CS</th>
-            <th>Lect.</th>
-            <th>Gardes</th>
-            <th>RG</th>
-            <th>Congés</th>
-            <th>Cas / Biblio / Cours</th>
-          </tr>
-        `;
+        : "";
+
+      const quotasStripHtml = isWeekTab
+        ? `
+          <div class="decompte-quotas-strip">
+            <strong>Repères hebdomadaires :</strong>
+            <span class="decompte-rule-chip">🟢 2 Demi-Offs / sem. (1 Matin + 1 PM)</span>
+            <span class="decompte-rule-chip">🟡 TDM SAU : 2 / sem. (3 pour Noé Socle)</span>
+            <span class="decompte-rule-chip">🟣 IRM PM : max 1 / sem.</span>
+            <span class="decompte-rule-chip">🔴 Poste C (Gestes) : équilibré Matin / PM</span>
+            <span class="decompte-rule-chip">⚖️ Matin ≠ Après-midi</span>
+          </div>
+        `
+        : "";
 
       return `
-        <div class="card">
-          <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+        <div class="card decompte-card">
+          <div class="card-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-              <div class="card-title">
+              <div class="card-title" style="font-size:15px;">
                 ${isWeekTab
-                  ? `Décompte détaillé des vacations de la semaine (${formatShortDayHeader(monIso)} – ${formatShortDayHeader(friIso)})`
-                  : `Décompte total du semestre — Vacations, Scanners, IRM, Offs & Gardes`}
+                  ? `📊 Décompte détaillé de la semaine (${formatShortDayHeader(monIso)} – ${formatShortDayHeader(friIso)})`
+                  : `📊 Décompte cumulé du semestre — Vacations, Scanners, IRM, Poste C, Offs & Gardes`}
               </div>
               <div class="segmented">
                 <button class="seg-btn ${isWeekTab ? 'active' : ''}" onclick="setStatsTableTab('semaine')">Semaine</button>
@@ -7367,10 +7522,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <button class="btn btn-sm" onclick="toggleStatsTable()">Masquer</button>
           </div>
+          ${quotasStripHtml}
           <div class="week-table-wrap">
-            <table class="planning-table">
+            <table class="decompte-table">
               <thead>${tableHeadersHtml}</thead>
               <tbody>${rows}</tbody>
+              ${tableFooterHtml}
             </table>
           </div>
         </div>
