@@ -5526,13 +5526,19 @@ def build_full_dataset() -> dict:
                         suj = sv.get("sujet", "")
                         if suj and suj != "Dossier ostéo-articulaire inaugural (choix libre)":
                             bp["sujet"] = suj
+                        elif sv.get("userEditedPres") and suj == "":
+                            bp["sujet"] = ""
                         if sv.get("userEditedPres"):
-                            if (bp.get("date"), sv.get("interneId")) not in rg_pairs or suj:
+                            if sv.get("isUserSwap") or sv.get("updatedAt") or (bp.get("date"), sv.get("interneId")) not in rg_pairs or suj:
                                 if sv.get("interneId"):
                                     bp["interneId"] = sv["interneId"]
                                 if sv.get("interneName"):
                                     bp["interneName"] = sv["interneName"]
                                 bp["userEditedPres"] = True
+                                if sv.get("isUserSwap"):
+                                    bp["isUserSwap"] = True
+                                if sv.get("updatedAt"):
+                                    bp["updatedAt"] = sv["updatedAt"]
     presentations = sorted(pres_map.values(), key=lambda x: (x.get("date", ""), x.get("type", "")))
 
     return {
@@ -5645,6 +5651,7 @@ def sync_initial_state_to_cloud(dataset: dict):
             if (sv.coursChef !== undefined) mergedCours.coursChef = sv.coursChef;
             if (sv.sujet !== undefined) mergedCours.sujet = sv.sujet;
             mergedCours.userEditedCours = true;
+            if (sv.updatedAt) mergedCours.updatedAt = sv.updatedAt;
             return mergedCours;
           }}
           return baseP;
@@ -5652,11 +5659,15 @@ def sync_initial_state_to_cloud(dataset: dict):
         var merged = Object.assign({{}}, baseP);
         if (sv.sujet && sv.sujet !== 'Dossier ostéo-articulaire inaugural (choix libre)') {{
           merged.sujet = sv.sujet;
+        }} else if (sv.userEditedPres && sv.sujet === '') {{
+          merged.sujet = '';
         }}
-        if (sv.userEditedPres && !(sv.interneId && rgPairs[baseP.date + '__' + sv.interneId] && !sv.sujet)) {{
+        if (sv.userEditedPres && (sv.isUserSwap || sv.updatedAt || !(sv.interneId && rgPairs[baseP.date + '__' + sv.interneId] && !sv.sujet))) {{
           if (sv.interneId) merged.interneId = sv.interneId;
           if (sv.interneName) merged.interneName = sv.interneName;
           merged.userEditedPres = true;
+          if (sv.isUserSwap) merged.isUserSwap = true;
+          if (sv.updatedAt) merged.updatedAt = sv.updatedAt;
         }}
         return merged;
       }});

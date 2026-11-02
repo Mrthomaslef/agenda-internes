@@ -2948,9 +2948,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </button>
       </div>
     </div>
-
-    <!-- Sélection rapide de la personne -->
-    <div class="selector-bar" id="interneSelectorBar"></div>
   </header>
 
   <main class="container">
@@ -3008,35 +3005,35 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <div class="modal-backdrop" id="modalQuickAdd">
     <div class="modal-box">
       <div class="card-header">
-        <div class="card-title">Que souhaitez-vous ajouter ?</div>
+        <div class="card-title">Que souhaitez-vous faire ?</div>
         <button class="btn btn-sm" onclick="closeModal('modalQuickAdd')">Fermer</button>
       </div>
       <div class="action-choice-grid">
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openAbsenceModal();">
-          <strong>Poser un congé</strong>
+          <strong>Demander un congé</strong>
           <span>Congés annuels, formation ou autre absence</span>
         </button>
-        <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openNextPresentationModal();">
-          <strong>S'inscrire à un cours</strong>
-          <span>Cas du mardi ou biblio du vendredi</span>
+        <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openInternePresSignupModal();">
+          <strong>S'inscrire à un Cas ou Biblio (Échange)</strong>
+          <span>Choisir une date de Cas (mardi) ou Biblio (vendredi) — échange automatique</span>
         </button>
-        <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openMeetingModal();">
-          <strong>Ajouter une réunion</strong>
+        <button class="choice-btn" id="quickAddMeetingBtn" style="display:none;" onclick="closeModal('modalQuickAdd'); openMeetingModal();">
+          <strong>Ajouter une réunion (Chef)</strong>
           <span>Staff ou information du service</span>
         </button>
-        <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openPhoneContactModal();">
-          <strong>Ajouter un numéro à l'annuaire</strong>
+        <button class="choice-btn" id="quickAddPhoneBtn" style="display:none;" onclick="closeModal('modalQuickAdd'); openPhoneContactModal();">
+          <strong>Ajouter un numéro à l'annuaire (Chef)</strong>
           <span>Poste interne Cochin, DECT ou secrétariat</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Modal : Poser un congé -->
+  <!-- Modal : Demander un congé -->
   <div class="modal-backdrop" id="modalAbsence">
     <div class="modal-box">
       <div class="card-header">
-        <div class="card-title">Poser un congé</div>
+        <div class="card-title">Demander un congé</div>
         <button class="btn btn-sm" onclick="closeModal('modalAbsence')">Fermer</button>
       </div>
       <div class="note-box">
@@ -3077,33 +3074,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Modal : Cas / Biblio / Cours -->
+  <!-- Modal : Cas / Biblio (Inscription & Échange) / Cours -->
   <div class="modal-backdrop" id="modalPresentation">
     <div class="modal-box">
       <div class="card-header">
-        <div class="card-title" id="presModalTitle">Modifier</div>
+        <div class="card-title" id="presModalTitle">S'inscrire à un Cas / Biblio</div>
         <button class="btn btn-sm" onclick="closeModal('modalPresentation')">Fermer</button>
       </div>
       <input type="hidden" id="presIdInput" />
-      <div class="form-group">
-        <label>Date</label>
-        <select id="presDateSelect" class="form-control" onchange="onPresDateChange(this.value)"></select>
+      <div class="form-group" id="presTypeSwitchGroup">
+        <label>Type de séance</label>
+        <div class="segmented" style="display:grid; grid-template-columns:1fr 1fr;">
+          <button type="button" class="seg-btn" id="presTypeBtnCas" onclick="switchPresModalType('cas_mardi')">Cas des internes (Mardi)</button>
+          <button type="button" class="seg-btn" id="presTypeBtnBiblio" onclick="switchPresModalType('biblio_vendredi')">Biblio (Vendredi)</button>
+        </div>
       </div>
       <div class="form-group" id="presInterneGroup">
-        <label>Interne</label>
-        <select id="presInterneSelect" class="form-control"></select>
+        <label>Interne qui s'inscrit</label>
+        <select id="presInterneSelect" class="form-control" onchange="onPresInterneChange()"></select>
+      </div>
+      <div class="form-group">
+        <label id="presDateLabel">Date souhaitée</label>
+        <select id="presDateSelect" class="form-control" onchange="onPresDateChange(this.value)"></select>
+      </div>
+      <div class="form-group" id="presSwapGroup" style="display:none;">
+        <label id="presSwapLabel">Date à échanger (comme toutes les dates sont déjà attribuées)</label>
+        <select id="presSwapSelect" class="form-control" onchange="updatePresSwapPreview()"></select>
+        <div id="presSwapPreviewBox" class="note-box" style="margin-top:8px; margin-bottom:0;"></div>
       </div>
       <div class="form-group" id="presChefGroup" style="display:none;">
         <label>Chef / Intervenant</label>
         <input type="text" id="presChefInput" class="form-control" placeholder="Ex: Dr T. Lefèvre" />
       </div>
       <div class="form-group">
-        <label id="presSujetLabel">Sujet</label>
-        <input type="text" id="presSujetInput" class="form-control" placeholder="Sujet..." />
+        <label id="presSujetLabel">Sujet (optionnel)</label>
+        <input type="text" id="presSujetInput" class="form-control" placeholder="Sujet du cas ou article de biblio..." />
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
         <button class="btn" onclick="closeModal('modalPresentation')">Annuler</button>
-        <button class="btn btn-primary" onclick="savePresentationForm()">Enregistrer</button>
+        <button class="btn btn-primary" id="presSaveBtn" onclick="savePresentationForm()">Valider l'inscription</button>
       </div>
     </div>
   </div>
@@ -3319,38 +3328,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    function mergePresentationsList(baseList, savedList) {
-      const rgSet = new Set(
-        ((INITIAL_DATA && INITIAL_DATA.absences) || [])
-          .filter(a => a && a.type === "Repos de garde")
-          .map(a => a.date + "__" + a.interneId)
-      );
-      const map = {};
-      (baseList || []).forEach(p => { if (p && p.id) map[p.id] = Object.assign({}, p); });
-      (savedList || []).forEach(p => {
-        if (!p || !p.id || !map[p.id]) return;
-        const baseP = map[p.id];
-        if (baseP.type === "cours_internes") {
-          if (p.userEditedCours) {
-            if (p.chefIntervenant !== undefined) baseP.chefIntervenant = p.chefIntervenant;
-            if (p.coursChef !== undefined) baseP.coursChef = p.coursChef;
-            if (p.sujet !== undefined) baseP.sujet = p.sujet;
-            baseP.pasDeCours = (baseP.coursChef === "Pas de cours" || baseP.sujet === "Pas de cours");
-            baseP.userEditedCours = true;
-          }
-          return;
-        }
-        if (p.sujet && p.sujet !== "Dossier ostéo-articulaire inaugural (choix libre)") {
-          baseP.sujet = p.sujet;
-        }
-        if (p.userEditedPres && !(p.interneId && rgSet.has(baseP.date + "__" + p.interneId) && !p.sujet)) {
-          if (p.interneId) baseP.interneId = p.interneId;
-          if (p.interneName) baseP.interneName = p.interneName;
-          baseP.userEditedPres = true;
-        }
-      });
-      return Object.values(map).sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));
-    }
+    function mergePresentationsList(baseList, savedList) {\n      const rgSet = new Set(\n        ((INITIAL_DATA && INITIAL_DATA.absences) || [])\n          .filter(a => a && a.type === \"Repos de garde\")\n          .map(a => a.date + \"__\" + a.interneId)\n      );\n      const map = {};\n      (baseList || []).forEach(p => { if (p && p.id) map[p.id] = Object.assign({}, p); });\n      (savedList || []).forEach(p => {\n        if (!p || !p.id || !map[p.id]) return;\n        const baseP = map[p.id];\n        if (baseP.updatedAt && p.updatedAt && baseP.updatedAt > p.updatedAt) return;\n        if (baseP.type === \"cours_internes\") {\n          if (p.userEditedCours) {\n            if (p.chefIntervenant !== undefined) baseP.chefIntervenant = p.chefIntervenant;\n            if (p.coursChef !== undefined) baseP.coursChef = p.coursChef;\n            if (p.sujet !== undefined) baseP.sujet = p.sujet;\n            baseP.pasDeCours = (baseP.coursChef === \"Pas de cours\" || baseP.sujet === \"Pas de cours\");\n            baseP.userEditedCours = true;\n            if (p.updatedAt) baseP.updatedAt = p.updatedAt;\n          }\n          return;\n        }\n        if (p.sujet !== undefined && (p.sujet !== \"Dossier ostéo-articulaire inaugural (choix libre)\") && (p.sujet || p.userEditedPres || p.isUserSwap)) {\n          baseP.sujet = p.sujet;\n        }\n        const isExplicitSwap = Boolean(p.isUserSwap || p.updatedAt);\n        if (p.userEditedPres && (isExplicitSwap || !(p.interneId && rgSet.has(baseP.date + \"__\" + p.interneId) && !p.sujet))) {\n          if (p.interneId) baseP.interneId = p.interneId;\n          if (p.interneName) baseP.interneName = p.interneName;\n          baseP.userEditedPres = true;\n          if (p.isUserSwap) baseP.isUserSwap = true;\n          if (p.updatedAt) baseP.updatedAt = p.updatedAt;\n        }\n      });\n      return Object.values(map).sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));\n    }
 
     function mergeMeetingsList(baseList, savedList) {
       const obsoleteTitles = new Set(["Bone Club — Novembre", "Bone Club — Janvier", "Confrontation Radio-Anatomo-Pathologique (Janvier)", "BONE CLUB Cochin — Session de Décembre"]);
@@ -7835,55 +7813,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       executeChefMoveOrSwap(selectedForMove, { dIso, periodKey, toPoste });
     }
 
-    // Barre de sélection simplifiée (masquée en Mode Chef pour garder toute la place au planning)
     function renderInterneSelector() {
       const bar = document.getElementById("interneSelectorBar");
-      if (!bar) return;
-      if (isChefPlanningMode) {
+      if (bar) {
         bar.style.display = "none";
         bar.innerHTML = "";
-        return;
       }
-      bar.style.display = "flex";
-      const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId));
-
-      let html = `
-        <div class="segmented">
-          <button class="seg-btn ${!inChefSpace ? 'active' : ''}" onclick="switchRoleSpace('internes')">Internes</button>
-          <button class="seg-btn ${inChefSpace ? 'active' : ''}" onclick="switchRoleSpace('chefs')">Chefs</button>
-        </div>
-        <div class="person-chips">
-      `;
-
-      if (!inChefSpace) {
-        html += `<button class="chip ${selectedInterneId === 'all' ? 'active' : ''}" onclick="selectInterne('all')">Tous</button>`;
-        STATE.internes.forEach(i => {
-          const active = (selectedInterneId === i.id) ? "active" : "";
-          const isDJ = Boolean(i.isDJ || i.id === "oussama");
-          html += `
-            <button class="chip ${active}" onclick="selectInterne('${i.id}')">
-              <span class="dot" style="background:${i.color}"></span>
-              <span>${i.shortName}</span>
-              ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
-              ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
-            </button>
-          `;
-        });
-      } else {
-        html += `<button class="chip ${selectedInterneId === 'all_chefs' ? 'active' : ''}" onclick="selectInterne('all_chefs')">Tous</button>`;
-        (STATE.chefs || []).forEach(c => {
-          const active = (selectedInterneId === c.id) ? "active" : "";
-          html += `
-            <button class="chip ${active}" onclick="selectInterne('${c.id}')">
-              <span class="dot" style="background:${c.color}"></span>
-              <span>${c.code} · ${c.nom}</span>
-            </button>
-          `;
-        });
-      }
-
-      html += `</div>`;
-      bar.innerHTML = html;
     }
 
     function switchRoleSpace(space) {
@@ -7917,95 +7852,46 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    // Bandeau de sélection rapide du planning interne (ou résumé Chef / Perso hors onglet Planning)
+    // Bandeau de sélection rapide du planning interne
     function renderPersonalBanner() {
       const el = document.getElementById("personalBanner");
       if (!el) return;
-      if (isChefPlanningMode || (currentTab === "planning" && isChefId(selectedInterneId))) {
+      if (isChefPlanningMode) {
         el.style.display = "none";
         el.innerHTML = "";
         return;
       }
       el.style.display = "flex";
 
-      if (selectedInterneId === "all_chefs") {
-        el.innerHTML = `
-          <div class="summary-left">
-            <div class="avatar-sm" style="background:#0284C7">CH</div>
-            <div>
-              <div class="summary-title">Équipe Chefs & Seniors</div>
-              <div class="summary-sub">${(STATE.chefs || []).length} médecins • Vacations, gardes et fermetures</div>
-            </div>
-          </div>
-          <div class="summary-stats">
-            <span><strong>6</strong> Internes / DJ</span>
-            <span><strong>${STATE.presentations.filter(p => p.type === 'cas_mardi').length}</strong> Mardis</span>
-          </div>
+      const buttonsHtml = STATE.internes.map(i => {
+        const isAct = (selectedInterneId === i.id && planningScope === "perso");
+        return `
+          <button class="interne-pick-btn ${isAct ? 'active' : ''}" onclick="selectInterne('${isAct ? 'all' : i.id}')">
+            <span class="interne-pick-avatar" style="background:${i.color}">${i.initials}</span>
+            <span class="interne-pick-name">${i.shortName}</span>
+          </button>
         `;
-        return;
-      }
+      }).join("");
 
-      if (isChefId(selectedInterneId)) {
-        const chef = getChefById(selectedInterneId);
-        const cStats = computeChefStats(chef);
-        const todaySlots = getChefSlotsForDate(currentDateIso, chef);
-        const todayAmTxt = todaySlots.am.length ? todaySlots.am.join(" + ") : "Libre";
-        const todayPmTxt = todaySlots.pm.length ? todaySlots.pm.join(" + ") : "Libre";
-        const todayAmHtml = todaySlots.am.length ? todaySlots.am.map(p => getPosteCleanLabel(p, "am")).join(" + ") : "Libre";
-        const todayPmHtml = todaySlots.pm.length ? todaySlots.pm.map(p => getPosteCleanLabel(p, "pm")).join(" + ") : "Libre";
-
-        el.innerHTML = `
-          <div class="summary-left">
-            <div class="avatar-sm" style="background:${chef.color}">${chef.initials}</div>
-            <div>
-              <div class="summary-title">${chef.fullName}</div>
-              <div class="summary-sub">
-                <span>${formatDateFr(currentDateIso)} :</span>
-                <span class="poste-pill ${getPosteClass(todayAmTxt)}">${todayAmHtml}</span>
-                <span class="poste-pill ${getPosteClass(todayPmTxt)}">${todayPmHtml}</span>
-                ${todaySlots.isGarde ? `<span class="poste-pill poste-rg">Garde</span>` : ""}
-              </div>
-            </div>
-          </div>
-          <div class="summary-stats">
-            <span>Poste <strong>${chef.posteTel || "12483"}</strong></span>
-            <span><strong>${cStats.totalHalfDays}</strong> vac.</span>
-            <span><strong>${cStats.gardesCount}</strong> gardes</span>
-            ${chef.code === "TL" ? `<a class="btn btn-sm" href="https://mrthomaslef.github.io/agenda-cochin/" target="_blank" rel="noopener">App RI</a>` : ""}
-          </div>
-        `;
-        return;
-      }
-
-      const statsAll = computeStatsByInterne();
-
-      if (selectedInterneId === "all" || currentTab === "planning") {
-        const buttonsHtml = STATE.internes.map(i => {
-          const isAct = (selectedInterneId === i.id && planningScope === "perso");
-          return `
-            <button class="interne-pick-btn ${isAct ? 'active' : ''}" onclick="selectInterne('${isAct ? 'all' : i.id}')">
-              <span class="interne-pick-avatar" style="background:${i.color}">${i.initials}</span>
-              <span class="interne-pick-name">${i.shortName}</span>
+      const isAllActive = (selectedInterneId === "all" && planningScope === "internes");
+      el.innerHTML = `
+        <div class="interne-picker-wrap">
+          <div class="interne-picker-header">
+            <div class="interne-picker-title">📅 Sélectionner un planning interne :</div>
+            <button class="interne-picker-all-btn ${isAllActive ? 'active' : ''}" onclick="selectInterne('all')">
+              👥 Tous les internes
             </button>
-          `;
-        }).join("");
-
-        const isAllActive = (selectedInterneId === "all" && planningScope === "internes");
-        el.innerHTML = `
-          <div class="interne-picker-wrap">
-            <div class="interne-picker-header">
-              <div class="interne-picker-title">📅 Sélectionner un planning interne :</div>
-              <button class="interne-picker-all-btn ${isAllActive ? 'active' : ''}" onclick="selectInterne('all')">
-                👥 Tous les internes
-              </button>
-            </div>
-            <div class="interne-picker-grid">
-              ${buttonsHtml}
-            </div>
           </div>
-        `;
-        return;
-      }
+          <div class="interne-picker-grid">
+            ${buttonsHtml}
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    function _unusedLegacyPersonalBanner() {
+      const statsAll = computeStatsByInterne();
 
       const me = getInterneById(selectedInterneId);
       const isDJ = Boolean(me.isDJ || me.id === "oussama");
