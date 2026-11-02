@@ -365,7 +365,7 @@ def build_balanced_trame() -> dict:
       - R0 (Gabriel en S1) : Lundi PM = TDM OLLIER DIAG (TDM3)
       - R1 (Marwane en S1) : Lundi PM = IRM (avec Pr A. Feydy)
       - R2 (Milan en S1)   : Lundi PM = ECHO (US avec Dr H. Monnier)
-      - R3 (Nathanaël en S1): Lundi PM = TDM SAU (au U)
+      - R3 (Nathanaël en S1): Lundi PM = TDM SAU (au U le 02/11 PM, puis demi-off les lundis suivants)
       - R4 (Oussama en S1) : Lundi PM = GESTES (C) (ou 1/2 journée libre si Poste C fermé)
     - 5 rôles tournants (R0..R4) pour les 5 internes DES hors socle (Gabriel, Marwane, Milan, Nathanaël, Oussama)
       avec 8 vacations actives + 2 demi-offs ('1/2 journée libre') par semaine chacun :
@@ -373,44 +373,47 @@ def build_balanced_trame() -> dict:
       * Relecture avec Pr Jean-Luc DRAPÉ le Mardi après-midi SYSTÉMATIQUE sur le créneau LECTURE/CS.
       * Autres créneaux non obligatoires si les demi-offs ne sont pas suffisants pour garantir 2 demi-offs / semaine.
     - 1 trame spécifique Phase Socle pour Noé GRANDVAL ('noe') :
+      * Posté principalement au Scanner des Urgences ('TDM SAU') avec un ratio équilibré (~50-55 % de ses vacations actives,
+        soit 4 à 4,5 demi-journées / semaine posté au TDM SAU) et le reste réparti sur IRM (3T / 1,5T), Échographie,
+        TDM Ollier Diag (TDM3) et Consultation du vendredi après-midi.
       * Lundi 02/11 après-midi : en binôme avec Gabriel en TDM OLLIER DIAG (TDM3) selon le planning de Dr H. Monnier,
-        puis en binôme au TDM SAU (Urgences) les lundis suivants pour permettre la rotation d'Écho (R2) des 5 internes.
-      * 2 demi-offs ('1/2 journée libre') par semaine (Mardi après-midi et Jeudi après-midi).
+        puis posté en alternance au TDM SAU et en TDM OLLIER DIAG les lundis après-midi suivants.
       * Le Mardi matin des 3 premières semaines (03/11, 10/11, 17/11), Noé est posté avec Dr Macil HAMADOUCHE (MH)
-        au TDM SAU (Urgences Ollier 4).
+        au TDM SAU (Urgences Ollier 4), puis alterne 1 semaine sur 2 entre TDM SAU (avec MH) et IRM 1,5T.
+      * 2 demi-offs ('1/2 journée libre') par semaine (Mardi après-midi et Jeudi après-midi).
     """
     weekly_roles = {
         0: {  # LUNDI (calé sur la base du Dr H. Monnier du 02/11 après-midi : TDM3, IRM, US/ECHO, U/TDM SAU, GESTES C)
             "am": {
-                0: "TDM SAU",
-                1: "ECHO",
+                0: "1/2 journée libre",
+                1: "1/2 journée libre",
                 2: "GESTES (C)",
-                3: "1/2 journée libre",
+                3: "ECHO",
                 4: "1/2 journée libre",
-                "socle": "TDM SAU",  # Binôme Urgences (sauf matinée d'accueil du 02/11)
+                "socle": "TDM SAU",  # Posté au TDM SAU (sauf matinée d'accueil du 02/11)
             },
             "pm": {
-                0: "TDM OLLIER DIAG",  # S1: Gabriel en TDM3 (avec Noé le 02/11 PM)
+                0: "TDM OLLIER DIAG",  # S1: Gabriel en TDM3 (avec Noé le 02/11 PM, puis alterne TDM3 / TDM SAU)
                 1: "IRM",              # S1: Marwane en IRM (avec Pr A. Feydy)
                 2: "ECHO",             # S1: Milan en US / Écho (avec Dr H. Monnier)
-                3: "TDM SAU",          # S1: Nathanaël au U (TDM SAU)
+                3: "1/2 journée libre",# S1: Nathanaël au U le 02/11 PM, puis demi-off les lundis suivants
                 4: "GESTES (C)",       # S1: Oussama (Poste C fermé le 02/11 PM -> 1/2 journée libre)
-                "socle": "TDM SAU",    # Binôme Urgences (et TDM OLLIER DIAG avec Gabriel le 02/11 PM)
+                "socle": "TDM SAU",    # Posté au TDM SAU (1 sem/2) ou TDM OLLIER DIAG (1 sem/2, et binôme TDM3 le 02/11 PM)
             },
         },
         1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi PM : Relecture systématique avec Pr Drapé)
             "am": {
-                0: "TDM SAU",  # Avec Dr Macil HAMADOUCHE (MH)
+                0: "IRM 1,5T",  # En IRM 1,5T quand Noé est posté au TDM SAU (et au TDM SAU quand Noé est en IRM 1,5T)
                 1: "IRM 3T",
                 2: "ECHO",
                 3: "GESTES (C)",
                 4: "SCAN ACHARD",
-                "socle_w1_3": "TDM SAU",  # 3 premières semaines : posté avec Macil (MH) au TDM SAU (binôme urgences)
-                "socle_after": "IRM 1,5T",  # Seul en IRM 1,5T (non doublé) ou TDM SAU
+                "socle_w1_3": "TDM SAU",  # 3 premières semaines : posté avec Dr Macil HAMADOUCHE (MH) au TDM SAU
+                "socle_after": "IRM 1,5T",  # Ensuite : alterne 1 sem/2 IRM 1,5T et 1 sem/2 TDM SAU (avec MH)
             },
             "pm": {
                 0: "SCAN ACHARD",
-                1: "1/2 journée libre",
+                1: "ECHO",
                 2: "GESTES (C)",
                 3: "LECTURE/CS",  # Relecture avec Pr Drapé (systématique)
                 4: "TDM SAU",
@@ -424,7 +427,7 @@ def build_balanced_trame() -> dict:
                 2: "1/2 journée libre",
                 3: "ECHO",
                 4: "TDM SAU",
-                "socle": "IRM 3T",  # Seul en IRM 3T (non doublé)
+                "socle": "IRM 3T",  # Posté en IRM 3T
             },
             "pm": {
                 0: "1/2 journée libre",
@@ -432,43 +435,43 @@ def build_balanced_trame() -> dict:
                 2: "SCAN ACHARD",
                 3: "GESTES (C)",
                 4: "IRM",
-                "socle": "ECHO",  # Seul en Écho le mercredi après-midi (avec Dr Mihoubi)
+                "socle": "ECHO",  # Posté en Écho le mercredi après-midi (avec Dr Mihoubi)
             },
         },
         3: {  # JEUDI
             "am": {
                 0: "SCAN ACHARD",
-                1: "TDM SAU",
-                2: "1/2 journée libre",
+                1: "1/2 journée libre",
+                2: "ECHO",
                 3: "GESTES (C)",
-                4: "ECHO",
-                "socle": "TDM SAU",  # Binôme Urgences avec Macil (MH)
+                4: "1/2 journée libre",
+                "socle": "TDM SAU",  # Posté au TDM SAU avec Dr Macil HAMADOUCHE (MH)
             },
             "pm": {
                 0: "ALLURA",
                 1: "IRM",
                 2: "TDM SAU",
-                3: "1/2 journée libre",
+                3: "ECHO",
                 4: "SCAN ACHARD",
                 "socle": "1/2 journée libre",  # Demi-off n°2 de Noé
             },
         },
         4: {  # VENDREDI (Biblio du vendredi • Vendredi PM : Consultation Internes)
             "am": {
-                0: "1/2 journée libre",
+                0: "GESTES (C)",
                 1: "ECHO",
-                2: "TDM SAU",
+                2: "1/2 journée libre",
                 3: "IRM 3T",
-                4: "1/2 journée libre",
-                "socle": "TDM SAU",  # Binôme Urgences uniquement
+                4: "IRM 1,5T",
+                "socle": "TDM SAU",  # Posté au TDM SAU
             },
             "pm": {
                 0: "IRM",
-                1: "1/2 journée libre",
+                1: "GESTES (C)",
                 2: "TDM SAU",
-                3: "SCAN ACHARD",
-                4: "GESTES (C)",
-                "socle": "LECTURE/CS",  # Consultation du vendredi après-midi (non obligatoire si demi-offs insuffisants)
+                3: "1/2 journée libre",
+                4: "SCAN ACHARD",
+                "socle": "LECTURE/CS",  # Consultation du vendredi après-midi (avec Dr Macil HAMADOUCHE)
             },
         },
     }
