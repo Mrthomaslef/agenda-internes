@@ -3940,9 +3940,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
       });
 
-      // 2D. Équilibrage global des Consultations (CONSULTATION : max 1/semaine, égalisation totale et équilibre Mardi/Vendredi) sur les semaines non verrouillées
+      // 2D. Équilibrage global des Consultations (CONSULTATION : max 1/semaine, Noé uniquement les 2 derniers mois Mars-Avril, égalisation totale et équilibre Mardi/Vendredi)
+      //     et 2E. Équilibrage global des vacations d'ÉCHOGRAPHIE et d'IRM sur les semaines non verrouillées
       {
         const allIidsGlobal = (st.internes || []).map(x => x.id);
+        const seniorIidsGlobal = allIidsGlobal.filter(x => x !== "noe");
+        const targetCsGlobal = (iid) => (iid === "noe" ? 3 : 9);
         const isSamePosteDayGlobal = (p1, p2) => {
           if (!p1 || !p2) return false;
           if (nonActivePostes.includes(p1) || nonActivePostes.includes(p2)) return false;
@@ -3978,6 +3981,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const hasCs = allIidsGlobal.some(iid => byS[iid] && byS[iid].pm === "CONSULTATION");
             if (!hasCs) {
               for (const iid of allIidsGlobal) {
+                if (iid === "noe" && dIso < "2027-03-01") continue;
                 if (custom[dIso + "__" + iid] && custom[dIso + "__" + iid].pm) continue;
                 const sl = byS[iid];
                 if (sl && sl.pm === "LECTURE" && !isSamePosteDayGlobal(sl.am, "CONSULTATION")) {
@@ -4029,6 +4033,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         };
         const canSwapCsGlobal = (dIso, fromId, toId, allowedPostes) => {
           if (dIso === "2026-11-02") return false;
+          if (toId === "noe" && dIso < "2027-03-01") return false;
           if (!st.schedule[dIso] || st.schedule[dIso].holiday) return false;
           if (custom[dIso + "__" + fromId] && custom[dIso + "__" + fromId].pm) return false;
           if (custom[dIso + "__" + toId] && custom[dIso + "__" + toId].pm) return false;
@@ -4039,6 +4044,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const pOther = byS[toId].pm;
           if (!pOther || !allowedPostes.includes(pOther)) return false;
           if (jsDay === 2 && pOther === "LECTURE" && fromId === "noe") return false;
+          if ((fromId === "noe" || toId === "noe") && pOther !== "LECTURE" && fromId !== "noe") {
+            if (seniorIidsGlobal.some(sId => sId !== fromId && byS[sId] && byS[sId].pm === pOther)) return false;
+          }
           if (isSamePosteDayGlobal(byS[fromId].am, pOther) || isSamePosteDayGlobal(byS[toId].am, "CONSULTATION")) return false;
           return true;
         };
@@ -4057,6 +4065,44 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         };
 
+        // 0) Avant le 01/03/2027, Noé ne fait pas de consultation : transférer vers un senior
+        unlockedWeekMons.forEach(monIso => {
+          (weeksMap[monIso] || []).forEach(dIso => {
+            if (dIso >= "2027-03-01" || !st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const byS = st.schedule[dIso].byInterne;
+            if (!byS || !byS.noe || byS.noe.pm !== "CONSULTATION") return;
+            let swN = false;
+            const candsS = seniorIidsGlobal
+              .filter(s => getWeekCsCountGlobal(monIso, s) === 0)
+              .sort((a, b) => getTotalCsCountGlobal(a) - getTotalCsCountGlobal(b));
+            for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
+              for (const uId of candsS) {
+                if (canSwapCsGlobal(dIso, "noe", uId, allowedList)) {
+                  execSwapCsGlobal(dIso, "noe", uId);
+                  swN = true;
+                  break;
+                }
+              }
+              if (swN) break;
+              for (const midS of seniorIidsGlobal) {
+                if (getWeekCsCountGlobal(monIso, midS) !== 1 || !canSwapCsGlobal(dIso, "noe", midS, allowedList)) continue;
+                const d2 = (weeksMap[monIso] || []).find(dt => dt !== dIso && st.schedule[dt] && !st.schedule[dt].holiday && st.schedule[dt].byInterne[midS] && st.schedule[dt].byInterne[midS].pm === "CONSULTATION");
+                if (!d2) continue;
+                for (const uId of candsS) {
+                  if (canSwapCsGlobal(d2, midS, uId, allowedList)) {
+                    execSwapCsGlobal(d2, midS, uId);
+                    execSwapCsGlobal(dIso, "noe", midS);
+                    swN = true;
+                    break;
+                  }
+                }
+                if (swN) break;
+              }
+              if (swN) break;
+            }
+          });
+        });
+
         // 1) Éliminer les semaines avec >= 2 consultations pour un même interne
         unlockedWeekMons.forEach(monIso => {
           for (let it = 0; it < 10; it++) {
@@ -4065,8 +4111,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               for (const overId of allIidsGlobal) {
                 if (getWeekCsCountGlobal(monIso, overId) < 2) continue;
                 const underCandidates = allIidsGlobal
-                  .filter(u => u !== overId && getWeekCsCountGlobal(monIso, u) === 0)
-                  .sort((a, b) => getTotalCsCountGlobal(a) - getTotalCsCountGlobal(b));
+                  .filter(u => u !== overId && getWeekCsCountGlobal(monIso, u) === 0 && !(u === "noe" && monIso < "2027-03-01"))
+                  .sort((a, b) => (getTotalCsCountGlobal(a) - targetCsGlobal(a)) - (getTotalCsCountGlobal(b) - targetCsGlobal(b)));
                 for (const underId of underCandidates) {
                   for (const dIso of weeksMap[monIso]) {
                     if (canSwapCsGlobal(dIso, overId, underId, allowedList)) {
@@ -4085,27 +4131,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         });
 
-        // 2) Égaliser le total de CONSULTATION sur le semestre (écart max <= 1, cible 8 par interne)
+        // 2) Égaliser le total de CONSULTATION sur le semestre (cible 8-9 pour les seniors, 3 pour Noé sur les 2 derniers mois)
         for (let iterG = 0; iterG < 80; iterG++) {
           let swappedG = false;
-          const counts = {};
-          allIidsGlobal.forEach(iid => { counts[iid] = getTotalCsCountGlobal(iid); });
-          const sortedIids = allIidsGlobal.slice().sort((a, b) => {
-            if (counts[b] !== counts[a]) return counts[b] - counts[a];
-            return (a === "noe" ? 1 : 0) - (b === "noe" ? 1 : 0);
+          const counts = {}, eff = {};
+          allIidsGlobal.forEach(iid => {
+            counts[iid] = getTotalCsCountGlobal(iid);
+            eff[iid] = counts[iid] - targetCsGlobal(iid);
           });
-          const maxC = counts[sortedIids[0]];
-          const minC = counts[sortedIids[sortedIids.length - 1]];
-          if (maxC - minC <= 1 && !(counts.noe > minC && counts.noe > 8)) break;
+          const sortedIids = allIidsGlobal.slice().sort((a, b) => {
+            if (eff[b] !== eff[a]) return eff[b] - eff[a];
+            if ((a === "noe") !== (b === "noe")) return a === "noe" ? -1 : 1;
+            return counts[b] - counts[a];
+          });
+          if (eff[sortedIids[0]] - eff[sortedIids[sortedIids.length - 1]] <= 1 && counts.noe <= 3) break;
 
           for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
             for (const overId of sortedIids) {
               for (let uIdx = sortedIids.length - 1; uIdx >= 0; uIdx--) {
                 const underId = sortedIids[uIdx];
                 if (underId === overId) continue;
-                const diff = counts[overId] - counts[underId];
-                if (!(diff >= 2 || (overId === "noe" && diff >= 1 && counts[overId] > 8))) continue;
+                if (underId === "noe" && counts.noe >= 3) continue;
+                const diffEff = eff[overId] - eff[underId];
+                if (!(diffEff >= 2 || (overId === "noe" && counts.noe > 3 && diffEff >= 1))) continue;
                 for (const monIso of unlockedWeekMons) {
+                  if (underId === "noe" && monIso < "2027-03-01") continue;
                   if (getWeekCsCountGlobal(monIso, overId) === 0 || getWeekCsCountGlobal(monIso, underId) > 0) continue;
                   for (const dIso of weeksMap[monIso]) {
                     if (canSwapCsGlobal(dIso, overId, underId, allowedList)) {
@@ -4141,8 +4191,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 if (overFriId === overTueId) continue;
                 if (friC[overFriId] < tueC[overFriId]) continue;
                 if ((tueC[overTueId] - friC[overTueId]) + (friC[overFriId] - tueC[overFriId]) < 4) continue;
-                if (Math.abs(totalC[overTueId] - totalC[overFriId]) > 1) continue;
+                if (Math.abs((totalC[overTueId] - targetCsGlobal(overTueId)) - (totalC[overFriId] - targetCsGlobal(overFriId))) > 1) continue;
                 for (const monTue of unlockedWeekMons) {
+                  if (overFriId === "noe" && monTue < "2027-03-01") continue;
                   if (getWeekCsCountGlobal(monTue, overTueId) === 0 || getWeekCsCountGlobal(monTue, overFriId) > 0) continue;
                   const tueDay = weeksMap[monTue].find(d => {
                     const [y, m, dd] = d.split("-").map(Number);
@@ -4150,6 +4201,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   });
                   if (!tueDay) continue;
                   for (const monFri of unlockedWeekMons) {
+                    if (overTueId === "noe" && monFri < "2027-03-01") continue;
                     if (monFri === monTue) continue;
                     if (getWeekCsCountGlobal(monFri, overFriId) === 0 || getWeekCsCountGlobal(monFri, overTueId) > 0) continue;
                     const friDay = weeksMap[monFri].find(d => {
@@ -4171,6 +4223,139 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (swappedTF) break;
           }
           if (!swappedTF) break;
+        }
+
+        // 4) Équilibrage global final des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM 3T, IRM 1,5T, IRM PM)
+        const diagPostesGlobal = ["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG"];
+        const getWeekIrmPmCntGlobal = (monIso, iid) => {
+          let c = 0;
+          (weeksMap[monIso] || []).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (sl && sl.pm === "IRM") c++;
+          });
+          return c;
+        };
+        const canSwapDiagGlobal = (monIso, dIso, hKey, i1, i2) => {
+          if (dIso === "2026-11-02" || !st.schedule[dIso] || st.schedule[dIso].holiday) return false;
+          if (custom[dIso + "__" + i1] && custom[dIso + "__" + i1][hKey]) return false;
+          if (custom[dIso + "__" + i2] && custom[dIso + "__" + i2][hKey]) return false;
+          const byS = st.schedule[dIso].byInterne;
+          if (!byS[i1] || !byS[i2]) return false;
+          const p1 = byS[i1][hKey], p2 = byS[i2][hKey];
+          if (!p1 || !p2 || p1 === p2 || !diagPostesGlobal.includes(p1) || !diagPostesGlobal.includes(p2)) return false;
+          if (i1 === "noe" || i2 === "noe") {
+            const senId = i1 === "noe" ? i2 : i1;
+            const pNoe = i1 === "noe" ? p1 : p2;
+            if (seniorIidsGlobal.some(sOth => sOth !== senId && byS[sOth] && byS[sOth][hKey] === pNoe)) return false;
+          }
+          const othH = hKey === "am" ? "pm" : "am";
+          if (isSamePosteDayGlobal(p2, byS[i1][othH]) || isSamePosteDayGlobal(p1, byS[i2][othH])) return false;
+          if (hKey === "pm") {
+            if (p2 === "IRM" && p1 !== "IRM" && getWeekIrmPmCntGlobal(monIso, i1) >= 1) return false;
+            if (p1 === "IRM" && p2 !== "IRM" && getWeekIrmPmCntGlobal(monIso, i2) >= 1) return false;
+          }
+          return true;
+        };
+        const execSwapDiagGlobal = (dIso, hKey, i1, i2) => {
+          const byS = st.schedule[dIso].byInterne;
+          const nk = hKey === "am" ? "noteAm" : "notePm";
+          const p1 = byS[i1][hKey], p2 = byS[i2][hKey];
+          byS[i1][hKey] = p2;
+          byS[i1][nk] = i1 === "noe" ? `Phase Socle (${p2})` : "";
+          if (!(custom[dIso + "__" + i1] && custom[dIso + "__" + i1].note)) {
+            byS[i1].note = [byS[i1].noteAm, byS[i1].notePm].filter(Boolean).join(" • ");
+          }
+          byS[i2][hKey] = p1;
+          byS[i2][nk] = i2 === "noe" ? `Phase Socle (${p1})` : "";
+          if (!(custom[dIso + "__" + i2] && custom[dIso + "__" + i2].note)) {
+            byS[i2].note = [byS[i2].noteAm, byS[i2].notePm].filter(Boolean).join(" • ");
+          }
+        };
+        const evalGlobalDiagScore = () => {
+          const echoAm = {}, echoPm = {}, irmAm = {}, irm3t = {}, irm15t = {}, irmPm = {}, ach = {}, oll = {};
+          allIidsGlobal.forEach(i => { echoAm[i] = 0; echoPm[i] = 0; irmAm[i] = 0; irm3t[i] = 0; irm15t[i] = 0; irmPm[i] = 0; ach[i] = 0; oll[i] = 0; });
+          let wPen = 0;
+          Object.keys(weeksMap).forEach(monIso => {
+            const we = {}, wi = {};
+            allIidsGlobal.forEach(i => { we[i] = 0; wi[i] = 0; });
+            (weeksMap[monIso] || []).forEach(dIso => {
+              if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+              const byS = st.schedule[dIso].byInterne;
+              ["am", "pm"].forEach(hK => {
+                allIidsGlobal.forEach(i => {
+                  const v = byS[i] && byS[i][hK];
+                  if (v === "ECHO") {
+                    if (hK === "am") echoAm[i]++; else echoPm[i]++;
+                    we[i]++;
+                  } else if ((v === "IRM 3T" || v === "IRM 1,5T") && hK === "am") {
+                    irmAm[i]++;
+                    if (v === "IRM 3T") irm3t[i]++; else irm15t[i]++;
+                    wi[i]++;
+                  } else if (v === "IRM" && hK === "pm") {
+                    irmPm[i]++;
+                    wi[i]++;
+                  } else if (v === "SCAN ACHARD") {
+                    ach[i]++;
+                  } else if (v === "TDM OLLIER DIAG") {
+                    oll[i]++;
+                  }
+                });
+              });
+            });
+            const n = allIidsGlobal.length || 1;
+            const me = allIidsGlobal.reduce((s, i) => s + we[i], 0) / n;
+            const mi = allIidsGlobal.reduce((s, i) => s + wi[i], 0) / n;
+            allIidsGlobal.forEach(i => { wPen += (we[i] - me) ** 2 + (wi[i] - mi) ** 2; });
+          });
+          const varArr = (arr) => {
+            const m = arr.reduce((s, x) => s + x, 0) / (arr.length || 1);
+            return arr.reduce((s, x) => s + (x - m) ** 2, 0);
+          };
+          const echoTot = allIidsGlobal.map(i => echoAm[i] + echoPm[i]);
+          const irmTot = allIidsGlobal.map(i => irmAm[i] + irmPm[i]);
+          return (
+            16 * varArr(echoTot) +
+            16 * varArr(irmTot) +
+            10 * varArr(allIidsGlobal.map(i => irmAm[i])) +
+            10 * varArr(allIidsGlobal.map(i => irmPm[i])) +
+            3 * varArr(allIidsGlobal.map(i => echoAm[i])) +
+            3 * varArr(allIidsGlobal.map(i => echoPm[i])) +
+            2 * varArr(allIidsGlobal.map(i => irm3t[i])) +
+            2 * varArr(allIidsGlobal.map(i => irm15t[i])) +
+            4 * varArr(seniorIidsGlobal.map(s => ach[s])) +
+            4 * varArr(seniorIidsGlobal.map(s => oll[s])) +
+            1.5 * varArr(allIidsGlobal.map(i => ach[i])) +
+            1.5 * varArr(allIidsGlobal.map(i => oll[i])) +
+            1.5 * wPen
+          );
+        };
+        for (let iterD = 0; iterD < 80; iterD++) {
+          let impD = false;
+          let curScoreD = evalGlobalDiagScore();
+          for (const monIso of unlockedWeekMons) {
+            for (const dIso of (weeksMap[monIso] || [])) {
+              if (!st.schedule[dIso] || st.schedule[dIso].holiday) continue;
+              for (const hK of ["am", "pm"]) {
+                for (let idx1 = 0; idx1 < allIidsGlobal.length; idx1++) {
+                  for (let idx2 = idx1 + 1; idx2 < allIidsGlobal.length; idx2++) {
+                    const i1 = allIidsGlobal[idx1], i2 = allIidsGlobal[idx2];
+                    if (canSwapDiagGlobal(monIso, dIso, hK, i1, i2)) {
+                      execSwapDiagGlobal(dIso, hK, i1, i2);
+                      const newScoreD = evalGlobalDiagScore();
+                      if (newScoreD < curScoreD - 1e-6) {
+                        curScoreD = newScoreD;
+                        impD = true;
+                      } else {
+                        execSwapDiagGlobal(dIso, hK, i1, i2);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (!impD) break;
         }
       }
 
