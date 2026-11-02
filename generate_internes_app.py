@@ -552,7 +552,118 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .perso-week-grid {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .perso-day-card {
+      margin: 0;
+      padding: 12px 10px;
+      border-radius: 12px;
+      background: #FFFFFF;
+      border: 1.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .perso-day-card:hover {
+      border-color: #94A3B8;
+    }
+
+    .perso-day-card.active-day {
+      background: #F0F9FF;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .perso-day-card.garde-day {
+      background: #FFFDFD;
+      border-color: #FCA5A5;
+    }
+
+    .perso-day-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+
+    .perso-day-title {
+      display: flex;
+      align-items: baseline;
+      gap: 5px;
+    }
+
+    .perso-day-dow {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+
+    .perso-day-date {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748B;
+    }
+
+    .perso-day-card.active-day .perso-day-dow,
+    .perso-day-card.active-day .perso-day-date {
+      color: #0369A1;
+    }
+
+    .perso-day-slots {
+      display: flex;
+      flex-direction: column;
       gap: 8px;
+      flex: 1;
+    }
+
+    .perso-slot-block {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .perso-slot-label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .perso-vac-pill {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 8px 8px !important;
+      font-size: 13px !important;
+      font-weight: 800 !important;
+      border-radius: 8px !important;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .perso-garde-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10.5px;
+      font-weight: 800;
+      background: #FEE2E2;
+      color: #B91C1C;
+      border: 1px solid #FCA5A5;
+      white-space: nowrap;
     }
 
     /* Badges de postes */
@@ -576,6 +687,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .poste-echo { background: #CCFBF1; color: #0F766E; border-color: #5EEAD4; }
     .poste-gestes { background: #FFE4E6; color: #BE123C; border-color: #FDA4AF; }
     .poste-cs { background: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; }
+    .poste-lecture { background: #E0E7FF; color: #4338CA; border-color: #A5B4FC; }
     .poste-off { background: #F1F5F9; color: #475569; border-color: #CBD5E1; }
     .poste-vac { background: #DCFCE7; color: #15803D; border-color: #86EFAC; }
     .poste-rg { background: #FEE2E2; color: #B91C1C; border-color: #FCA5A5; }
@@ -966,18 +1078,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         font-size: 8.5px;
       }
       .perso-week-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 3px;
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
       .perso-week-grid .perso-day-card {
-        padding: 5px 3px !important;
-        border-radius: 8px !important;
+        padding: 10px 12px !important;
+        border-radius: 10px !important;
+        gap: 8px !important;
       }
-      .perso-week-grid .perso-day-card .poste-pill {
-        font-size: 8.5px !important;
-        padding: 2px 3px !important;
-        white-space: normal !important;
-        line-height: 1.1 !important;
+      .perso-week-grid .perso-day-slots {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      .perso-week-grid .perso-day-card .perso-vac-pill {
+        font-size: 12.5px !important;
+        padding: 7px 8px !important;
+        white-space: nowrap !important;
       }
       .weekend-gardes-compact {
         padding: 5px 6px;
@@ -2335,7 +2452,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (p.includes("OLLIER DIAG") || p.includes("OLLIER 3") || p === "TDM OLLIER" || p === "SCAN OLLIER") return "poste-tdm-ollier";
       if (p.includes("SAU") || p.includes("OLLIER 4")) return "poste-tdm-sau";
       if (p.includes("GESTES") || p.includes("ALLURA")) return "poste-gestes";
-      if (p.includes("LECTURE") || p.includes("CS") || p.includes("CONSULT")) return "poste-cs";
+      if (p.includes("CONSULT") || p === "CS") return "poste-cs";
+      if (p.includes("LECTURE")) return "poste-lecture";
       return "poste-tdm";
     }
 
@@ -2351,12 +2469,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (p.includes("SAU") || p.includes("OLLIER 4")) {
         return periodKey === "am" ? "08h00 – 13h00" : (periodKey === "pm" ? "fin à 18h30" : "08h00 – 18h30");
       }
+      if (p.includes("CONSULT") || p.includes("LECTURE")) {
+        return periodKey === "pm" ? "13h30 – 18h00" : "";
+      }
       return "";
     }
 
     function getPosteWithTimeLabel(poste, periodKey) {
       let shortName = poste === "1/2 journée libre" ? "Demi-off" : (poste === "FORMATION / ACCUEIL" ? "Accueil & Formation" : poste);
       if (shortName === "TDM OLLIER DIAG") shortName = "SCAN OLLIER";
+      if (shortName === "LECTURE/CS") shortName = "LECTURE";
       if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
       const p = String(poste || "").toUpperCase();
       let h = "";
@@ -2367,13 +2489,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return h ? `${shortName} <span style="opacity:0.85; font-weight:600; font-size:10px;">(${h})</span>` : shortName;
     }
 
+    function getPosteCleanLabel(poste, periodKey) {
+      if (!poste || poste === "—") return "—";
+      if (poste === "1/2 journée libre") return "Demi-off";
+      if (poste === "FORMATION / ACCUEIL") return "Accueil";
+      if (poste === "TDM OLLIER DIAG" || poste === "TDM OLLIER" || poste === "TDM OLLIER 3") return "SCAN OLLIER";
+      if (poste === "TDM OLLIER 4 (SAU)") return "TDM SAU";
+      if (poste === "TDM ACHARD 1") return "SCAN ACHARD";
+      if (poste === "LECTURE/CS") return "LECTURE";
+      if (poste === "VACANCES") return "Congés";
+      if (poste === "FÉRIÉ") return "Férié";
+      return poste;
+    }
+
     function renderPosteCellLabel(poste, periodKey) {
       let shortName = poste === "1/2 journée libre" ? "Demi-off" : poste;
       if (shortName === "FORMATION / ACCUEIL") shortName = "ACCUEIL / FORM.";
       if (shortName === "TDM OLLIER DIAG" || shortName === "TDM OLLIER" || shortName === "TDM OLLIER 3") shortName = "SCAN OLLIER";
       if (shortName === "TDM OLLIER 4 (SAU)") shortName = "TDM SAU";
       if (shortName === "TDM ACHARD 1") shortName = "SCAN ACHARD";
-      if (shortName === "CONSULT / LECTURE") shortName = "CS / LECT.";
+      if (shortName === "LECTURE/CS") shortName = "LECTURE";
       if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
       if (isChefPlanningMode) {
         return `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
@@ -2385,7 +2520,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "13h30–18h00";
       else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "13h30–18h00";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "08h00–18h30" : "fin 18h30";
-      else if (p.includes("LECTURE") || p.includes("CONSULT")) h = periodKey === "pm" ? "Mar : Pr Drapé • Ven : CS" : "";
+      else if (p.includes("CONSULT")) h = periodKey === "pm" ? "13h30–18h00 • Mar & Ven PM" : "";
+      else if (p.includes("LECTURE")) h = periodKey === "pm" ? "13h30–18h00 • Relecture" : "";
       return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
         <span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>
         ${h ? `<span class="poste-horaire-sub" style="font-size:9.5px; font-weight:700; color:var(--text-muted); padding-left:1px;">🕒 ${h}</span>` : ""}
@@ -2396,7 +2532,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       "1_am": ["ECHO"],
       "1_pm": ["IRM"],
       "2_am": ["GESTES (C)", "IRM 3T", "IRM 1,5T"],
-      "2_pm": ["LECTURE/CS"],
+      "2_pm": ["LECTURE"],
       "3_am": ["IRM 3T", "IRM 1,5T"],
       "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
       "4_am": ["ECHO", "GESTES (C)"],
@@ -2445,9 +2581,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (CHEF_TO_INTERNE_POSTE_MAP[pChef]) {
           openPostes.add(CHEF_TO_INTERNE_POSTE_MAP[pChef]);
         } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
-          openPostes.add("LECTURE/CS");
+          openPostes.add("CONSULTATION");
+          openPostes.add("LECTURE");
         }
       });
+      if (halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+        openPostes.add("LECTURE");
+      }
       const res = new Set(["TDM SAU"]);
       baseReq.forEach(p => {
         if (openPostes.has(p)) res.add(p);
@@ -2479,7 +2619,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (isClosed || !docVal) return;
         let mappedPoste = CHEF_TO_INTERNE_POSTE_MAP[pChef] || null;
         if (!mappedPoste && pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
-          mappedPoste = "LECTURE/CS";
+          mappedPoste = "CONSULTATION";
         }
         if (mappedPoste === posteName) {
           docs.push(docVal);
@@ -2494,7 +2634,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!docs.length) return [];
       const dObj = (stRef && stRef.schedule) ? stRef.schedule[iso] : null;
       const periodList = (dObj && Array.isArray(dObj[halfKey])) ? dObj[halfKey] : [];
-      const hasInterne = periodList.some(x => !x.closed && x.interneId && x.poste === posteName);
+      const hasInterne = periodList.some(x => !x.closed && x.interneId && (
+        x.poste === posteName ||
+        (posteName === "CONSULTATION" && x.poste === "LECTURE")
+      ));
       return hasInterne ? [] : docs;
     }
 
@@ -2538,7 +2681,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         "1_am": ["ECHO"],
         "1_pm": ["IRM"],
         "2_am": ["GESTES (C)", "IRM 3T"],
-        "2_pm": ["LECTURE/CS"],
+        "2_pm": ["LECTURE"],
         "3_am": ["IRM 3T", "IRM 1,5T"],
         "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
         "4_am": ["ECHO", "GESTES (C)"],
@@ -2574,9 +2717,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (chefToInterneMap[pChef]) {
             openPostes.add(chefToInterneMap[pChef]);
           } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
-            openPostes.add("LECTURE/CS");
+            openPostes.add("CONSULTATION");
+            openPostes.add("LECTURE");
           }
         });
+        if (halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+          openPostes.add("LECTURE");
+        }
         const phSet = new Set();
         baseReq.forEach(p => {
           if (openPostes.has(p)) phSet.add(p);
@@ -2600,8 +2747,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const intObj = st.internes.find(x => x.id === iid);
             const origSlot = dayObj.byInterne[iid] || {};
             const cKey = iso + "__" + iid;
-            let am = origSlot.am;
-            let pm = origSlot.pm;
+            let am = origSlot.am === "LECTURE/CS" ? "LECTURE" : origSlot.am;
+            let pm = origSlot.pm === "LECTURE/CS" ? (jsDay === 5 ? "CONSULTATION" : "LECTURE") : origSlot.pm;
             let noteAm = origSlot.noteAm || "";
             let notePm = origSlot.notePm || "";
             let note = origSlot.note || noteAm || notePm || "";
@@ -2610,8 +2757,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             // Si un Repos de garde officiel avait été pré-intégré mais a été supprimé/refusé, restaurer le poste pré-RG
             if (!absLookup[cKey] && origSlot.am === "RG" && origSlot.preRgAm) {
-              am = origSlot.preRgAm;
-              pm = origSlot.preRgPm || origSlot.preRgAm;
+              am = origSlot.preRgAm === "LECTURE/CS" ? "LECTURE" : origSlot.preRgAm;
+              const rawPrePm = origSlot.preRgPm || origSlot.preRgAm;
+              pm = rawPrePm === "LECTURE/CS" ? (jsDay === 5 ? "CONSULTATION" : "LECTURE") : rawPrePm;
               note = "";
               noteAm = "";
               notePm = "";
@@ -2620,9 +2768,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (custom[cKey]) {
               const [yyC, mmC, ddC] = iso.split("-").map(Number);
               const jsDayC = new Date(yyC, mmC - 1, ddC).getDay();
-              if (custom[cKey].am) am = custom[cKey].am;
+              if (custom[cKey].am) {
+                am = custom[cKey].am === "LECTURE/CS" ? "LECTURE" : custom[cKey].am;
+              }
               if (custom[cKey].pm && !((jsDayC === 2 || jsDayC === 5) && custom[cKey].pm === "1/2 journée libre")) {
-                pm = custom[cKey].pm;
+                pm = custom[cKey].pm === "LECTURE/CS" ? (jsDayC === 5 ? "CONSULTATION" : "LECTURE") : custom[cKey].pm;
               }
               if (custom[cKey].note !== undefined) {
                 note = custom[cKey].note;
@@ -2649,7 +2799,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
           // (hors matinée d'accueil et formation obligatoire du 02/11/2026)
           // en prélevant d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
-          const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM"];
+          const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM", "CONSULTATION", "LECTURE"];
           ["am", "pm"].forEach(hSau => {
             if (iso === "2026-11-02" && hSau === "am") return;
             const hasSauSenior = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
@@ -2683,15 +2833,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
           });
 
-          // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE/CS
+          // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE (Mardi) / CONSULTATION (Vendredi)
           // en prélevant d'abord sur une vacation non obligatoire
           if (jsDay === 2) {
-            const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE/CS");
+            const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE");
             const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
             const anyVacToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "VACANCES");
             if (!hasTueCs && anyRgToday && !anyVacToday) {
               const phTuePm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
-              const tueDonors = ["GESTES (C)", "ECHO", "SCAN ACHARD"];
+              const tueDonors = ["GESTES (C)", "ECHO", "SCAN ACHARD", "CONSULTATION"];
               const orderedTueDonors = [...tueDonors.filter(d => !phTuePm.has(d)), ...tueDonors.filter(d => phTuePm.has(d))];
               for (const donorP of orderedTueDonors) {
                 let rep = false;
@@ -2699,7 +2849,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
                   const sl = dayObj.byInterne[sId];
                   if (sl && sl.pm === donorP) {
-                    sl.pm = "LECTURE/CS";
+                    sl.pm = "LECTURE";
                     sl.notePm = "Relecture avec Pr Drapé (systématique)";
                     if (!sl.note) sl.note = sl.notePm;
                     rep = true;
@@ -2711,18 +2861,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
           }
           if (jsDay === 5) {
-            const hasFriCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE/CS");
+            const hasFriCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "CONSULTATION");
             const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
             if (!hasFriCs && anyRgToday) {
               const phFriPm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
-              for (const donorP of ["GESTES (C)", "IRM", "SCAN ACHARD"]) {
+              for (const donorP of ["GESTES (C)", "IRM", "SCAN ACHARD", "LECTURE"]) {
                 if (phFriPm.has(donorP)) continue;
                 let rep = false;
                 for (const sId of seniorIds) {
                   if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
                   const sl = dayObj.byInterne[sId];
                   if (sl && sl.pm === donorP) {
-                    sl.pm = "LECTURE/CS";
+                    sl.pm = "CONSULTATION";
                     sl.notePm = "Consultation Internes (Vendredi PM)";
                     if (!sl.note) sl.note = sl.notePm;
                     rep = true;
@@ -2750,7 +2900,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         "TDM OLLIER DIAG",
         "IRM 3T",
         "IRM",
-        "LECTURE/CS"
+        "CONSULTATION",
+        "LECTURE"
       ];
       const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
       const carryOverOffs = {};
@@ -4836,11 +4987,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    // Bandeau résumé épuré sur une seule barre lisible (masqué en Mode Chef)
+    // Bandeau résumé épuré sur une seule barre lisible (masqué en Mode Chef et dans l'onglet Planning en vue Perso)
     function renderPersonalBanner() {
       const el = document.getElementById("personalBanner");
       if (!el) return;
-      if (isChefPlanningMode) {
+      const isPersoSelected = (planningScope === "perso" || (selectedInterneId !== "all" && selectedInterneId !== "all_chefs"));
+      if (isChefPlanningMode || (currentTab === "planning" && isPersoSelected)) {
         el.style.display = "none";
         el.innerHTML = "";
         return;
@@ -4870,8 +5022,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const todaySlots = getChefSlotsForDate(currentDateIso, chef);
         const todayAmTxt = todaySlots.am.length ? todaySlots.am.join(" + ") : "Libre";
         const todayPmTxt = todaySlots.pm.length ? todaySlots.pm.join(" + ") : "Libre";
-        const todayAmHtml = todaySlots.am.length ? todaySlots.am.map(p => getPosteWithTimeLabel(p, "am")).join(" + ") : "Libre";
-        const todayPmHtml = todaySlots.pm.length ? todaySlots.pm.map(p => getPosteWithTimeLabel(p, "pm")).join(" + ") : "Libre";
+        const todayAmHtml = todaySlots.am.length ? todaySlots.am.map(p => getPosteCleanLabel(p, "am")).join(" + ") : "Libre";
+        const todayPmHtml = todaySlots.pm.length ? todaySlots.pm.map(p => getPosteCleanLabel(p, "pm")).join(" + ") : "Libre";
 
         el.innerHTML = `
           <div class="summary-left">
@@ -4880,8 +5032,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <div class="summary-title">${chef.fullName}</div>
               <div class="summary-sub">
                 <span>${formatDateFr(currentDateIso)} :</span>
-                <span class="poste-pill ${getPosteClass(todayAmTxt)}">Matin : ${todayAmHtml}</span>
-                <span class="poste-pill ${getPosteClass(todayPmTxt)}">PM : ${todayPmHtml}</span>
+                <span class="poste-pill ${getPosteClass(todayAmTxt)}">${todayAmHtml}</span>
+                <span class="poste-pill ${getPosteClass(todayPmTxt)}">${todayPmHtml}</span>
                 ${todaySlots.isGarde ? `<span class="poste-pill poste-rg">Garde</span>` : ""}
               </div>
             </div>
@@ -4927,8 +5079,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const todayAm = daySched ? daySched.am : "—";
       const todayPm = daySched ? daySched.pm : "—";
-      const isTodayAmMand = isMandatoryVacationSlot(currentDateIso, "am", todayAm);
-      const isTodayPmMand = isMandatoryVacationSlot(currentDateIso, "pm", todayPm);
       const gIntToday = getInterneGardeInfo(currentDateIso);
       const isMeGardeToday = Boolean(gIntToday && gIntToday.interneId === me.id);
 
@@ -4939,23 +5089,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="summary-title">
               ${me.fullName}
               ${me.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
-              ${isDJ ? `<span class="tag-dj">Docteur Junior (DJ)</span>` : ""}
-              ${isMeGardeToday ? `<span class="poste-pill poste-rg" style="font-size:10px; padding:1px 6px;">🌙 Garde ce soir</span>` : ""}
+              ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
+              ${isMeGardeToday ? `<span class="poste-pill poste-rg" style="font-size:10px; padding:1px 6px;">🌙 Garde</span>` : ""}
             </div>
             <div class="summary-sub">
               <span>${formatDateFr(currentDateIso)} :</span>
-              <span class="poste-pill ${getPosteClass(todayAm)} ${isTodayAmMand ? 'poste-mandatory-slot' : ''}">${isTodayAmMand ? '<span class="mandatory-dot"></span> ' : ''}Matin : ${getPosteWithTimeLabel(todayAm, "am")}</span>
-              <span class="poste-pill ${getPosteClass(todayPm)} ${isTodayPmMand ? 'poste-mandatory-slot' : ''}">${isTodayPmMand ? '<span class="mandatory-dot"></span> ' : ''}PM : ${getPosteWithTimeLabel(todayPm, "pm")}</span>
-              ${daySched && daySched.note ? `<span class="tag-binome">${daySched.note}</span>` : ""}
+              <span class="poste-pill ${getPosteClass(todayAm)}">${getPosteCleanLabel(todayAm, "am")}</span>
+              <span class="poste-pill ${getPosteClass(todayPm)}">${getPosteCleanLabel(todayPm, "pm")}</span>
             </div>
           </div>
         </div>
         <div class="summary-stats">
           <span><strong>${st.activeHalfDays}</strong> postes</span>
-          <span><strong>${st.freeHalfDays}</strong> demi-offs (${st.freeAmHalfDays || 0} Mat / ${st.freePmHalfDays || 0} PM)</span>
-          <span><strong>${st.gardesCount || 0}</strong> gardes (${Math.round((st.rgHalfDays || 0) / 2)} RG)</span>
+          <span><strong>${st.gardesCount || 0}</strong> gardes</span>
           <span><strong>${Math.round(st.vacHalfDays / 2)}j</strong> congés</span>
-          <span><strong>${st.casMardi + st.biblioVendredi + (st.coursInternes || 0)}</strong> cours</span>
         </div>
       `;
     }
@@ -4965,6 +5112,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       document.querySelectorAll(".tab-btn").forEach(b => {
         b.classList.toggle("active", b.getAttribute("data-tab") === tab);
       });
+      renderPersonalBanner();
       renderTabContent();
     }
 
@@ -5091,6 +5239,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const monIso = getMondayOfWeek(currentDateIso);
       const friIso = addDaysIso(monIso, 4);
       const inChefSpace = Boolean(isChefPlanningMode);
+      const isPersoSpace = !isChefPlanningMode && (planningScope === "perso" || (selectedInterneId !== "all" && selectedInterneId !== "all_chefs"));
 
       let headerLabel = "";
       if (planningMode === "day") {
@@ -5108,7 +5257,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       // Lundi à Vendredi (5 jours principaux)
       for (let offset = 0; offset < 5; offset++) {
         const dIso = addDaysIso(monIso, offset);
-        dayStripHtml += renderWeekDayPillHtml(dIso, offset);
+        dayStripHtml += renderWeekDayPillHtml(dIso, offset, isPersoSpace ? { customSubHtml: "" } : undefined);
       }
       // Samedi et Dimanche en petit avec juste les gardes
       for (let offset = 5; offset < 7; offset++) {
@@ -5128,13 +5277,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <span class="dp-dow">${dNames[offset]}</span>
               <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
             </div>
-            <div class="dp-garde">🚨 ${g}${gIntShort ? ` • 🌙 ${gIntShort}` : ""}</div>
+            ${isPersoSpace ? "" : `<div class="dp-garde">🚨 ${g}${gIntShort ? ` • 🌙 ${gIntShort}` : ""}</div>`}
           </div>
         `;
       }
       dayStripHtml += `</div>`;
 
-      const horairesStripHtml = isChefPlanningMode ? "" : `
+      const horairesStripHtml = (isChefPlanningMode || isPersoSpace) ? "" : `
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:8px; font-size:11px;">
           <span style="font-weight:700; color:var(--text-muted); margin-right:2px;">🕒 Horaires :</span>
           <span class="poste-pill poste-irm">IRM : 07h45</span>
@@ -5149,7 +5298,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const weekLock = getWeekLockInfo(monIso);
       let weekValidationStripHtml = "";
-      if (planningMode !== "month" && weekLock && !inChefSpace) {
+      if (planningMode !== "month" && weekLock && !inChefSpace && !isPersoSpace) {
         weekValidationStripHtml = `
           <div class="week-status-strip locked">
             <div>
@@ -5279,89 +5428,63 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
               <div style="display:flex; justify-content:space-between; font-weight:800; font-size:12px;">
                 <span>${formatDateFr(dIso)}</span>
-                ${sl.isGarde ? '<span class="tag-sm">Garde</span>' : ''}
+                ${sl.isGarde ? '<span class="perso-garde-pill" style="padding:1px 6px; font-size:9.5px;">Garde</span>' : ''}
               </div>
-              <div style="font-size:10px; color:var(--text-muted);">Matin</div>
-              ${sl.am.length ? sl.am.map(p => `<span class="poste-pill ${getPosteClass(p)}" style="font-size:10px; padding:2px 6px;">${getPosteWithTimeLabel(p, "am")}</span>`).join(" ") : `<span style="font-size:10.5px; color:var(--text-muted);">—</span>`}
-              <div style="font-size:10px; color:var(--text-muted); margin-top:2px;">Après-midi</div>
-              ${sl.pm.length ? sl.pm.map(p => `<span class="poste-pill ${getPosteClass(p)}" style="font-size:10px; padding:2px 6px;">${getPosteWithTimeLabel(p, "pm")}</span>`).join(" ") : `<span style="font-size:10.5px; color:var(--text-muted);">—</span>`}
+              ${sl.am.length ? sl.am.map(p => `<span class="poste-pill ${getPosteClass(p)}" style="font-size:11px; padding:3px 6px;">${getPosteCleanLabel(p, "am")}</span>`).join(" ") : `<span class="poste-pill poste-off" style="font-size:11px; padding:3px 6px;">Libre</span>`}
+              ${sl.pm.length ? sl.pm.map(p => `<span class="poste-pill ${getPosteClass(p)}" style="font-size:11px; padding:3px 6px;">${getPosteCleanLabel(p, "pm")}</span>`).join(" ") : `<span class="poste-pill poste-off" style="font-size:11px; padding:3px 6px;">Libre</span>`}
             </div>
           `;
         });
         return `
           <div class="card">
             <div class="card-header">
-              <div class="card-title">Mois — ${chef.fullName}</div>
+              <div class="card-title">${chef.fullName}</div>
             </div>
             <div class="month-grid">${cells}</div>
           </div>
         `;
       }
 
+      const dFullNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
       let cardsHtml = `
-        <div class="card" style="padding:12px 10px 0; overflow:hidden;">
-          <div class="card-header" style="padding:0 4px;">
-            <div class="card-title">Semaine (Lun–Ven) — ${chef.fullName}</div>
+        <div class="card" style="padding:14px 12px; overflow:hidden;">
+          <div class="card-header" style="padding:0 2px; margin-bottom:12px;">
+            <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+              <span style="width:10px; height:10px; border-radius:50%; background:${chef.color}; display:inline-block;"></span>
+              ${chef.fullName}
+            </div>
+            <button class="btn btn-sm" onclick="selectInterne('all_chefs')">Tous les chefs</button>
           </div>
-          <div class="perso-week-grid" style="margin-bottom:10px;">
+          <div class="perso-week-grid">
       `;
       days.forEach((dIso, offset) => {
         const sl = getChefSlotsForDate(dIso, chef);
-        const intDay = STATE.schedule[dIso] || { am: [], pm: [] };
-
-        function findMatchingInternes(chefPostes, intPeriodList) {
-          const out = [];
-          (chefPostes || []).forEach(cp => {
-            const pUp = cp.toUpperCase();
-            (intPeriodList || []).forEach(it => {
-              if (it.closed) return;
-              const iUp = String(it.poste || "").toUpperCase();
-              if (
-                (pUp.includes("ACHARD") && iUp.includes("ACHARD")) ||
-                (pUp.includes("GESTES") && iUp.includes("GESTES")) ||
-                (pUp.includes("SAU") && iUp.includes("SAU")) ||
-                (pUp.includes("OLLIER 3") && iUp.includes("OLLIER DIAG")) ||
-                (pUp.includes("IRM") && iUp.includes("IRM")) ||
-                (pUp.includes("ECHO") && iUp.includes("ECHO")) ||
-                (pUp.includes("ALLURA") && iUp.includes("ALLURA")) ||
-                (pUp.includes("CONSULT") && iUp.includes("LECTURE"))
-              ) {
-                const tag = `${it.interne}`;
-                if (!out.includes(tag)) out.push(tag);
-              }
-            });
-          });
-          return out;
-        }
-        const intAm = findMatchingInternes(sl.am, intDay.am);
-        const intPm = findMatchingInternes(sl.pm, intDay.pm);
-
+        const [yy, mm, dd] = dIso.split("-").map(Number);
         const isActDay = (dIso === currentDateIso);
         cardsHtml += `
-          <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:${isActDay ? '#F0F9FF' : '#F8FAFC'}; border-color:${isActDay ? 'var(--primary)' : 'var(--border)'};">
-            ${renderWeekDayPillHtml(dIso, offset, {
-              extraStyle: "margin-bottom:6px; width:100%;",
-              customSubHtml: sl.isGarde ? `<div class="dp-sub" style="color:#B91C1C; font-weight:800;">🚨 Garde</div>` : ``
-            })}
-            <div style="margin-bottom:6px;">
-              <div style="font-size:9px; color:var(--text-muted); font-weight:700;">MATIN</div>
-              <div style="margin-top:2px; display:flex; flex-wrap:wrap; gap:3px;">
-                ${sl.am.length ? sl.am.map(p => `<span class="poste-pill ${getPosteClass(p)}">${getPosteWithTimeLabel(p, "am")}</span>`).join("") : `<span class="poste-pill poste-off">Libre</span>`}
+          <div class="perso-day-card ${isActDay ? 'active-day' : ''} ${sl.isGarde ? 'garde-day' : ''}" onclick="setCurrentDate('${dIso}')">
+            <div class="perso-day-header">
+              <div class="perso-day-title">
+                <span class="perso-day-dow">${dFullNames[offset]}</span>
+                <span class="perso-day-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
               </div>
-              ${intAm.length ? `<div style="font-size:9.5px; color:#0284C7; margin-top:3px;">Int: <strong>${intAm.join(", ")}</strong></div>` : ``}
+              ${sl.isGarde ? `<span class="perso-garde-pill">🌙 Garde</span>` : ``}
             </div>
-            <div>
-              <div style="font-size:9px; color:var(--text-muted); font-weight:700;">APRÈS-MIDI</div>
-              <div style="margin-top:2px; display:flex; flex-wrap:wrap; gap:3px;">
-                ${sl.pm.length ? sl.pm.map(p => `<span class="poste-pill ${getPosteClass(p)}">${getPosteWithTimeLabel(p, "pm")}</span>`).join("") : `<span class="poste-pill poste-off">Libre</span>`}
+            <div class="perso-day-slots">
+              <div class="perso-slot-block">
+                <span class="perso-slot-label">Matin</span>
+                ${sl.am.length ? sl.am.map(p => `<span class="poste-pill ${getPosteClass(p)} perso-vac-pill">${getPosteCleanLabel(p, "am")}</span>`).join("") : `<span class="poste-pill poste-off perso-vac-pill">Libre</span>`}
               </div>
-              ${intPm.length ? `<div style="font-size:9.5px; color:#7C3AED; margin-top:3px;">Int: <strong>${intPm.join(", ")}</strong></div>` : ``}
+              <div class="perso-slot-block">
+                <span class="perso-slot-label">Après-midi</span>
+                ${sl.pm.length ? sl.pm.map(p => `<span class="poste-pill ${getPosteClass(p)} perso-vac-pill">${getPosteCleanLabel(p, "pm")}</span>`).join("") : `<span class="poste-pill poste-off perso-vac-pill">Libre</span>`}
+              </div>
             </div>
           </div>
         `;
       });
-      cardsHtml += `</div>${renderWeekendGardesCompactBar(monIso)}</div>`;
+      cardsHtml += `</div></div>`;
       return cardsHtml;
     }
 
