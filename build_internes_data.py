@@ -4,7 +4,7 @@
 Cochin Radio B — Espace Internes (Semestre Hiver 2026–2027)
 Générateur et synchroniseur de l'application web mobile (PWA) dédiée aux internes.
 APPLICATION 100% INDÉPENDANTE ET SÉPARÉE :
-- Répertoire dédié : /Users/thomaslefevre/Documents/Agendainterventionnel/agenda-internes/
+- Répertoire dédié : /Users/thomaslefevre/Documents/planning-interne/
 - ZÉRO donnée patient (vérifié automatiquement par assert_zero_patient_data).
 - Synchronisation directe avec le Google Sheet officiel 'Planning Interne CCH - Hiver 26'
   (ID: 10sPMOg9GPXqsSItnUfuYn2Ke0im34p5EEyKk5A0hEF8) et PropertiesService ('cochin_internes_state_v1').

@@ -3,7 +3,7 @@
 """
 Générateur de l'application web (PWA) autonome pour les Internes du Service de Radiologie B
 Hôpital Cochin (AP-HP) — Semestre Hiver 2026–2027 (Pr A. Feydy)
-Répertoire : /Users/thomaslefevre/Documents/Agendainterventionnel/agenda-internes/
+Répertoire : /Users/thomaslefevre/Documents/planning-interne/
 Aucune donnée patient n'est incluse ni autorisée dans cette application.
 """
 from __future__ import annotations
@@ -888,6 +888,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       padding: 5px 10px;
     }
 
+    .poste-cell-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+
+    .poste-horaire-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: #64748B;
+      line-height: 1.15;
+      padding-left: 2px;
+    }
+
     .interne-badge {
       display: inline-flex;
       align-items: center;
@@ -1040,6 +1055,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       table.planning-table.week-5col .poste-horaire-sub {
         font-size: 7.5px !important;
         line-height: 1.05;
+        margin-top: 1px;
       }
       /* Prénoms toujours sur une seule ligne : badge pleine largeur, tags masqués */
       table.planning-table.week-5col .interne-badge {
@@ -2780,7 +2796,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (shortName === "TDM ACHARD 1") shortName = "SCAN ACHARD";
       if (shortName === "LECTURE/CS") shortName = "LECTURE";
       if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
-      return `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
+      const horaire = getPosteHoraire(poste, periodKey);
+      const pillHtml = `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
+      if (!horaire) return pillHtml;
+      return `<div class="poste-cell-wrap">${pillHtml}<span class="poste-horaire-sub">${horaire}</span></div>`;
     }
 
     const MANDATORY_WEEKLY_POSTES_MAP = {
@@ -5985,15 +6004,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#FFFFFF", "#E2E8F0", 0.45);
 
-        // Colonne 0 : Nom du poste
+        // Colonne 0 : Nom du poste + Horaire dessous
         if (r.kind === "poste") {
           const pal = getPostePalette(r.posteName);
           const lbl = getPdfPosteLabel(r.posteName, r.periodKey);
-          const pillW = Math.min(COL_POSTE_W - 10, measureText(lbl, 7.1, true) + 10);
-          const pillH = Math.min(11.5, rowH - 2);
-          const pillY = curY + (rowH - pillH) / 2;
-          drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
-          drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.9, pal.fg, true, pillW - 6);
+          const horaire = getPdfPosteHoraire(r.posteName, r.periodKey);
+          const pillW = Math.min(COL_POSTE_W - 10, measureText(lbl, 6.8, true) + 9);
+          if (horaire && rowH >= 15) {
+            const pillH = Math.min(9.6, rowH - 6.5);
+            const pillY = curY + Math.max(1.2, (rowH - pillH - 5.5) / 2);
+            drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 2.8, pal.bg, pal.bd, 0.5);
+            drawText(lbl, MARGIN_X + 9.5, pillY + pillH * 0.75, 6.6, pal.fg, true, pillW - 6);
+            drawText(horaire, MARGIN_X + 6.5, pillY + pillH + 5.2, 5.4, "#64748B", false, COL_POSTE_W - 10);
+          } else {
+            const pillH = Math.min(11.5, rowH - 2);
+            const pillY = curY + (rowH - pillH) / 2;
+            drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
+            drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.9, pal.fg, true, pillW - 6);
+          }
         } else if (r.kind === "staff") {
           const pal = getPostePalette("IRM");
           const pillH = Math.min(11.5, rowH - 3);
@@ -6952,13 +6980,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const horairesStripHtml = (isChefPlanningMode || isPersoSpace) ? "" : `
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:8px; font-size:11px;">
-          <span style="font-weight:700; color:var(--text-muted); margin-right:2px;">🕒 Horaires :</span>
-          <span class="poste-pill poste-irm">IRM : 07h45 / 13h00</span>
-          <span class="poste-pill poste-tdm">TDM SAU : 08h00 – 18h30</span>
-          <span class="poste-pill poste-echo">Écho (US) : 09h00 / 14h00</span>
-          <span class="poste-pill poste-gestes">Poste C (Gestes) : 09h00 / 14h00</span>
-          <span class="poste-pill poste-cs">CS : 14h00–15h00 (Mar & Ven PM)</span>
-          <span class="poste-pill poste-lecture">Lecture : 14h00–16h00 (Mar & Ven PM)</span>
           <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T/Scan Ollier (+ Écho dès déc.) mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
           <span class="poste-pill" style="background:#FEF3C7; color:#92400E; border:1px solid #F59E0B;" title="Case en jaune : vacation ouverte avec un Chef / Senior présent mais aucun interne prévu">🟨 Chef sans interne prévu</span>
         </div>
