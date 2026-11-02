@@ -5423,11 +5423,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       function getPdfPosteHoraire(poste, periodKey) {
         const p = String(poste || "").toUpperCase();
         if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "08h15-12h00";
-        if (p.includes("IRM")) return periodKey === "am" ? "07h45" : "13h30-18h30";
-        if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) return periodKey === "am" ? "09h00" : "13h30-18h00";
+        if (p.includes("IRM")) return periodKey === "am" ? "07h45" : "13h00";
+        if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) return periodKey === "am" ? "09h00" : "14h00";
         if (p.includes("SAU") || p.includes("OLLIER 4")) return periodKey === "am" ? "08h00-18h30" : "fin 18h30";
-        if (p.includes("CONSULT")) return periodKey === "pm" ? "13h30-18h00" : "";
-        if (p.includes("LECTURE")) return periodKey === "pm" ? "13h30-18h00" : "";
+        if (p.includes("CONSULT")) return periodKey === "pm" ? "14h00-15h00" : "";
+        if (p.includes("LECTURE")) return periodKey === "pm" ? "14h00-16h00" : "";
         return "";
       }
 
@@ -5444,7 +5444,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       drawText("RADIOLOGIE B — HÔPITAL COCHIN", MARGIN_X + 12, MARGIN_Y + 13, 11.5, "#0F172A", true);
       drawText(`Planning Hebdomadaire des Internes • Semaine du ${weekRangeStr}`, MARGIN_X + 12, MARGIN_Y + 24.5, 8.8, "#0284C7", true);
-      drawText("Horaires : IRM 07h45 • TDM SAU 08h00–18h30 • Écho & Poste C 09h00 • Consultations & Relecture 13h30–18h00", MARGIN_X + 12, MARGIN_Y + 34, 7.2, "#475569", false);
+      drawText("Horaires : Matin (IRM 07h45 • TDM SAU 08h00–18h30 • US & Gestes 09h00) • Après-midi (IRM 13h00 • US & Gestes 14h00 • CS 14h–15h • Lecture 14h–16h)", MARGIN_X + 12, MARGIN_Y + 34, 7.0, "#475569", false);
 
       const weekLock = getWeekLockInfo(targetMon);
       const badgeW = 205;
@@ -5494,7 +5494,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       activeAm.forEach(p => tableRows.push({ kind: "poste", periodKey: "am", posteName: p }));
       tableRows.push({ kind: "divider", title: "COURS & RÉUNIONS (12h30)" });
       tableRows.push({ kind: "staff" });
-      tableRows.push({ kind: "divider", title: "APRÈS-MIDI — TDM SAU fin 18h30 • Consultations & Relecture 13h30–18h00" });
+      tableRows.push({ kind: "divider", title: "APRÈS-MIDI — IRM 13h00 • US & Gestes 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30" });
       activePm.forEach(p => tableRows.push({ kind: "poste", periodKey: "pm", posteName: p }));
       tableRows.push({ kind: "divider", title: "GARDES (LUNDI – VENDREDI)" });
       tableRows.push({ kind: "garde_interne" });
@@ -6535,12 +6535,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const horairesStripHtml = (isChefPlanningMode || isPersoSpace) ? "" : `
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:8px; font-size:11px;">
           <span style="font-weight:700; color:var(--text-muted); margin-right:2px;">🕒 Horaires :</span>
-          <span class="poste-pill poste-irm">IRM : 07h45</span>
+          <span class="poste-pill poste-irm">IRM : 07h45 / 13h00</span>
           <span class="poste-pill poste-tdm">TDM SAU : 08h00 – 18h30</span>
-          <span class="poste-pill poste-echo">Écho : 09h00</span>
-          <span class="poste-pill poste-gestes">Poste C : 09h00</span>
-          <span class="poste-pill poste-cs">Consult. Internes : Mar PM & Ven PM (13h30–18h00)</span>
-          <span class="poste-pill poste-lecture">Lecture : Mar PM (Relecture Pr Drapé) & Ven PM</span>
+          <span class="poste-pill poste-echo">Écho (US) : 09h00 / 14h00</span>
+          <span class="poste-pill poste-gestes">Poste C (Gestes) : 09h00 / 14h00</span>
+          <span class="poste-pill poste-cs">CS : 14h00–15h00 (Mar & Ven PM)</span>
+          <span class="poste-pill poste-lecture">Lecture : 14h00–16h00 (Mar & Ven PM)</span>
           <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T/Scan Ollier (+ Écho dès déc.) mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
           <span class="poste-pill" style="background:#FEF3C7; color:#92400E; border:1px solid #F59E0B;" title="Case en jaune : vacation ouverte avec un Chef / Senior présent mais aucun interne prévu">🟨 Chef sans interne prévu</span>
         </div>
@@ -6849,7 +6849,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <tbody>
                 <tr class="period-divider"><td colspan="6">MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00</td></tr>
                 ${buildCombinedPeriodRows("am")}
-                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — TDM SAU fin 18h30</td></tr>
+                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — IRM 13h00 • Écho & Poste C 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30</td></tr>
                 ${buildCombinedPeriodRows("pm")}
                 <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
                 ${intGardeRowHtml}\n                ${gardeRowHtml}
@@ -7104,7 +7104,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${renderPeriodRows(postesAm, "am")}
                 <tr class="period-divider"><td colspan="6">COURS & RÉUNIONS (12h30)</td></tr>
                 ${staffRowHtml}
-                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — TDM SAU fin 18h30</td></tr>
+                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — IRM 13h00 • Écho & Poste C 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30</td></tr>
                 ${renderPeriodRows(postesPm, "pm")}
                 <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
                 ${intGardeRowHtml}
@@ -7224,7 +7224,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <tbody>
                 <tr class="period-divider"><td colspan="6">MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00</td></tr>
                 ${renderChefRows(chefPostesAm, "am")}
-                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — TDM SAU fin 18h30</td></tr>
+                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — IRM 13h00 • Écho & Poste C 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30</td></tr>
                 ${renderChefRows(chefPostesPm, "pm")}
                 <tr class="period-divider"><td colspan="6">GARDE SENIOR (LUN–VEN)</td></tr>
                 ${gardeRowHtml}
