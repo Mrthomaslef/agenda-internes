@@ -516,7 +516,7 @@ MANDATORY_WEEKLY_POSTES = {
     (0, "pm"): {"IRM"},
     (1, "am"): {"GESTES (C)", "IRM 3T", "IRM 1,5T"},
     (1, "pm"): {"LECTURE"},
-    (2, "am"): {"IRM 3T", "IRM 1,5T"},
+    (2, "am"): {"IRM 3T", "IRM 1,5T", "TDM OLLIER DIAG", "ECHO"},
     (2, "pm"): {"GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"},
     (3, "am"): {"ECHO", "GESTES (C)"},
     (3, "pm"): {"IRM"},
@@ -543,7 +543,7 @@ def get_ph_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None
     - Lundi après-midi : IRM
     - Mardi matin : GESTES (C), IRM 3T, IRM 1,5T
     - Mardi après-midi : LECTURE (Relecture Pr Drapé)
-    - Mercredi matin : IRM 3T, IRM 1,5T
+    - Mercredi matin : IRM 3T, IRM 1,5T, TDM OLLIER DIAG (+ ECHO à partir de décembre)
     - Mercredi après-midi : GESTES (C), IRM, SCAN ACHARD, ECHO
     - Jeudi matin : ECHO, GESTES (C)
     - Jeudi après-midi : IRM
@@ -3714,13 +3714,13 @@ def build_full_dataset() -> dict:
                 "Séparation des vacations de Lecture (LECTURE) et de Consultation d'internes (CONSULTATION) : les consultations d'internes ont lieu le mardi après-midi et le vendredi après-midi (13h30 – 18h00), séparément des vacations de lecture/relecture.",
                 "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
                 "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior, créneaux fixes le 1er mois puis variables en jours et Matin/Après-midi à partir du 2e mois) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
-                "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
+                "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
                 "Présentations des internes (Cas du Mardi & Biblio du Vendredi) : début en semaine 2 (mardi 10/11/2026 pour les Cas, vendredi 13/11/2026 pour la Biblio) avec espacement garanti d'au moins 2,5 à 3,5 semaines (18 à 24 jours minimum) entre deux présentations d'un même interne et 6 semaines entre deux Cas ou deux Biblios.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
-                "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin).",
+                "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin), puis vacation obligatoire à partir de décembre.",
                 "Les vacations fermées (FERMÉ / MAINTENANCE) sont affichées directement sur le planning.",
             ],
         },

@@ -2533,7 +2533,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       "1_pm": ["IRM"],
       "2_am": ["GESTES (C)", "IRM 3T", "IRM 1,5T"],
       "2_pm": ["LECTURE"],
-      "3_am": ["IRM 3T", "IRM 1,5T"],
+      "3_am": ["IRM 3T", "IRM 1,5T", "TDM OLLIER DIAG", "ECHO"],
       "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
       "4_am": ["ECHO", "GESTES (C)"],
       "4_pm": ["IRM"],
@@ -2680,9 +2680,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const mandatoryWeeklyPostes = {
         "1_am": ["ECHO"],
         "1_pm": ["IRM"],
-        "2_am": ["GESTES (C)", "IRM 3T"],
+        "2_am": ["GESTES (C)", "IRM 3T", "IRM 1,5T"],
         "2_pm": ["LECTURE"],
-        "3_am": ["IRM 3T", "IRM 1,5T"],
+        "3_am": ["IRM 3T", "IRM 1,5T", "TDM OLLIER DIAG", "ECHO"],
         "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
         "4_am": ["ECHO", "GESTES (C)"],
         "4_pm": ["IRM"],
@@ -5299,7 +5299,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="poste-pill poste-gestes">Poste C : 09h00</span>
           <span class="poste-pill poste-cs">Consult. Internes : Mar PM & Ven PM (13h30–18h00)</span>
           <span class="poste-pill poste-lecture">Lecture : Mar PM (Relecture Pr Drapé) & Ven PM</span>
-          <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
+          <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T/Scan Ollier (+ Écho dès déc.) mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
           <span class="poste-pill" style="background:#FEF3C7; color:#92400E; border:1px solid #F59E0B;" title="Case en jaune : vacation ouverte avec un Chef / Senior présent mais aucun interne prévu">🟨 Chef sans interne prévu</span>
         </div>
       `;
