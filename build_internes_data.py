@@ -52,8 +52,9 @@ INTERNES_LIST = [
         "fullName": "Noé GRANDVAL",
         "shortName": "Noé",
         "initials": "NG",
-        "color": "#A855F7",
-        "role": "Interne DES Radiologie",
+        "color": "#7C3AED",
+        "role": "Interne DES Radiologie (Phase Socle)",
+        "isSocle": True,
         "semestre": "Hiver 2026–2027",
         "startIso": "2026-11-02",
     },
@@ -64,7 +65,7 @@ INTERNES_LIST = [
         "fullName": "Marwane HAMMAMI",
         "shortName": "Marwane",
         "initials": "MH",
-        "color": "#14B8A6",
+        "color": "#0D9488",
         "role": "Interne DES Radiologie",
         "semestre": "Hiver 2026–2027",
         "startIso": "2026-11-02",
@@ -76,7 +77,7 @@ INTERNES_LIST = [
         "fullName": "Milan KORSEC",
         "shortName": "Milan",
         "initials": "MK",
-        "color": "#F59E0B",
+        "color": "#D97706",
         "role": "Interne DES Radiologie",
         "semestre": "Hiver 2026–2027",
         "startIso": "2026-11-02",
@@ -88,7 +89,7 @@ INTERNES_LIST = [
         "fullName": "Nathanaël SEBBAN",
         "shortName": "Nathanaël",
         "initials": "NS",
-        "color": "#F43F5E",
+        "color": "#E11D48",
         "role": "Interne DES Radiologie",
         "semestre": "Hiver 2026–2027",
         "startIso": "2026-11-02",
@@ -100,8 +101,9 @@ INTERNES_LIST = [
         "fullName": "Oussama TALIB",
         "shortName": "Oussama",
         "initials": "OT",
-        "color": "#22C55E",
-        "role": "Interne DES Radiologie",
+        "color": "#16A34A",
+        "role": "Docteur Junior (DJ) — Radiologie",
+        "isDJ": True,
         "semestre": "Hiver 2026–2027",
         "startIso": "2026-11-02",
     },
@@ -117,7 +119,7 @@ CHEFS_LIST = [
         "fullName": "Dr Thomas LEFÈVRE",
         "shortName": "Dr T. Lefèvre (TL)",
         "initials": "TL",
-        "color": "#38BDF8",
+        "color": "#0284C7",
         "role": "Chef de Clinique / Assistant — RI & Ostéo-Articulaire",
         "posteTel": "12489 / 12163 (DECT 12504)",
         "gardeMatch": ["LEFEVRE", "LEFÈVRE"],
@@ -130,7 +132,7 @@ CHEFS_LIST = [
         "fullName": "Dr Hippolyte MONNIER",
         "shortName": "Dr H. Monnier (HM)",
         "initials": "HM",
-        "color": "#A855F7",
+        "color": "#7C3AED",
         "role": "Chef de Clinique Assistant — Radiologie B",
         "posteTel": "12488 / 12489",
         "gardeMatch": ["MONNIER"],
@@ -143,7 +145,7 @@ CHEFS_LIST = [
         "fullName": "Dr Macil HAMADOUCHE",
         "shortName": "Dr M. Hamadouche (MH)",
         "initials": "MH",
-        "color": "#F59E0B",
+        "color": "#D97706",
         "role": "Assistant Spécialiste — Radiologie B & RI",
         "posteTel": "DECT 12504 / 12488",
         "gardeMatch": ["HAMADOUCHE"],
@@ -156,7 +158,7 @@ CHEFS_LIST = [
         "fullName": "Dr Stéphano LUSI",
         "shortName": "Dr S. Lusi (SL)",
         "initials": "SL",
-        "color": "#14B8A6",
+        "color": "#0D9488",
         "role": "Chef de Clinique Assistant — Radiologie B",
         "posteTel": "12488 / 12489",
         "gardeMatch": ["LUSI"],
@@ -169,7 +171,7 @@ CHEFS_LIST = [
         "fullName": "Dr Yazid ALLEL",
         "shortName": "Dr Y. Allel (YA)",
         "initials": "YA",
-        "color": "#F43F5E",
+        "color": "#E11D48",
         "role": "Chef de Clinique Assistant — Radiologie B",
         "posteTel": "12488 / 12489",
         "gardeMatch": ["ALLEL"],
@@ -182,7 +184,7 @@ CHEFS_LIST = [
         "fullName": "Dr Marie-Pauline TALABARD",
         "shortName": "Dr M-P. Talabard (MP)",
         "initials": "MP",
-        "color": "#EC4899",
+        "color": "#DB2777",
         "role": "Chef de Clinique Assistant — Imagerie Ostéo-Articulaire & RI",
         "posteTel": "12489",
         "gardeMatch": ["TALABARD"],
@@ -195,7 +197,7 @@ CHEFS_LIST = [
         "fullName": "Dr Amandine LAPORTE",
         "shortName": "Dr A. Laporte (AL)",
         "initials": "AL",
-        "color": "#6366F1",
+        "color": "#4F46E5",
         "role": "PH / Senior — Référente Sarcomes & Radiologie B",
         "posteTel": "12483 / 12488",
         "gardeMatch": ["LAPORTE"],
@@ -208,7 +210,7 @@ CHEFS_LIST = [
         "fullName": "Dr Adina COSTEA",
         "shortName": "Dr A. Costea (AC)",
         "initials": "AC",
-        "color": "#22C55E",
+        "color": "#16A34A",
         "role": "Praticien — Radiologie B",
         "posteTel": "12483",
         "gardeMatch": ["COSTEA"],
@@ -221,7 +223,7 @@ CHEFS_LIST = [
         "fullName": "Dr Fadila MIHOUBI BOUVIER",
         "shortName": "Dr F. Mihoubi",
         "initials": "FM",
-        "color": "#06B6D4",
+        "color": "#0891B2",
         "role": "PH — Responsable Pédagogique Internes & Staffs",
         "posteTel": "12483",
         "gardeMatch": ["MIHOUBI"],
@@ -234,7 +236,7 @@ CHEFS_LIST = [
         "fullName": "Pr Antoine FEYDY",
         "shortName": "Pr A. Feydy",
         "initials": "AF",
-        "color": "#3B82F6",
+        "color": "#2563EB",
         "role": "PU-PH, Chef de Service — Radiologie B",
         "posteTel": "12483 / 12481",
         "gardeMatch": ["FEYDY"],
@@ -247,7 +249,7 @@ CHEFS_LIST = [
         "fullName": "Pr Jean-Luc DRAPÉ",
         "shortName": "Pr J-L. Drapé",
         "initials": "JD",
-        "color": "#8B5CF6",
+        "color": "#6D28D9",
         "role": "PU-PH — Radiologie B",
         "posteTel": "12502 / 12480",
         "gardeMatch": ["DRAPE", "DRAPÉ"],
@@ -260,28 +262,31 @@ CHEFS_LIST = [
         "fullName": "Dr YANG",
         "shortName": "Dr Yang",
         "initials": "YG",
-        "color": "#10B981",
+        "color": "#059669",
         "role": "Praticien — IRM, Écho & Staff Rachis/Rhumato",
         "posteTel": "12483",
         "gardeMatch": ["YANG"],
     },
 ]
 
-# Postes officiels de la trame des internes de Radiologie B (Cochin)
+# Postes officiels de la trame des internes de Radiologie B (Cochin) avec horaires officiels
 POSTES_META = [
-    {"code": "TDM SAU", "label": "TDM SAU (Ollier)", "cat": "tdm", "color": "#F59E0B"},
-    {"code": "IRM 3T", "label": "IRM 3T", "cat": "irm", "color": "#A855F7"},
-    {"code": "IRM 1,5T", "label": "IRM 1,5T", "cat": "irm", "color": "#8B5CF6"},
-    {"code": "IRM", "label": "IRM (Après-midi)", "cat": "irm", "color": "#A855F7"},
-    {"code": "ECHO", "label": "Échographie Ostéo-Articulaire", "cat": "echo", "color": "#14B8A6"},
-    {"code": "GESTES (C)", "label": "Gestes / Interventionnel (C)", "cat": "gestes", "color": "#F43F5E"},
-    {"code": "SCAN ACHARD", "label": "Scanner Achard 1 (Interventionnel)", "cat": "gestes", "color": "#EC4899"},
-    {"code": "ALLURA", "label": "Salle Allura (Vasculaire / Os)", "cat": "gestes", "color": "#E11D48"},
-    {"code": "TDM OLLIER DIAG", "label": "TDM Ollier Diag", "cat": "tdm", "color": "#38BDF8"},
-    {"code": "LECTURE/CS", "label": "Lecture / Consultation", "cat": "cs", "color": "#3B82F6"},
-    {"code": "1/2 journée libre", "label": "1/2 journée libre", "cat": "off", "color": "#64748B"},
-    {"code": "RG", "label": "Repos de garde (RG)", "cat": "rg", "color": "#EF4444"},
-    {"code": "VACANCES", "label": "Congés / Vacances (CA/CF)", "cat": "vac", "color": "#10B981"},
+    {"code": "TDM SAU", "label": "TDM SAU (Scanner des U — Ollier 4)", "cat": "tdm", "color": "#D97706", "horaire": "08h00 – 18h30", "horaireAm": "08h00 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "IRM 3T", "label": "IRM 3T (dès 07h45)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "IRM 1,5T", "label": "IRM 1,5T (dès 07h45)", "cat": "irm", "color": "#6D28D9", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "IRM", "label": "IRM (Matin 07h45 / Après-midi)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "ECHO", "label": "Échographie Ostéo-Articulaire (dès 09h00)", "cat": "echo", "color": "#0D9488", "horaire": "Dès 09h00", "horaireAm": "09h00 – 13h00", "horairePm": "13h30 – 18h00"},
+    {"code": "GESTES (C)", "label": "Poste C / Gestes Interventionnels (dès 09h00)", "cat": "gestes", "color": "#E11D48", "horaire": "Dès 09h00", "horaireAm": "09h00 – 13h00", "horairePm": "13h30 – 18h00"},
+    {"code": "SCAN ACHARD", "label": "Scanner Achard 1 (Interventionnel)", "cat": "gestes", "color": "#DB2777", "horaire": "08h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "ALLURA", "label": "Salle Allura (Vasculaire / Os)", "cat": "gestes", "color": "#BE123C", "horaire": "13h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
+    {"code": "TDM OLLIER DIAG", "label": "TDM Ollier Diag (Ollier 3)", "cat": "tdm", "color": "#0284C7", "horaire": "08h30 – 18h00", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h00"},
+    {"code": "LECTURE/CS", "label": "Consultation Internes / Relecture Pr Drapé (Mardi PM & Vendredi PM)", "cat": "cs", "color": "#2563EB", "horaire": "13h30 – 18h00 (Mardi PM : Relecture Pr Drapé • Vendredi PM : CS)", "horaireAm": "—", "horairePm": "13h30 – 18h00"},
+    {"code": "FORMATION / ACCUEIL", "label": "Accueil & Formation obligatoire des nouveaux arrivants (08h15 – 12h00)", "cat": "cs", "color": "#0284C7", "horaire": "08h15 – 12h00", "horaireAm": "08h15 – 12h00", "horairePm": "—"},
+    {"code": "1/2 journée libre", "label": "Demi-off (1/2 journée libre)", "cat": "off", "color": "#64748B", "horaire": "Demi-journée libre", "horaireAm": "Demi-off matin", "horairePm": "Demi-off après-midi"},
+    {"code": "FERMÉ", "label": "Vacation Fermée", "cat": "closed", "color": "#DC2626", "horaire": "Fermé", "horaireAm": "Fermé", "horairePm": "Fermé"},
+    {"code": "MAINTENANCE", "label": "Maintenance", "cat": "closed", "color": "#EA580C", "horaire": "Maintenance", "horaireAm": "Maintenance", "horairePm": "Maintenance"},
+    {"code": "RG", "label": "Repos de garde (RG)", "cat": "rg", "color": "#DC2626", "horaire": "Journée RG", "horaireAm": "Repos de garde", "horairePm": "Repos de garde"},
+    {"code": "VACANCES", "label": "Congés / Vacances (CA/CF)", "cat": "vac", "color": "#16A34A", "horaire": "Congés", "horaireAm": "Congés", "horairePm": "Congés"},
 ]
 
 # Programme officiel des 25 cours d'Imagerie Ostéo-Articulaire (Feuille 3 du Google Sheet)
@@ -318,15 +323,15 @@ CHEFS_TUESDAY_COURS = [
     ("Dr Fadila MIHOUBI BOUVIER", "Introduction à la séméiologie ostéo-articulaire & organisation du staff"),
     ("Dr Thomas LEFÈVRE", "Analyse radiologique d'une prothèse totale de hanche (PTH)"),
     ("Dr Hippolyte MONNIER", "Troubles de la statique du pied : mesures et points clés"),
-    ("Dr Samuel LUSI", "Tumeurs cartilagineuses : enchondrome vs tumeur cartilagineuse atypique"),
-    ("Dr Youcef ALLEL", "Urgences traumatiques du poignet et du carpe au TDM SAU"),
-    ("Dr Maroua HAMMOUD", "Échographie de l'épaule : protocole standardisé et pièges"),
+    ("Dr Stéphano LUSI", "Tumeurs cartilagineuses : enchondrome vs tumeur cartilagineuse atypique"),
+    ("Dr Yazid ALLEL", "Urgences traumatiques du poignet et du carpe au TDM SAU"),
+    ("Dr Macil HAMADOUCHE", "Échographie de l'épaule : protocole standardisé et pièges"),
     ("Dr Amandine LAPORTE", "Bilan d'extension et biopsie des sarcomes des tissus mous"),
     ("Dr Henri GUÉRINI", "Imagerie des prothèses du genou et conflits péri-prothétiques"),
-    ("Drmalika BOUSSAID / Dr YANG", "IRM du rachis inflammatoire vs mécanique"),
+    ("Dr YANG", "IRM du rachis inflammatoire vs mécanique"),
     ("Pr Antoine FEYDY", "IRM de l'épaule : instabilité et bourrelet glénoïdien"),
     ("Pr Jean-Luc DRAPÉ", "Imagerie de la main et des tendons fléchisseurs/extenseurs"),
-    ("Dr Marie-Pierre TALABARD", "Radiologie interventionnelle ostéo-articulaire : infiltrations & cimentoplasties"),
+    ("Dr Marie-Pauline TALABARD", "Radiologie interventionnelle ostéo-articulaire : infiltrations & cimentoplasties"),
 ]
 
 JOURS_FERIES_HIVER = {
@@ -336,79 +341,97 @@ JOURS_FERIES_HIVER = {
     "2027-03-29": "Lundi de Pâques",
 }
 
+CHEF_TO_INTERNE_POSTE = {
+    "ECHO": "ECHO",
+    "GESTES (C)": "GESTES (C)",
+    "TDM OLLIER 4 (SAU)": "TDM SAU",
+    "TDM ACHARD 1": "SCAN ACHARD",
+    "TDM OLLIER 3": "TDM OLLIER DIAG",
+    "IRM 3T": "IRM 3T",
+    "IRM 1,5T": "IRM 1,5T",
+    "IRM": "IRM",
+    "ALLURA": "ALLURA",
+    # CONSULTATION est un créneau pour les internes UNIQUEMENT le mardi après-midi (Relecture Pr Drapé)
+    # et le vendredi après-midi (Consultation MH / Internes). Les autres créneaux de consultation/UCSA
+    # sont des consultations propres des seniors/chefs.
+}
+
 
 def build_balanced_trame() -> dict:
     """
-    Construit la trame hebdomadaire équilibrée sur un cycle de 6 rôles (R0..R5) pour les 6 internes principaux
-    (+ intégration d'Amal El Madani en binôme/rotation dès le 14/12/2026).
-    Chaque rôle R0..R5 sur une semaine de 5 jours (10 demi-journées) comporte exactement :
-    - 8 vacations actives en imagerie / interventionnel / lecture
-    - 2 demi-journées libres ('1/2 journée libre')
-    Et en tournant d'un cran chaque semaine (r = (interne_idx + week_num) % 6),
-    les 6 internes ont EXACTEMENT le même nombre de vacations totales et par modalité !
+    Construit la trame hebdomadaire officielle calée sur la base envoyée par le Dr Hippolyte MONNIER
+    pour le lundi 2 novembre 2026 après-midi :
+      - R0 (Gabriel en S1) : Lundi PM = TDM OLLIER DIAG (TDM3)
+      - R1 (Marwane en S1) : Lundi PM = IRM (avec Pr A. Feydy)
+      - R2 (Milan en S1)   : Lundi PM = ECHO (US avec Dr H. Monnier)
+      - R3 (Nathanaël en S1): Lundi PM = TDM SAU (au U)
+      - R4 (Oussama en S1) : Lundi PM = GESTES (C) (ou 1/2 journée libre si Poste C fermé)
+    - 5 rôles tournants (R0..R4) pour les 5 internes DES hors socle (Gabriel, Marwane, Milan, Nathanaël, Oussama)
+      avec 8 vacations actives + 2 demi-offs ('1/2 journée libre') par semaine chacun :
+      * Consultation ('LECTURE/CS') pour les internes UNIQUEMENT le Mardi après-midi et le Vendredi après-midi.
+      * Relecture avec Pr Jean-Luc DRAPÉ le Mardi après-midi SYSTÉMATIQUE sur le créneau LECTURE/CS.
+      * Autres créneaux non obligatoires si les demi-offs ne sont pas suffisants pour garantir 2 demi-offs / semaine.
+    - 1 trame spécifique Phase Socle pour Noé GRANDVAL ('noe') :
+      * Lundi 02/11 après-midi : en binôme avec Gabriel en TDM OLLIER DIAG (TDM3) selon le planning de Dr H. Monnier,
+        puis en binôme au TDM SAU (Urgences) les lundis suivants pour permettre la rotation d'Écho (R2) des 5 internes.
+      * 2 demi-offs ('1/2 journée libre') par semaine (Mardi après-midi et Jeudi après-midi).
+      * Le Mardi matin des 3 premières semaines (03/11, 10/11, 17/11), Noé est posté avec Dr Macil HAMADOUCHE (MH)
+        au TDM SAU (Urgences Ollier 4).
     """
-    # Pour chaque jour (0=Lundi .. 4=Vendredi), attribution du rôle (0..5) aux postes Matin et Après-midi :
-    # Chaque jour, les rôles 0..5 ont chacun exactement 1 poste matin et 1 poste après-midi.
-    # Total par rôle sur la semaine :
-    # - TDM SAU : 2 demi-journées
-    # - IRM (3T / 1,5T / PM) : 2 demi-journées
-    # - ECHO : 1 à 2 demi-journées
-    # - GESTES (C) / SCAN ACHARD / ALLURA : 2 demi-journées
-    # - TDM OLLIER DIAG / LECTURE/CS : 1 à 2 demi-journées
-    # - 1/2 journée libre : 2 demi-journées exactement !
     weekly_roles = {
-        0: {  # LUNDI
-            "am": {
-                0: "ECHO",
-                1: "GESTES (C)",
-                2: "TDM SAU",
-                3: "IRM 3T",
-                4: "1/2 journée libre",
-                5: "1/2 journée libre",
-            },
-            "pm": {
-                0: "1/2 journée libre",
-                1: "TDM OLLIER DIAG",
-                2: "1/2 journée libre",
-                3: "TDM SAU",
-                4: "IRM",
-                5: "ECHO",
-            },
-        },
-        1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30)
+        0: {  # LUNDI (calé sur la base du Dr H. Monnier du 02/11 après-midi : TDM3, IRM, US/ECHO, U/TDM SAU, GESTES C)
             "am": {
                 0: "TDM SAU",
+                1: "ECHO",
+                2: "GESTES (C)",
+                3: "1/2 journée libre",
+                4: "1/2 journée libre",
+                "socle": "TDM SAU",  # Binôme Urgences (sauf matinée d'accueil du 02/11)
+            },
+            "pm": {
+                0: "TDM OLLIER DIAG",  # S1: Gabriel en TDM3 (avec Noé le 02/11 PM)
+                1: "IRM",              # S1: Marwane en IRM (avec Pr A. Feydy)
+                2: "ECHO",             # S1: Milan en US / Écho (avec Dr H. Monnier)
+                3: "TDM SAU",          # S1: Nathanaël au U (TDM SAU)
+                4: "GESTES (C)",       # S1: Oussama (Poste C fermé le 02/11 PM -> 1/2 journée libre)
+                "socle": "TDM SAU",    # Binôme Urgences (et TDM OLLIER DIAG avec Gabriel le 02/11 PM)
+            },
+        },
+        1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi PM : Relecture systématique avec Pr Drapé)
+            "am": {
+                0: "TDM SAU",  # Avec Dr Macil HAMADOUCHE (MH)
                 1: "IRM 3T",
                 2: "ECHO",
                 3: "GESTES (C)",
                 4: "SCAN ACHARD",
-                5: "IRM 1,5T",
+                "socle_w1_3": "TDM SAU",  # 3 premières semaines : posté avec Macil (MH) au TDM SAU (binôme urgences)
+                "socle_after": "IRM 1,5T",  # Seul en IRM 1,5T (non doublé) ou TDM SAU
             },
             "pm": {
                 0: "SCAN ACHARD",
                 1: "1/2 journée libre",
                 2: "GESTES (C)",
-                3: "LECTURE/CS",
+                3: "LECTURE/CS",  # Relecture avec Pr Drapé (systématique)
                 4: "TDM SAU",
-                5: "ECHO",
+                "socle": "1/2 journée libre",  # Demi-off n°1 de Noé
             },
         },
         2: {  # MERCREDI
             "am": {
                 0: "IRM 1,5T",
                 1: "TDM OLLIER DIAG",
-                2: "IRM 3T",
+                2: "1/2 journée libre",
                 3: "ECHO",
-                4: "GESTES (C)",
-                5: "TDM SAU",
+                4: "TDM SAU",
+                "socle": "IRM 3T",  # Seul en IRM 3T (non doublé)
             },
             "pm": {
-                0: "GESTES (C)",
+                0: "1/2 journée libre",
                 1: "TDM SAU",
                 2: "SCAN ACHARD",
-                3: "1/2 journée libre",
-                4: "ECHO",
-                5: "IRM",
+                3: "GESTES (C)",
+                4: "IRM",
+                "socle": "ECHO",  # Seul en Écho le mercredi après-midi (avec Dr Mihoubi)
             },
         },
         3: {  # JEUDI
@@ -416,53 +439,172 @@ def build_balanced_trame() -> dict:
                 0: "SCAN ACHARD",
                 1: "TDM SAU",
                 2: "1/2 journée libre",
-                3: "1/2 journée libre",
+                3: "GESTES (C)",
                 4: "ECHO",
-                5: "GESTES (C)",
+                "socle": "TDM SAU",  # Binôme Urgences avec Macil (MH)
             },
             "pm": {
                 0: "ALLURA",
                 1: "IRM",
-                2: "ECHO",
-                3: "SCAN ACHARD",
-                4: "1/2 journée libre",
-                5: "TDM SAU",
+                2: "TDM SAU",
+                3: "1/2 journée libre",
+                4: "SCAN ACHARD",
+                "socle": "1/2 journée libre",  # Demi-off n°2 de Noé
             },
         },
-        4: {  # VENDREDI (Biblio du vendredi)
+        4: {  # VENDREDI (Biblio du vendredi • Vendredi PM : Consultation Internes)
             "am": {
                 0: "1/2 journée libre",
                 1: "ECHO",
                 2: "TDM SAU",
                 3: "IRM 3T",
                 4: "IRM 1,5T",
-                5: "LECTURE/CS",
+                "socle": "TDM SAU",  # Binôme Urgences uniquement
             },
             "pm": {
                 0: "IRM",
-                1: "GESTES (C)",
+                1: "1/2 journée libre",
                 2: "TDM SAU",
-                3: "ECHO",
-                4: "SCAN ACHARD",
-                5: "1/2 journée libre",
+                3: "SCAN ACHARD",
+                4: "GESTES (C)",
+                "socle": "LECTURE/CS",  # Consultation du vendredi après-midi (non obligatoire si demi-offs insuffisants)
             },
         },
     }
     return weekly_roles
 
 
-def generate_semester_schedule(absences: list[dict]) -> dict:
+def get_closed_vacations_for_halfday(chefs_day: dict, half: str, wd: int | None = None) -> list[dict]:
     """
-    Génère le planning quotidien (Matin & Après-midi) du 02/11/2026 au 02/05/2027 (26 semaines)
-    pour les internes du service, en intégrant automatiquement :
-    - Les jours fériés
-    - Les absences posées (CA 1, CA 2, CF, Repos de garde RG, Autre)
-    - L'équilibrage dynamique : chaque semaine tourne équitablement entre les internes.
+    Extrait les vacations fermées ('FERMÉ') ou en maintenance ('MAINTENANCE')
+    du planning des Chefs pour une demi-journée donnée ('am' ou 'pm').
+    """
+    closed_items = []
+    if not chefs_day:
+        return closed_items
+    for entry in chefs_day.get(half, []):
+        doc_val = str(entry.get("doc", "")).strip()
+        poste_chef = str(entry.get("poste", "")).strip()
+        is_closed = bool(entry.get("closed")) or doc_val.upper().startswith("FERM") or doc_val.upper() == "MAINTENANCE"
+        if is_closed and poste_chef != "FÉRIÉ":
+            if poste_chef in ("CONSULTATION", "UCSA"):
+                if not (half == "pm" and wd in (1, 4) and poste_chef == "CONSULTATION"):
+                    continue
+                interne_poste = "LECTURE/CS"
+            else:
+                interne_poste = CHEF_TO_INTERNE_POSTE.get(poste_chef, poste_chef)
+            status = "MAINTENANCE" if "MAINTENANCE" in doc_val.upper() else "FERMÉ"
+            closed_items.append({
+                "poste": interne_poste,
+                "chefsPoste": poste_chef,
+                "status": status,
+                "detail": doc_val,
+            })
+    return closed_items
+
+
+def get_open_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None = None) -> set[str]:
+    """
+    Retourne l'ensemble des postes d'internes réellement OUVERTS sur la demi-journée
+    d'après le planning des Chefs.
+    Note : 'LECTURE/CS' n'est ouvert aux internes QUE le mardi après-midi (wd=1, half='pm')
+    et le vendredi après-midi (wd=4, half='pm').
+    """
+    if not chefs_day:
+        base = {"TDM SAU", "ECHO", "GESTES (C)", "SCAN ACHARD", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG", "ALLURA"}
+        if half == "pm" and wd in (1, 4):
+            base.add("LECTURE/CS")
+        return base
+    open_set = set()
+    for entry in chefs_day.get(half, []):
+        doc_val = str(entry.get("doc", "")).strip()
+        poste_chef = str(entry.get("poste", "")).strip()
+        is_closed = bool(entry.get("closed")) or doc_val.upper().startswith("FERM") or doc_val.upper() == "MAINTENANCE"
+        if not is_closed:
+            if poste_chef in CHEF_TO_INTERNE_POSTE:
+                open_set.add(CHEF_TO_INTERNE_POSTE[poste_chef])
+            elif poste_chef == "CONSULTATION" and half == "pm" and wd in (1, 4):
+                open_set.add("LECTURE/CS")
+    return open_set
+
+
+def rebuild_day_lists(day_obj: dict):
+    """
+    Reconstruit am et pm à partir de byInterne et closedAm/closedPm.
+    """
+    if day_obj.get("holiday"):
+        return
+    by_interne = day_obj["byInterne"]
+    closed_am = day_obj.get("closedAm", [])
+    closed_pm = day_obj.get("closedPm", [])
+    am_list = []
+    pm_list = []
+    for i_obj in INTERNES_LIST:
+        iid = i_obj["id"]
+        st = by_interne[iid]
+        am_list.append({
+            "poste": st["am"],
+            "interneId": iid,
+            "interne": i_obj["shortName"],
+            "isSocle": bool(i_obj.get("isSocle")),
+            "binome": st["am"] in ("TDM SAU", "TDM OLLIER DIAG") and bool(i_obj.get("isSocle")),
+            "note": st.get("noteAm", ""),
+        })
+        pm_list.append({
+            "poste": st["pm"],
+            "interneId": iid,
+            "interne": i_obj["shortName"],
+            "isSocle": bool(i_obj.get("isSocle")),
+            "binome": st["pm"] in ("TDM SAU", "TDM OLLIER DIAG") and bool(i_obj.get("isSocle")),
+            "note": st.get("notePm", ""),
+        })
+    for c in closed_am:
+        am_list.append({
+            "poste": c["poste"],
+            "chefsPoste": c["chefsPoste"],
+            "interneId": None,
+            "interne": c["status"],
+            "closed": True,
+            "status": c["status"],
+            "detail": c["detail"],
+        })
+    for c in closed_pm:
+        pm_list.append({
+            "poste": c["poste"],
+            "chefsPoste": c["chefsPoste"],
+            "interneId": None,
+            "interne": c["status"],
+            "closed": True,
+            "status": c["status"],
+            "detail": c["detail"],
+        })
+    day_obj["am"] = am_list
+    day_obj["pm"] = pm_list
+    day_obj["slots"] = by_interne
+
+
+def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None = None) -> dict:
+    """
+    Génère le planning quotidien (Matin & Après-midi) du 02/11/2026 au 30/04/2027 (26 semaines)
+    pour les 6 internes du service, en intégrant :
+    - La première matinée d'accueil et de formation obligatoire du lundi 02/11/2026 matin ('FORMATION / ACCUEIL')
+      pour tous les internes arrivants, suivie du planning officiel du 02/11/2026 après-midi envoyé par
+      le Dr Hippolyte MONNIER (Nathanaël au U, Marwane en IRM, Noé et Gabriel en TDM3, Milan en US, Oussama en demi-off)
+      servant de base (R0..R4) pour toute la suite du semestre.
+    - Les 5 internes DES hors socle en rotation équilibrée sur R0..R4 (2 demi-offs / semaine chacun)
+    - Consultation ('LECTURE/CS') pour les internes UNIQUEMENT le mardi après-midi et le vendredi après-midi :
+      * Mardi après-midi : Relecture avec Pr Drapé SYSTÉMATIQUE (toujours pourvue par un interne présent).
+      * Vendredi après-midi : Consultation Internes (avec MH / seniors).
+      * Autres créneaux non obligatoires si les demi-offs ne sont pas suffisants pour les internes.
+    - Noé GRANDVAL ('noe', Phase Socle) :
+      * 2 demi-offs / semaine
+      * En binôme avec Gabriel en TDM OLLIER DIAG (TDM3) le lundi 02/11 après-midi, puis doublé-posté aux Urgences ('TDM SAU')
+      * Posté avec Dr Macil HAMADOUCHE ('MH') le mardi matin les 3 premières semaines (03/11, 10/11, 17/11)
+    - Les vacations fermées ('FERMÉ' / 'MAINTENANCE') issues du planning officiel du service.
     """
     weekly_roles = build_balanced_trame()
-    main_ids = ["gabriel", "noe", "marwane", "milan", "nathanael", "oussama"]
+    senior_interne_ids = ["gabriel", "marwane", "milan", "nathanael", "oussama"]
 
-    # Index absences par (date_iso, interne_id) -> type d'absence
     abs_lookup = {}
     for ab in absences:
         dt = ab.get("date")
@@ -474,6 +616,7 @@ def generate_semester_schedule(absences: list[dict]) -> dict:
     start_date = datetime.date(2026, 11, 2)
     end_date = datetime.date(2027, 4, 30)
     schedule = {}
+    weeks_map: dict[int, list[str]] = {}
 
     cur = start_date
     while cur <= end_date:
@@ -482,54 +625,429 @@ def generate_semester_schedule(absences: list[dict]) -> dict:
         week_idx = (cur - start_date).days // 7
 
         if wd >= 5:
-            # Week-end : pas de vacations programmées hors garde
             cur += datetime.timedelta(days=1)
             continue
 
+        weeks_map.setdefault(week_idx, []).append(iso)
+
         if iso in JOURS_FERIES_HIVER:
+            by_interne_ferie = {
+                i["id"]: {"am": "FÉRIÉ", "pm": "FÉRIÉ", "note": JOURS_FERIES_HIVER[iso]}
+                for i in INTERNES_LIST
+            }
             schedule[iso] = {
                 "holiday": JOURS_FERIES_HIVER[iso],
                 "am": [],
                 "pm": [],
-                "byInterne": {
-                    i["id"]: {"am": "FÉRIÉ", "pm": "FÉRIÉ", "note": JOURS_FERIES_HIVER[iso]}
-                    for i in INTERNES_LIST
-                },
+                "closedAm": [],
+                "closedPm": [],
+                "byInterne": by_interne_ferie,
+                "slots": by_interne_ferie,
             }
             cur += datetime.timedelta(days=1)
             continue
 
+        chefs_day = (chefs_planning or {}).get(iso, {})
+        closed_am = get_closed_vacations_for_halfday(chefs_day, "am", wd)
+        closed_pm = get_closed_vacations_for_halfday(chefs_day, "pm", wd)
+        closed_am_codes = {c["poste"]: c["status"] for c in closed_am}
+        closed_pm_codes = {c["poste"]: c["status"] for c in closed_pm}
+        open_am_codes = get_open_interne_postes_for_halfday(chefs_day, "am", wd)
+        open_pm_codes = get_open_interne_postes_for_halfday(chefs_day, "pm", wd)
+
         day_roles = weekly_roles[wd]
-        am_list = []
-        pm_list = []
         by_interne = {}
 
-        for idx, iid in enumerate(main_ids):
-            interne_obj = next(x for x in INTERNES_LIST if x["id"] == iid)
-            role_idx = (idx + week_idx) % 6
+        # Cas particulier : Première matinée des internes le lundi 2 novembre 2026 (Accueil & Formation obligatoire)
+        # et premier après-midi fixé par le Dr Hippolyte MONNIER servant de base pour la suite
+        if iso == "2026-11-02":
+            monnier_pm_base = {
+                "gabriel": ("TDM OLLIER DIAG", "Planning Dr H. Monnier (TDM3 avec Noé)"),
+                "noe": ("TDM OLLIER DIAG", "Planning Dr H. Monnier (Binôme TDM3 avec Gabriel)"),
+                "marwane": ("IRM", "Planning Dr H. Monnier (IRM avec Pr A. Feydy)"),
+                "milan": ("ECHO", "Planning Dr H. Monnier (US / Écho avec Dr H. Monnier)"),
+                "nathanael": ("TDM SAU", "Planning Dr H. Monnier (Scanner des U)"),
+                "oussama": ("1/2 journée libre", "Poste C (Gestes) fermé"),
+            }
+            for i_obj in INTERNES_LIST:
+                iid = i_obj["id"]
+                pm_poste, pm_note = monnier_pm_base[iid]
+                am_note = "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
+                by_interne[iid] = {
+                    "am": "FORMATION / ACCUEIL",
+                    "pm": pm_poste,
+                    "note": f"Matin : {am_note} • PM : {pm_note}",
+                    "noteAm": am_note,
+                    "notePm": pm_note,
+                }
+            schedule[iso] = {
+                "holiday": None,
+                "am": [],
+                "pm": [],
+                "closedAm": closed_am,
+                "closedPm": closed_pm,
+                "byInterne": by_interne,
+            }
+            cur += datetime.timedelta(days=1)
+            continue
+
+        # 1. Attribution initiale pour les 5 internes hors socle (R0..R4)
+        for idx, iid in enumerate(senior_interne_ids):
+            role_idx = (idx + week_idx) % 5
             post_am = day_roles["am"][role_idx]
             post_pm = day_roles["pm"][role_idx]
+            note_pm = "Relecture avec Pr Drapé (systématique)" if (wd == 1 and post_pm == "LECTURE/CS") else ""
+            by_interne[iid] = {
+                "am": post_am,
+                "pm": post_pm,
+                "note": note_pm,
+                "noteAm": "",
+                "notePm": note_pm,
+            }
 
+        # 2. Attribution pour Noé (Phase Socle)
+        if wd == 1:  # Mardi matin : 3 premières semaines (week_idx 0, 1, 2 -> 03/11, 10/11, 17/11) avec Macil (MH) au TDM SAU
+            if week_idx < 3:
+                noe_am = "TDM SAU"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Binôme Socle Urgences"
+            else:
+                noe_am = day_roles["am"]["socle_after"] if (week_idx % 2 == 1) else "TDM SAU"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Binôme Socle" if noe_am == "TDM SAU" else "Phase Socle"
+        else:
+            noe_am = day_roles["am"]["socle"]
+            noe_note_am = "Binôme Socle Urgences" if noe_am == "TDM SAU" else ""
+
+        if wd == 4:  # Vendredi après-midi : en LECTURE/CS (Consultation Internes) ou TDM SAU
+            noe_pm = "LECTURE/CS" if (week_idx % 2 == 0 or week_idx in (1, 3)) else "TDM SAU"
+            noe_note_pm = "Consultation Internes (Vendredi PM)" if noe_pm == "LECTURE/CS" else "Binôme Socle Urgences"
+        else:
+            noe_pm = day_roles["pm"]["socle"]
+            noe_note_pm = "Binôme Socle Urgences" if noe_pm == "TDM SAU" else ""
+        by_interne["noe"] = {
+            "am": noe_am,
+            "pm": noe_pm,
+            "note": noe_note_am or noe_note_pm,
+            "noteAm": noe_note_am,
+            "notePm": noe_note_pm,
+        }
+
+        # 3. Application des absences (CA / CF / RG)
+        for iid in [x["id"] for x in INTERNES_LIST]:
             abs_type = abs_lookup.get((iso, iid))
             if abs_type:
                 badge = "RG" if "garde" in abs_type.lower() or abs_type.upper() == "RG" else "VACANCES"
-                post_am = badge
-                post_pm = badge
-                note = f"{abs_type}"
-            else:
-                note = ""
+                by_interne[iid]["am"] = badge
+                by_interne[iid]["pm"] = badge
+                by_interne[iid]["note"] = abs_type
+                by_interne[iid]["noteAm"] = abs_type
+                by_interne[iid]["notePm"] = abs_type
 
-            by_interne[iid] = {"am": post_am, "pm": post_pm, "note": note}
-            am_list.append({"poste": post_am, "interneId": iid, "interne": interne_obj["shortName"]})
-            pm_list.append({"poste": post_pm, "interneId": iid, "interne": interne_obj["shortName"]})
+        # 3bis. Garantie SYSTÉMATIQUE de la Relecture avec Pr Drapé le Mardi après-midi (wd == 1)
+        if wd == 1:
+            has_tue_cs = any(
+                by_interne[iid]["pm"] == "LECTURE/CS"
+                for iid in [x["id"] for x in INTERNES_LIST]
+            )
+            if not has_tue_cs:
+                # Si l'interne initialement prévu en LECTURE/CS le mardi PM est en congés/RG,
+                # un interne présent bascule systématiquement sur la Relecture avec Pr Drapé
+                # depuis un poste non obligatoire (ECHO, GESTES (C), SCAN ACHARD).
+                for donor_poste in ("ECHO", "GESTES (C)", "SCAN ACHARD"):
+                    replaced = False
+                    for iid in senior_interne_ids:
+                        if by_interne[iid]["pm"] == donor_poste:
+                            by_interne[iid]["pm"] = "LECTURE/CS"
+                            by_interne[iid]["notePm"] = "Relecture avec Pr Drapé (systématique)"
+                            if not by_interne[iid]["note"]:
+                                by_interne[iid]["note"] = "Relecture avec Pr Drapé (systématique)"
+                            replaced = True
+                            break
+                    if replaced:
+                        break
+
+        # 4. Gestion des vacations FERMÉES / MAINTENANCE et garantie zéro doublon hors TDM SAU
+        for half, closed_map, open_set in [("am", closed_am_codes, open_am_codes), ("pm", closed_pm_codes, open_pm_codes)]:
+            note_key = "noteAm" if half == "am" else "notePm"
+            used_by_seniors = set()
+            for iid in senior_interne_ids:
+                p = by_interne[iid][half]
+                if p not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL") and p not in closed_map:
+                    used_by_seniors.add(p)
+
+            # LECTURE/CS n'est un candidat de repli QUE le mardi PM (wd=1) ou vendredi PM (wd=4)
+            fallback_candidates = ["TDM OLLIER DIAG", "SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "ALLURA"]
+            if half == "pm" and wd in (1, 4):
+                fallback_candidates.insert(0, "LECTURE/CS")
+            no_interne_thevenin_nov = (half == "am" and wd == 2 and iso.startswith("2026-11"))
+            if no_interne_thevenin_nov:
+                fallback_candidates = [c for c in fallback_candidates if c != "ECHO"]
+
+            for iid in senior_interne_ids:
+                p = by_interne[iid][half]
+                if p == "ECHO" and no_interne_thevenin_nov:
+                    reassigned = None
+                    for cand in fallback_candidates:
+                        if cand in open_set and cand not in closed_map and cand not in used_by_seniors and cand != by_interne["noe"][half]:
+                            reassigned = cand
+                            break
+                    if not reassigned:
+                        reassigned = "1/2 journée libre"
+                    else:
+                        used_by_seniors.add(reassigned)
+                    used_by_seniors.discard("ECHO")
+                    by_interne[iid][half] = reassigned
+                    by_interne[iid][note_key] = "Pas d'interne en Écho avec Dr F. Thévenin (Novembre)"
+                    if not by_interne[iid]["note"]:
+                        by_interne[iid]["note"] = "Pas d'interne en Écho avec Dr F. Thévenin (Novembre)"
+                elif p in closed_map:
+                    status_lbl = closed_map[p]
+                    reassigned = None
+                    for cand in fallback_candidates:
+                        if cand in open_set and cand not in closed_map and cand not in used_by_seniors and cand != by_interne["noe"][half]:
+                            reassigned = cand
+                            break
+                    if not reassigned:
+                        reassigned = "1/2 journée libre"
+                    else:
+                        used_by_seniors.add(reassigned)
+                    by_interne[iid][half] = reassigned
+                    by_interne[iid][note_key] = f"{p} {status_lbl.lower()}"
+                    if not by_interne[iid]["note"]:
+                        by_interne[iid]["note"] = f"{p} {status_lbl.lower()}"
+
+            noe_p = by_interne["noe"][half]
+            if noe_p not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
+                if noe_p in closed_map:
+                    status_lbl = closed_map[noe_p]
+                    by_interne["noe"][half] = "TDM SAU"
+                    by_interne["noe"][note_key] = f"{noe_p} {status_lbl.lower()} → Binôme TDM SAU"
+                    by_interne["noe"]["note"] = by_interne["noe"][note_key]
+                elif noe_p != "TDM SAU" and noe_p in used_by_seniors:
+                    by_interne["noe"][half] = "TDM SAU"
+                    by_interne["noe"][note_key] = "Binôme Socle Urgences"
+
+        # 4bis. Le Vendredi après-midi (wd == 4), s'assurer que le créneau LECTURE/CS est couvert par un interne
+        # si cela ne prive aucun interne de ses 2 demi-offs hebdomadaires
+        if wd == 4 and "LECTURE/CS" in open_pm_codes and "LECTURE/CS" not in closed_pm_codes:
+            has_fri_cs = any(
+                by_interne[iid]["pm"] == "LECTURE/CS"
+                for iid in [x["id"] for x in INTERNES_LIST]
+            )
+            if not has_fri_cs:
+                for donor_poste in ("GESTES (C)", "SCAN ACHARD", "IRM"):
+                    replaced = False
+                    for iid in senior_interne_ids:
+                        if by_interne[iid]["pm"] == donor_poste:
+                            by_interne[iid]["pm"] = "LECTURE/CS"
+                            by_interne[iid]["notePm"] = "Consultation Internes (Vendredi PM)"
+                            if not by_interne[iid]["note"]:
+                                by_interne[iid]["note"] = "Consultation Internes (Vendredi PM)"
+                            replaced = True
+                            break
+                    if replaced:
+                        break
 
         schedule[iso] = {
             "holiday": None,
-            "am": am_list,
-            "pm": pm_list,
+            "am": [],
+            "pm": [],
+            "closedAm": closed_am,
+            "closedPm": closed_pm,
             "byInterne": by_interne,
         }
         cur += datetime.timedelta(days=1)
+
+    # 5. Équilibrage hebdomadaire des demi-offs ('1/2 journée libre') :
+    #    - Maximum 2 demi-offs par semaine par interne (réaffectation sur postes ouverts si > 2)
+    #    - Garantie de 2 demi-offs par semaine pour chaque interne actif : si un interne a < 2 demi-offs
+    #      (ex: jour férié tombant sur son demi-off ou réaffectation), les autres créneaux non obligatoires
+    #      (en dehors du TDM SAU et de la Relecture systématique du mardi après-midi avec Pr Drapé)
+    #      ne sont pas obligatoires et sont libérés en demi-off.
+    def get_available_open_postes(day_iso: str, half_key: str) -> list[str]:
+        day_obj = schedule[day_iso]
+        ch_day = (chefs_planning or {}).get(day_iso, {})
+        dt_obj = datetime.date.fromisoformat(day_iso)
+        wd_cur = dt_obj.weekday()
+        open_set = get_open_interne_postes_for_halfday(ch_day, half_key, wd_cur)
+        closed_codes = {c["poste"] for c in (day_obj["closedAm"] if half_key == "am" else day_obj["closedPm"])}
+        used = {
+            st[half_key]
+            for st in day_obj["byInterne"].values()
+            if st[half_key] not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ")
+        }
+        # LECTURE/CS uniquement le mardi PM (wd=1) et vendredi PM (wd=4)
+        candidates = ["TDM OLLIER DIAG", "SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "ALLURA"]
+        if half_key == "pm" and wd_cur in (1, 4):
+            candidates.insert(0, "LECTURE/CS")
+        if half_key == "am" and wd_cur == 2 and day_iso.startswith("2026-11"):
+            candidates = [c for c in candidates if c != "ECHO"]
+        return [c for c in candidates if c in open_set and c not in closed_codes and c not in used]
+
+    for w_idx, iso_list in sorted(weeks_map.items()):
+        active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
+        # 5A. Réduction si > 2 demi-offs
+        while True:
+            off_counts = {i["id"]: 0 for i in INTERNES_LIST}
+            for d_iso in active_isos:
+                for iid, st in schedule[d_iso]["byInterne"].items():
+                    for h in ("am", "pm"):
+                        if st[h] == "1/2 journée libre":
+                            off_counts[iid] += 1
+            over_iids = [iid for iid, cnt in off_counts.items() if cnt > 2]
+            if not over_iids:
+                break
+
+            fixed = False
+            for iid in over_iids:
+                # A) Remplacement direct d'un demi-off par un poste ouvert disponible sur le même créneau
+                for d_iso in active_isos:
+                    if d_iso == "2026-11-02":
+                        continue
+                    for h in ("am", "pm"):
+                        st = schedule[d_iso]["byInterne"][iid]
+                        if st[h] == "1/2 journée libre":
+                            avail = get_available_open_postes(d_iso, h)
+                            if avail:
+                                st[h] = avail[0]
+                                fixed = True
+                                break
+                    if fixed:
+                        break
+                if fixed:
+                    break
+
+                # B) Échange intra-semaine
+                for d_iso1 in active_isos:
+                    if d_iso1 == "2026-11-02":
+                        continue
+                    for h1 in ("am", "pm"):
+                        nk1 = "noteAm" if h1 == "am" else "notePm"
+                        st1 = schedule[d_iso1]["byInterne"][iid]
+                        if st1[h1] == "1/2 journée libre":
+                            for other in senior_interne_ids:
+                                if other == iid:
+                                    continue
+                                p_other1 = schedule[d_iso1]["byInterne"][other][h1]
+                                if p_other1 in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
+                                    continue
+                                for d_iso2 in active_isos:
+                                    if d_iso2 == "2026-11-02":
+                                        continue
+                                    for h2 in ("am", "pm"):
+                                        nk2 = "noteAm" if h2 == "am" else "notePm"
+                                        st_other2 = schedule[d_iso2]["byInterne"][other]
+                                        if st_other2[h2] == "1/2 journée libre":
+                                            avail2 = get_available_open_postes(d_iso2, h2)
+                                            if avail2:
+                                                st1[h1] = p_other1
+                                                if st1.get("note") == st1.get(nk1):
+                                                    st1["note"] = ""
+                                                st1[nk1] = ""
+                                                schedule[d_iso1]["byInterne"][other][h1] = "1/2 journée libre"
+                                                st_other2[h2] = avail2[0]
+                                                fixed = True
+                                                break
+                                    if fixed:
+                                        break
+                                if fixed:
+                                    break
+                        if fixed:
+                            break
+                    if fixed:
+                        break
+                if fixed:
+                    break
+
+                # C) Si un senior a > 2 demi-offs (à cause de salles fermées) et que Noé (Socle) occupe un poste
+                #    individuel ouvert (IRM 1,5T, IRM 3T, ECHO, LECTURE/CS), Noé bascule en binôme TDM SAU et le senior
+                #    prend le poste individuel ouvert
+                if iid in senior_interne_ids:
+                    for d_iso1 in active_isos:
+                        if d_iso1 == "2026-11-02":
+                            continue
+                        for h1 in ("am", "pm"):
+                            nk1 = "noteAm" if h1 == "am" else "notePm"
+                            st1 = schedule[d_iso1]["byInterne"][iid]
+                            noe_st = schedule[d_iso1]["byInterne"]["noe"]
+                            noe_p = noe_st[h1]
+                            if st1[h1] == "1/2 journée libre" and noe_p not in ("TDM SAU", "1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
+                                st1[h1] = noe_p
+                                if datetime.date.fromisoformat(d_iso1).weekday() == 4 and h1 == "pm" and noe_p == "LECTURE/CS":
+                                    st1[nk1] = "Consultation Internes (Vendredi PM)"
+                                else:
+                                    st1[nk1] = ""
+                                noe_st[h1] = "TDM SAU"
+                                noe_st[nk1] = "Binôme Socle Urgences"
+                                fixed = True
+                                break
+                        if fixed:
+                            break
+                if fixed:
+                    break
+
+            if not fixed:
+                break
+
+        # 5B. Garantie que chaque interne actif (hors semaine de congés) a bien ses 2 demi-offs :
+        #     "Autre créneaux pas obligatoire si les off ne sont pas suffisant pour les internes"
+        #     On libère en priorité les créneaux non obligatoires (LECTURE/CS du vendredi PM, ALLURA,
+        #     TDM OLLIER DIAG, IRM 1,5T, ECHO, GESTES (C), SCAN ACHARD, IRM 3T, IRM), sans jamais
+        #     toucher au TDM SAU ni à la Relecture systématique avec Pr Drapé du mardi après-midi.
+        non_mandatory_priority = [
+            "LECTURE/CS",  # Vendredi PM uniquement (Mardi PM protégé ci-dessous)
+            "ALLURA",
+            "TDM OLLIER DIAG",
+            "IRM 1,5T",
+            "ECHO",
+            "GESTES (C)",
+            "SCAN ACHARD",
+            "IRM 3T",
+            "IRM",
+        ]
+        for iid in [x["id"] for x in INTERNES_LIST]:
+            vac_halfdays = 0
+            off_cnt = 0
+            for d_iso in active_isos:
+                st = schedule[d_iso]["byInterne"][iid]
+                for h in ("am", "pm"):
+                    if st[h] in ("VACANCES", "RG"):
+                        vac_halfdays += 1
+                    elif st[h] == "1/2 journée libre":
+                        off_cnt += 1
+            # Si l'interne est présent sur la semaine (pas en semaine complète de congés) et a < 2 demi-offs
+            if vac_halfdays >= 6:
+                continue
+            while off_cnt < 2:
+                freed = False
+                for cand_poste in non_mandatory_priority:
+                    for d_iso in reversed(active_isos):
+                        if d_iso == "2026-11-02":
+                            continue
+                        wd_cur = datetime.date.fromisoformat(d_iso).weekday()
+                        for h in ("pm", "am"):
+                            # Protéger strictement la Relecture avec Pr Drapé du mardi après-midi
+                            if wd_cur == 1 and h == "pm" and cand_poste == "LECTURE/CS":
+                                continue
+                            # Pour Noé (socle), éviter de libérer le TDM SAU des 3 premiers mardis matins avec Macil
+                            st = schedule[d_iso]["byInterne"][iid]
+                            if st[h] == cand_poste:
+                                nk = "noteAm" if h == "am" else "notePm"
+                                st[h] = "1/2 journée libre"
+                                st[nk] = "Créneau non obligatoire libéré (quota 2 demi-offs / sem)"
+                                if not st.get("note"):
+                                    st["note"] = st[nk]
+                                off_cnt += 1
+                                freed = True
+                                break
+                        if freed:
+                            break
+                    if freed:
+                        break
+                if not freed:
+                    break
+
+    for d_iso, day_obj in schedule.items():
+        rebuild_day_lists(day_obj)
 
     return schedule
 
@@ -604,43 +1122,150 @@ def build_initial_presentations() -> list[dict]:
 
         cur += datetime.timedelta(days=1)
 
-    # Ajout des Confrontations Radio-Anatomopathologiques & Bone Club
+    # Ajout des Confrontations Radio-Anatomopathologiques (CRA) & Bone Club (Amphi Luton)
+    # Sources : Mails de Sandrine CAMBLONG ([CCH] Enseignement Radiob Cochin <enseignement.radiob.cch@aphp.fr>)
+    # - Calendrier-CRA-V3.pdf (reçu le 21/09/2026) : Vendredis 27/11/2026, 15/01/2027, 26/03/2027, 14/05/2027, 18/06/2027 (14h15–16h00, Salle de réunion Radio B, Albarran -1)
+    # - BONE CLUB (mercredis 18h00–20h00, Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin, 24 rue du Fg St-Jacques Paris 14e)
     special_staffs = [
         {
             "id": "cra-2026-11-27",
             "date": "2026-11-27",
             "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques",
-            "horaire": "14h00 – 16h00",
-            "salle": "Salle de Staff Radio B (Albarran -1)",
+            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
+            "horaire": "14h15 – 16h00",
+            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
             "interneId": "gabriel",
             "interneName": "Gabriel & Noé",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques mensuelles (Service Pr Feydy / Anapath)",
-            "notes": "Envoyé par Anne-Marie Fortin — présence de tous les internes disponible sur le secteur.",
+            "sujet": "Confrontations Radio-Anatomo-Pathologiques dans les maladies de l'appareil locomoteur",
+            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Pr B. Terris / Dr F. Larousserie / Dr V. Audard",
+            "coursChef": "Corrélation radio-histologique (Service Radio B & Anatomie Pathologique)",
+            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026) — Salle de réunion Radio B (Albarran -1) de 14h15 à 16h00.",
         },
         {
-            "id": "boneclub-2026-12-10",
-            "date": "2026-12-10",
+            "id": "boneclub-2026-12-02",
+            "date": "2026-12-02",
             "type": "bone_club",
-            "typeLabel": "Bone Club Cochin",
-            "horaire": "17h30 – 19h00",
-            "salle": "Salle Chevrot / Albarran -1",
+            "typeLabel": "Bone Club Cochin (Amphi Luton)",
+            "horaire": "18h00 – 20h00",
+            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
+            "interneId": "gabriel",
+            "interneName": "Gabriel & Noé",
+            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Décembre",
+            "chefIntervenant": "Pr V. Bousson (Lariboisière), Dr A. Miquel (St-Antoine), Pr A. Feydy & Pr J-L. Drapé",
+            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
+            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton face à l'entrée principale de Cochin).",
+        },
+        {
+            "id": "cra-2027-01-15",
+            "date": "2027-01-15",
+            "type": "confrontation_anapath",
+            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
+            "horaire": "14h15 – 16h00",
+            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
             "interneId": "marwane",
             "interneName": "Marwane & Milan",
-            "sujet": "Dossiers difficiles d'imagerie osseuse — Bone Club",
-            "notes": "Séance de dossiers radiologiques commentés.",
+            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Janvier",
+            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath (Dr F. Larousserie, Dr V. Audard)",
+            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
+            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026) — Dossiers biopsiés au Scanner Achard / Écho.",
         },
         {
-            "id": "cra-2027-01-29",
-            "date": "2027-01-29",
-            "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques",
-            "horaire": "14h00 – 16h00",
-            "salle": "Salle de Staff Radio B (Albarran -1)",
+            "id": "boneclub-2027-01-20",
+            "date": "2027-01-20",
+            "type": "bone_club",
+            "typeLabel": "Bone Club Cochin (Amphi Luton)",
+            "horaire": "18h00 – 20h00",
+            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
+            "interneId": "marwane",
+            "interneName": "Marwane & Milan",
+            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Janvier",
+            "chefIntervenant": "Dr M. Lacroix (HEGP) & Pr J-L. Drapé (Cochin)",
+            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
+            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton).",
+        },
+        {
+            "id": "boneclub-2027-03-24",
+            "date": "2027-03-24",
+            "type": "bone_club",
+            "typeLabel": "Bone Club Cochin (Amphi Luton)",
+            "horaire": "18h00 – 20h00",
+            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
             "interneId": "nathanael",
             "interneName": "Nathanaël & Oussama",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques",
-            "notes": "Dossiers biopsiés au Scanner Achard / Écho.",
+            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Mars",
+            "chefIntervenant": "Pr É. Dion (Hôtel-Dieu), Dr M. Crézé (Bicêtre) & Pr A. Feydy (Cochin)",
+            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
+            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton).",
+        },
+        {
+            "id": "cra-2027-03-26",
+            "date": "2027-03-26",
+            "type": "confrontation_anapath",
+            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
+            "horaire": "14h15 – 16h00",
+            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
+            "interneId": "nathanael",
+            "interneName": "Nathanaël & Oussama",
+            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Mars",
+            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath (Dr F. Larousserie, Dr V. Audard)",
+            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
+            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026) — Salle de réunion Radio B (Albarran -1).",
+        },
+        {
+            "id": "cra-2027-05-14",
+            "date": "2027-05-14",
+            "type": "confrontation_anapath",
+            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
+            "horaire": "14h15 – 16h00",
+            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
+            "interneId": "gabriel",
+            "interneName": "Équipe Internes Radio B",
+            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Mai",
+            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath",
+            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
+            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026).",
+        },
+        {
+            "id": "boneclub-2027-05-26",
+            "date": "2027-05-26",
+            "type": "bone_club",
+            "typeLabel": "Bone Club Cochin (Amphi Luton)",
+            "horaire": "18h00 – 20h00",
+            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
+            "interneId": "gabriel",
+            "interneName": "Équipe Internes Radio B",
+            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Mai",
+            "chefIntervenant": "Pr A. Feydy (Cochin) & Dr M. Lacroix (HEGP)",
+            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
+            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton).",
+        },
+        {
+            "id": "cra-2027-06-18",
+            "date": "2027-06-18",
+            "type": "confrontation_anapath",
+            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
+            "horaire": "14h15 – 16h00",
+            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
+            "interneId": "gabriel",
+            "interneName": "Équipe Internes Radio B",
+            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Juin",
+            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath",
+            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
+            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026).",
+        },
+        {
+            "id": "boneclub-2027-06-30",
+            "date": "2027-06-30",
+            "type": "bone_club",
+            "typeLabel": "Bone Club Cochin × APRAMEN (Amphi Luton)",
+            "horaire": "18h00 – 20h00",
+            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
+            "interneId": "gabriel",
+            "interneName": "Équipe Internes Radio B",
+            "sujet": "Réunion Jumelée Bone Club & APRAMEN (Association des Praticiens de Médecine Nucléaire d'IDF)",
+            "chefIntervenant": "Pr A. Feydy (Paris-Cochin) & Dr F. Paycha (Paris-Lariboisière)",
+            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
+            "notes": "Séance annuelle jumelée Bone Club / APRAMEN (Entrée libre, Amphi Luton).",
         },
     ]
     items.extend(special_staffs)
@@ -650,8 +1275,8 @@ def build_initial_presentations() -> list[dict]:
 
 def build_service_meetings() -> list[dict]:
     """
-    Réunions du service, formations obligatoires, accueils et annonces officielles
-    envoyées par Anne-Marie Fortin (secrétariat du Pr A. Feydy) et l'équipe des chefs.
+    Réunions du service, formations obligatoires, accueils, Bone Club, CRA et annonces officielles
+    envoyées par Anne-Marie Fortin et Sandrine Camblong (secrétariats du Pr A. Feydy & Pr J-L. Drapé).
     """
     return [
         {
@@ -728,12 +1353,23 @@ def build_service_meetings() -> list[dict]:
         {
             "id": "reunion-2026-11-27-anapath",
             "date": "2026-11-27",
-            "horaire": "14h00 – 16h00",
-            "title": "Confrontations Radio-Anatomo-Pathologiques",
+            "horaire": "14h15 – 16h00",
+            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #1)",
             "category": "Staff Multidisciplinaire",
-            "sender": "Anne-Marie FORTIN",
-            "location": "Salle de Staff Radio B (Albarran -1)",
-            "description": "Réunion mensuelle de corrélation radio-histologique sur les biopsies ostéo-articulaires et des parties molles.",
+            "sender": "Sandrine CAMBLONG (Enseignement Radio B — 01 58 41 24 81)",
+            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
+            "description": "Réunion mensuelle de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Service d'Anapath Pr B. Terris / Dr V. Audard / Dr F. Larousserie & Service de Radiologie B Prs J-L. Drapé et A. Feydy).",
+            "mandatory": True,
+        },
+        {
+            "id": "reunion-2026-12-02-boneclub",
+            "date": "2026-12-02",
+            "horaire": "18h00 – 20h00",
+            "title": "BONE CLUB Cochin — Session de Décembre",
+            "category": "Bone Club",
+            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
+            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, face à Cochin)",
+            "description": "Réunion de radiologie ostéo-articulaire (Pr V. Bousson, Pr R. Carlier, Pr A. Feydy, Pr J-L. Drapé) : présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France. Entrée libre et sans réservation.",
             "mandatory": True,
         },
         {
@@ -758,6 +1394,105 @@ def build_service_meetings() -> list[dict]:
             "description": "Répartition équitable des internes entre la semaine de Noël (21/12–25/12) et la semaine du Jour de l'An (28/12–01/01) afin d'assurer la continuité des postes prioritaires (TDM SAU, IRM, Gestes).",
             "mandatory": True,
         },
+        {
+            "id": "reunion-2027-01-15-anapath",
+            "date": "2027-01-15",
+            "horaire": "14h15 – 16h00",
+            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #2)",
+            "category": "Staff Multidisciplinaire",
+            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
+            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
+            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "mandatory": True,
+        },
+        {
+            "id": "reunion-2027-01-20-boneclub",
+            "date": "2027-01-20",
+            "horaire": "18h00 – 20h00",
+            "title": "BONE CLUB Cochin — Session de Janvier",
+            "category": "Bone Club",
+            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
+            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
+            "description": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France (Modération : Dr M. Lacroix & Pr J-L. Drapé). Entrée libre.",
+            "mandatory": True,
+        },
+        {
+            "id": "reunion-2027-02-26-seminaire-cochin",
+            "date": "2027-02-26",
+            "horaire": "26 & 27 février 2027",
+            "title": "XLIIIe Séminaire de Radiologie Ostéo-Articulaire de Cochin — Bassin & Hanche",
+            "category": "Séminaire / Congrès",
+            "sender": "Sandrine CAMBLONG / Pr A. Feydy & Pr J-L. Drapé",
+            "location": "Institut Imagine (24 boulevard du Montparnasse, 75015 Paris)",
+            "description": "40 problèmes au quotidien, solutions par l'exemple sur le thème Bassin / Hanche (quiz interactifs et cas cliniques commentés par l'équipe de Radio B Cochin).",
+            "mandatory": False,
+        },
+        {
+            "id": "reunion-2027-03-24-boneclub",
+            "date": "2027-03-24",
+            "horaire": "18h00 – 20h00",
+            "title": "BONE CLUB Cochin — Session de Mars",
+            "category": "Bone Club",
+            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
+            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
+            "description": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France (Modération : Pr É. Dion & Dr M. Crézé / Pr A. Feydy). Entrée libre.",
+            "mandatory": True,
+        },
+        {
+            "id": "reunion-2027-03-26-anapath",
+            "date": "2027-03-26",
+            "horaire": "14h15 – 16h00",
+            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #3)",
+            "category": "Staff Multidisciplinaire",
+            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
+            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
+            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "mandatory": True,
+        },
+        {
+            "id": "reunion-2027-05-14-anapath",
+            "date": "2027-05-14",
+            "horaire": "14h15 – 16h00",
+            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #4)",
+            "category": "Staff Multidisciplinaire",
+            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
+            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
+            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "mandatory": False,
+        },
+        {
+            "id": "reunion-2027-05-26-boneclub",
+            "date": "2027-05-26",
+            "horaire": "18h00 – 20h00",
+            "title": "BONE CLUB Cochin — Session de Mai",
+            "category": "Bone Club",
+            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
+            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
+            "description": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France (Modération : Pr A. Feydy & Dr M. Lacroix). Entrée libre.",
+            "mandatory": False,
+        },
+        {
+            "id": "reunion-2027-06-18-anapath",
+            "date": "2027-06-18",
+            "horaire": "14h15 – 16h00",
+            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #5)",
+            "category": "Staff Multidisciplinaire",
+            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
+            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
+            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "mandatory": False,
+        },
+        {
+            "id": "reunion-2027-06-30-boneclub",
+            "date": "2027-06-30",
+            "horaire": "18h00 – 20h00",
+            "title": "BONE CLUB Cochin × APRAMEN — Session Jumelée de Juin",
+            "category": "Bone Club",
+            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
+            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
+            "description": "Réunion annuelle jumelée Bone Club & APRAMEN (Association des Praticiens de Médecine Nucléaire d'Île-de-France — Modération : Pr A. Feydy & Dr F. Paycha). Entrée libre.",
+            "mandatory": False,
+        },
     ]
 
 
@@ -777,6 +1512,7 @@ def build_recurring_staffs() -> list[dict]:
             "weekday": 1,
             "items": [
                 {"horaire": "12h30 – 13h30", "title": "Staff Internes : Cas Clinique du Mardi + Cours des Chefs", "referent": "Dr F. Mihoubi Bouvier & Tous les Chefs"},
+                {"horaire": "Après-midi (13h30–18h00)", "title": "Consultation & Relecture systématique avec Pr Jean-Luc Drapé", "referent": "Pr J-L. Drapé & Interne de Consultation"},
                 {"horaire": "Après-midi", "title": "Staff RCP Sarcomes des Tissus Mous", "referent": "Dr A. Laporte & Chefs"},
             ],
         },
@@ -801,6 +1537,7 @@ def build_recurring_staffs() -> list[dict]:
             "items": [
                 {"horaire": "Matin", "title": "Staff Prothèses & Imagerie Orthopédique", "referent": "Dr H. Guérini"},
                 {"horaire": "12h30 – 13h30", "title": "Biblio du Vendredi (Article scientifique par un interne)", "referent": "Internes & Chefs"},
+                {"horaire": "Après-midi (13h30–18h00)", "title": "Consultation Internes du Vendredi après-midi", "referent": "Dr M. Hamadouche / Seniors & Internes"},
                 {"horaire": "Après-midi", "title": "Staff MPR / Rhumatologie", "referent": "Dr F. Mihoubi Bouvier"},
             ],
         },
@@ -1233,7 +1970,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
     """
     Étend le planning des Chefs & Seniors sur l'ensemble du semestre d'Hiver (02/11/2026 au 30/04/2027)
     en conservant les dates exactes du planning d'Anne-Marie V3 et en appliquant la maquette hebdomadaire
-    officielle des Chefs pour toutes les autres semaines du semestre.
+    officielle des Chefs pour toutes les autres semaines du semestre (incluant les demi-offs et fermetures).
     """
     maquette_dow = {
         0: {  # LUNDI
@@ -1244,6 +1981,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "CONSULTATION", "doc": "TL"},
                 {"poste": "UCSA", "doc": "TL"},
                 {"poste": "STAFF", "doc": "TL (méta OS)"},
+                {"poste": "1/2 journée libre", "doc": "SL/MH", "demiOff": True},
             ],
             "pm": [
                 {"poste": "GESTES (C)", "doc": "TL"},
@@ -1252,6 +1990,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "IRM", "doc": "FEYDY"},
                 {"poste": "ECHO", "doc": "HM"},
                 {"poste": "STAFF", "doc": "HM (Cirtal/Ewing)"},
+                {"poste": "1/2 journée libre", "doc": "SL/MH", "demiOff": True},
             ],
         },
         1: {  # MARDI
@@ -1270,7 +2009,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "TDM OLLIER 4 (SAU)", "doc": "SL"},
                 {"poste": "TDM ACHARD 1", "doc": "TL"},
                 {"poste": "ECHO", "doc": "MH"},
-                {"poste": "CONSULTATION", "doc": "INTERNES"},
+                {"poste": "CONSULTATION", "doc": "DRAPE / INTERNES"},
                 {"poste": "UCSA", "doc": "YA"},
                 {"poste": "STAFF", "doc": "Chef et AL Sarcomes"},
             ],
@@ -1283,6 +2022,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "TDM OLLIER 3", "doc": "MH"},
                 {"poste": "IRM 3T", "doc": "DRAPE/YANG"},
                 {"poste": "IRM 1,5T", "doc": "MOUTOUNET"},
+                {"poste": "1/2 journée libre", "doc": "HM", "demiOff": True},
             ],
             "pm": [
                 {"poste": "GESTES (C)", "doc": "DRAPE"},
@@ -1293,6 +2033,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "CONSULTATION", "doc": "TL"},
                 {"poste": "UCSA", "doc": "MH"},
                 {"poste": "STAFF", "doc": "YANG (Rachis/Rhumato OS)"},
+                {"poste": "1/2 journée libre", "doc": "HM", "demiOff": True},
             ],
         },
         3: {  # JEUDI
@@ -1302,6 +2043,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "TDM OLLIER 4 (SAU)", "doc": "MH"},
                 {"poste": "TDM ACHARD 1", "doc": "HM"},
                 {"poste": "CONSULTATION", "doc": "SL"},
+                {"poste": "1/2 journée libre", "doc": "TL/YA", "demiOff": True},
             ],
             "pm": [
                 {"poste": "GESTES (C)", "doc": "SL"},
@@ -1311,6 +2053,7 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
                 {"poste": "ECHO", "doc": "MD"},
                 {"poste": "ALLURA", "doc": "HM"},
                 {"poste": "CONSULTATION", "doc": "FEYDY"},
+                {"poste": "1/2 journée libre", "doc": "TL/YA", "demiOff": True},
             ],
         },
         4: {  # VENDREDI
@@ -1332,17 +2075,39 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
             ],
         },
     }
-    out = dict(base_chefs_planning)
-    cur = datetime.date(2026, 11, 2)
+    out = {}
+    for iso_k, day_v in base_chefs_planning.items():
+        try:
+            wd_k = datetime.date.fromisoformat(iso_k).weekday()
+        except Exception:
+            wd_k = -1
+        am_c = [dict(x) for x in day_v.get("am", [])]
+        pm_c = [dict(x) for x in day_v.get("pm", [])]
+        if wd_k == 1:
+            for item in pm_c:
+                if item.get("poste") == "CONSULTATION" and item.get("doc") == "INTERNES":
+                    item["doc"] = "DRAPE / INTERNES"
+        out[iso_k] = {"am": am_c, "pm": pm_c}
+    start_dt = datetime.date(2026, 11, 2)
+    cur = start_dt
     end = datetime.date(2027, 4, 30)
     while cur <= end:
         iso = cur.isoformat()
         wd = cur.weekday()
+        week_idx = (cur - start_dt).days // 7
         if wd < 5 and iso not in out:
             if iso in JOURS_FERIES_HIVER:
                 out[iso] = {"am": [{"poste": "FÉRIÉ", "doc": JOURS_FERIES_HIVER[iso]}], "pm": []}
             else:
-                out[iso] = maquette_dow[wd]
+                am_copy = [dict(x) for x in maquette_dow[wd]["am"]]
+                pm_copy = [dict(x) for x in maquette_dow[wd]["pm"]]
+                # Vendredi PM : IRM 1 semaine sur 2 (fermée les semaines impaires comme S2 13/11 et S4 27/11)
+                if wd == 4 and (week_idx % 2 == 1):
+                    for item in pm_copy:
+                        if item["poste"] == "IRM":
+                            item["doc"] = "FERMÉ"
+                            item["closed"] = True
+                out[iso] = {"am": am_copy, "pm": pm_copy}
         cur += datetime.timedelta(days=1)
     return out
 
@@ -1369,14 +2134,14 @@ def build_full_dataset() -> dict:
         except Exception:
             pass
 
-    schedule = generate_semester_schedule(absences)
+    schedule = generate_semester_schedule(absences, chefs_planning)
     presentations = build_initial_presentations()
     meetings = build_service_meetings()
     recurring_staffs = build_recurring_staffs()
     phone_directory = build_phone_directory()
 
     return {
-        "version": "1.2.0",
+        "version": "1.5.0",
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "semester": {
             "title": "Semestre d'Hiver 2026–2027",
@@ -1384,11 +2149,21 @@ def build_full_dataset() -> dict:
             "startDate": "2026-11-02",
             "endDate": "2027-04-30",
             "secretariat": "Anne-Marie FORTIN (01 58 41 24 83 / poste 12483)",
+            "horairesVacations": {
+                "IRM": "Début à 07h45 (Matin : dès 07h45 • Après-midi : 13h30 – 18h30)",
+                "ECHO": "Début à 09h00 (Matin : dès 09h00 • Après-midi : 13h30 – 18h00)",
+                "GESTES_C": "Début à 09h00 (Matin : dès 09h00 • Après-midi : 13h30 – 18h00)",
+                "TDM_SAU": "08h00 – 18h30 (Scanner des Urgences : début à 08h00, fin à 18h30)",
+                "LECTURE_CS": "Consultation Internes le Mardi après-midi (Relecture systématique avec Pr Drapé) et le Vendredi après-midi (13h30 – 18h00)",
+            },
             "rules": [
+                "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
+                "Consultation pour les internes uniquement le Mardi après-midi et le Vendredi après-midi : Relecture avec Pr Drapé le Mardi après-midi systématique.",
+                "2 demi-offs (1/2 journée libre) par semaine par interne : les autres créneaux ne sont pas obligatoires si les demi-offs ne sont pas suffisants pour les internes.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps.",
-                "Pour les jours isolés (CF, récupérations), éviter les mardis et les vendredis (jours de staff/présentations).",
-                "Équité stricte du nombre de vacations et des présentations du mardi (cas) et du vendredi (biblio).",
-                "Aucune donnée patient ne doit jamais être saisie sur cette application.",
+                "Noé GRANDVAL (Phase Socle) est doublé-posté uniquement aux Urgences (TDM SAU) et posté avec Dr Macil HAMADOUCHE (MH) le mardi matin les 3 premières semaines.",
+                "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin).",
+                "Les vacations fermées (FERMÉ / MAINTENANCE) sont affichées directement sur le planning.",
             ],
         },
         "internes": INTERNES_LIST,
@@ -1432,7 +2207,22 @@ def sync_initial_state_to_cloud(dataset: dict):
       return {{ status: 'initialized_cloud', presentations: incoming.presentations.length, meetings: incoming.meetings.length }};
     }}
     var cur = JSON.parse(existingRaw);
-    cur.presentations = incoming.presentations;
+    var savedMap = {{}};
+    if (Array.isArray(cur.presentations)) {{
+      cur.presentations.forEach(function(p) {{ if (p && p.id) savedMap[p.id] = p; }});
+    }}
+    cur.presentations = incoming.presentations.map(function(baseP) {{
+      var sv = savedMap[baseP.id];
+      if (!sv) return baseP;
+      if (baseP.type === 'bone_club' || baseP.type === 'confrontation_anapath') {{
+        var merged = Object.assign({{}}, baseP);
+        if (sv.sujet) merged.sujet = sv.sujet;
+        if (sv.interneId) merged.interneId = sv.interneId;
+        if (sv.interneName) merged.interneName = sv.interneName;
+        return merged;
+      }}
+      return Object.assign({{}}, baseP, sv);
+    }});
     cur.meetings = incoming.meetings;
     cur.phoneDirectory = incoming.phoneDirectory;
     if (!cur.absences || cur.absences.length === 0) cur.absences = incoming.absences;

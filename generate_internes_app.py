@@ -1617,6 +1617,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (p.includes("VACANCES") || p.includes("CA") || p.includes("CF")) return "poste-vac";
       if (p === "RG" || p.includes("REPOS") || p.includes("GARDE") || p.includes("FÉRIÉ")) return "poste-rg";
       if (p.includes("LIBRE")) return "poste-off";
+      if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "poste-cs";
       if (p.includes("IRM")) return "poste-irm";
       if (p.includes("ECHO") || p.includes("ÉCHO")) return "poste-echo";
       if (p.includes("GESTES") || p.includes("ACHARD") || p.includes("ALLURA")) return "poste-gestes";
@@ -1626,6 +1627,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function getPosteHoraire(poste, periodKey) {
       const p = String(poste || "").toUpperCase();
+      if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "08h15 – 12h00";
       if (p.includes("IRM")) {
         return periodKey === "am" ? "dès 07h45" : (periodKey === "pm" ? "dès 07h45 (matin)" : "dès 07h45");
       }
@@ -1639,10 +1641,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function getPosteWithTimeLabel(poste, periodKey) {
-      const shortName = poste === "1/2 journée libre" ? "Demi-off" : poste;
+      const shortName = poste === "1/2 journée libre" ? "Demi-off" : (poste === "FORMATION / ACCUEIL" ? "Accueil & Formation" : poste);
       const p = String(poste || "").toUpperCase();
       let h = "";
-      if (p.includes("IRM")) h = periodKey === "am" ? "7h45" : "";
+      if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
+      else if (p.includes("IRM")) h = periodKey === "am" ? "7h45" : "";
       else if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) h = periodKey === "am" ? "9h00" : "";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "dès 8h00" : (periodKey === "pm" ? "fin 18h30" : "8h00–18h30");
       return h ? `${shortName} <span style="opacity:0.85; font-weight:600; font-size:10px;">(${h})</span>` : shortName;
@@ -1650,13 +1653,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function renderPosteCellLabel(poste, periodKey) {
       let shortName = poste === "1/2 journée libre" ? "Demi-off" : poste;
+      if (shortName === "FORMATION / ACCUEIL") shortName = "ACCUEIL / FORM.";
       if (shortName === "TDM OLLIER DIAG") shortName = "TDM OLLIER";
       if (shortName === "TDM OLLIER 4 (SAU)") shortName = "TDM SAU";
       if (shortName === "TDM ACHARD 1") shortName = "ACHARD 1";
       if (shortName === "CONSULT / LECTURE") shortName = "CS / LECT.";
       const p = String(poste || "").toUpperCase();
       let h = "";
-      if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "Mat. 07h45";
+      if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
+      else if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "Mat. 07h45";
       else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "Mat. 09h00";
       else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "Mat. 09h00";
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "08h00–18h30" : "fin 18h30";
@@ -1781,6 +1786,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             for (const candPoste of nonMandatoryPriority) {
               for (let i = activeIsos.length - 1; i >= 0; i--) {
                 const dIso = activeIsos[i];
+                if (dIso === "2026-11-02") continue;
                 const [yy, mm, dd] = dIso.split("-").map(Number);
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
                 const cKey = dIso + "__" + iid;
@@ -1824,7 +1830,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             interneId: iid,
             interne: intObj ? intObj.shortName : iid,
             isSocle,
-            binome: isSocle && slot.am === "TDM SAU",
+            binome: isSocle && (slot.am === "TDM SAU" || slot.am === "TDM OLLIER DIAG"),
             note: slot.noteAm || ""
           });
           dayObj.pm.push({
@@ -1832,7 +1838,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             interneId: iid,
             interne: intObj ? intObj.shortName : iid,
             isSocle,
-            binome: isSocle && slot.pm === "TDM SAU",
+            binome: isSocle && (slot.pm === "TDM SAU" || slot.pm === "TDM OLLIER DIAG"),
             note: slot.notePm || ""
           });
         });
@@ -1887,7 +1893,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               stats[iid].vacHalfDays++;
             } else if (up === "RG") {
               stats[iid].rgHalfDays++;
-            } else if (up !== "FÉRIÉ") {
+            } else if (up !== "FÉRIÉ" && !up.includes("FORMATION")) {
               stats[iid].activeHalfDays++;
               if (up.includes("IRM")) stats[iid].byModality.IRM++;
               else if (up.includes("ECHO")) stats[iid].byModality.ECHO++;
@@ -2805,6 +2811,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function renderCombinedChefsInternesView(monIso) {
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
       const sectors = [
+        { label: "FORMATION / ACCUEIL", chefMatch: [], intMatch: ["FORMATION / ACCUEIL"], defaultPosteAm: "FORMATION / ACCUEIL", defaultPostePm: "FORMATION / ACCUEIL", onlyIfPresent: true },
         { label: "ECHO", chefMatch: ["ECHO"], intMatch: ["ECHO"], defaultPosteAm: "ECHO", defaultPostePm: "ECHO" },
         { label: "GESTES (C)", chefMatch: ["GESTES"], intMatch: ["GESTES (C)"], defaultPosteAm: "GESTES (C)", defaultPostePm: "GESTES (C)" },
         { label: "TDM SAU", chefMatch: ["SAU", "OLLIER 4"], intMatch: ["TDM SAU"], defaultPosteAm: "TDM SAU", defaultPostePm: "TDM SAU" },
@@ -2819,6 +2826,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       function buildCombinedPeriodRows(periodKey) {
         let rows = "";
         sectors.forEach(sec => {
+          if (sec.onlyIfPresent) {
+            const hasAny = days.some(dIso => {
+              const intDay = (STATE.schedule && STATE.schedule[dIso]) ? (STATE.schedule[dIso][periodKey] || []) : [];
+              return intDay.some(x => sec.intMatch.includes(x.poste));
+            });
+            if (!hasAny) return;
+          }
           const targetPoste = periodKey === "am" ? sec.defaultPosteAm : sec.defaultPostePm;
           const escPoste = targetPoste.replace(/'/g, "\\'");
           rows += `<tr><td>${renderPosteCellLabel(sec.label, periodKey)}</td>`;
@@ -2905,7 +2919,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function renderWeekPlanningView(monIso) {
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
-      const postesAm = ["ECHO", "GESTES (C)", "TDM SAU", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "SCAN ACHARD", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
+      const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "SCAN ACHARD", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
       const postesPm = ["GESTES (C)", "TDM OLLIER DIAG", "TDM SAU", "IRM", "ECHO", "ALLURA", "SCAN ACHARD", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
 
       if (planningScope === "perso") {
@@ -2952,6 +2966,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!dObj || !dObj[periodKey]) return false;
             return dObj[periodKey].some(x => x.poste === posteName);
           });
+          if (!hasAny && posteName === "FORMATION / ACCUEIL") return;
           if (periodKey === "am" && posteName === "LECTURE/CS" && !hasAny && !isChefPlanningMode) return;
           if (!isChefPlanningMode && !hasAny && (posteName === "RG" || posteName === "VACANCES")) return;
 
