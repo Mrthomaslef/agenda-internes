@@ -2337,7 +2337,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         "1_pm": ["IRM"],
         "2_am": ["GESTES (C)", "IRM 3T"],
         "2_pm": ["LECTURE/CS"],
-        "3_am": ["IRM 3T"],
+        "3_am": ["IRM 3T", "IRM 1,5T"],
         "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
         "4_am": ["ECHO", "GESTES (C)"],
         "4_pm": ["IRM"],
