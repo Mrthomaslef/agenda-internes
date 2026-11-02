@@ -52,11 +52,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Planning Radio B" />
   <meta name="application-name" content="Planning Radio B — Cochin" />
-  <meta name="theme-color" content="#F8FAFC" />
+  <meta name="theme-color" content="#F8FAFC" id="metaThemeColor" />
   <link rel="manifest" href="manifest.json?v=3" />
   <link rel="icon" type="image/svg+xml" href="icon.svg?v=3" />
   <link rel="apple-touch-icon" href="icon.svg?v=3" />
   <title>Radio B Cochin — Planning Internes & Chefs</title>
+  <script>
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem("cochin_theme_mode_v1");
+        if (savedTheme === "dark") {
+          document.documentElement.setAttribute("data-theme", "dark");
+          var m = document.getElementById("metaThemeColor");
+          if (m) m.setAttribute("content", "#0B1120");
+        }
+      } catch (e) {}
+    })();
+  </script>
   <style>
     :root {
       --bg: #F8FAFC;
@@ -2100,6 +2112,648 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
+
+    /* Bouton Mode Sombre / Clair */
+    .btn-theme-toggle {
+      min-width: 34px;
+    }
+
+    @media (max-width: 768px) {
+      .theme-btn-label {
+        display: none;
+      }
+    }
+
+    /* =========================================================================
+     * MODE SOMBRE (DARK MODE)
+     * ========================================================================= */
+    html[data-theme="dark"] {
+      --bg: #0B1120;
+      --bg-card: #131C31;
+      --bg-elevated: #1E293B;
+      --border: #26334D;
+      --text: #F1F5F9;
+      --text-muted: #94A3B8;
+      --primary: #38BDF8;
+      --primary-dark: #0284C7;
+      color-scheme: dark;
+    }
+
+    html[data-theme="dark"] .app-header {
+      background: rgba(11, 17, 32, 0.92);
+      border-bottom-color: var(--border);
+    }
+
+    html[data-theme="dark"] .brand-title,
+    html[data-theme="dark"] .summary-title,
+    html[data-theme="dark"] .summary-stats strong,
+    html[data-theme="dark"] .card-title,
+    html[data-theme="dark"] .perso-day-dow,
+    html[data-theme="dark"] .day-pill .dp-dow,
+    html[data-theme="dark"] .choice-btn strong,
+    html[data-theme="dark"] .chef-simple-title,
+    html[data-theme="dark"] .chef-offvac-name,
+    html[data-theme="dark"] .decompte-quotas-strip strong {
+      color: #F8FAFC;
+    }
+
+    html[data-theme="dark"] .btn {
+      background: #1E293B;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+
+    html[data-theme="dark"] .btn:hover {
+      background: #283548;
+      border-color: #475569;
+    }
+
+    html[data-theme="dark"] .btn-primary {
+      background: #0284C7;
+      border-color: #38BDF8;
+      color: #FFFFFF;
+    }
+
+    html[data-theme="dark"] .btn-primary:hover {
+      background: #0369A1;
+      border-color: #38BDF8;
+      color: #FFFFFF;
+    }
+
+    html[data-theme="dark"] .btn-theme-toggle {
+      background: #1E293B;
+      border-color: #38BDF8;
+      color: #FDE047;
+    }
+
+    html[data-theme="dark"] .chip {
+      background: #1E293B;
+      border-color: #334155;
+      color: #CBD5E1;
+    }
+
+    html[data-theme="dark"] .chip:hover {
+      background: #283548;
+    }
+
+    html[data-theme="dark"] .chip.active {
+      background: rgba(56, 189, 248, 0.18);
+      color: #38BDF8;
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .summary-strip,
+    html[data-theme="dark"] .card,
+    html[data-theme="dark"] .modal-box {
+      background: var(--bg-card);
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .main-tabs,
+    html[data-theme="dark"] .segmented {
+      background: #1E293B;
+    }
+
+    html[data-theme="dark"] .tab-btn,
+    html[data-theme="dark"] .seg-btn {
+      color: #94A3B8;
+    }
+
+    html[data-theme="dark"] .tab-btn.active,
+    html[data-theme="dark"] .seg-btn.active {
+      background: #0F172A;
+      color: #F8FAFC;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    html[data-theme="dark"] .day-pill {
+      background: #1E293B;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+
+    html[data-theme="dark"] .day-pill .dp-date,
+    html[data-theme="dark"] .day-pill .dp-sub {
+      color: #94A3B8;
+    }
+
+    html[data-theme="dark"] .day-pill.weekend-pill {
+      background: rgba(153, 27, 27, 0.22);
+      border-color: rgba(248, 113, 113, 0.45);
+    }
+
+    html[data-theme="dark"] .day-pill.weekend-pill .dp-dow,
+    html[data-theme="dark"] .day-pill.weekend-pill .dp-date {
+      color: #FCA5A5;
+    }
+
+    html[data-theme="dark"] .day-pill.weekend-pill .dp-garde {
+      background: rgba(220, 38, 38, 0.28);
+      color: #FECACA;
+    }
+
+    html[data-theme="dark"] .day-pill.active {
+      background: rgba(2, 132, 199, 0.28);
+      border-color: #38BDF8;
+      color: #7DD3FC;
+      box-shadow: 0 0 0 1px #38BDF8;
+    }
+
+    html[data-theme="dark"] .day-pill.active .dp-dow,
+    html[data-theme="dark"] .day-pill.active .dp-date {
+      color: #7DD3FC;
+    }
+
+    html[data-theme="dark"] .weekend-gardes-compact {
+      background: rgba(127, 29, 29, 0.2);
+      border-top-color: rgba(248, 113, 113, 0.35);
+    }
+
+    html[data-theme="dark"] .weekend-garde-mini {
+      background: #1E293B;
+      border-color: rgba(248, 113, 113, 0.35);
+    }
+
+    html[data-theme="dark"] .weekend-garde-mini:hover {
+      background: rgba(153, 27, 27, 0.28);
+      border-color: #F87171;
+    }
+
+    html[data-theme="dark"] .weekend-garde-mini .wg-day {
+      color: #FCA5A5;
+    }
+
+    html[data-theme="dark"] .weekend-garde-mini .wg-doc {
+      background: rgba(220, 38, 38, 0.25);
+      color: #FECACA;
+    }
+
+    html[data-theme="dark"] .perso-day-card {
+      background: #131C31;
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .perso-day-card:hover {
+      border-color: #475569;
+    }
+
+    html[data-theme="dark"] .perso-day-card.active-day {
+      background: rgba(2, 132, 199, 0.16);
+      border-color: #38BDF8;
+      box-shadow: 0 0 0 1px #38BDF8;
+    }
+
+    html[data-theme="dark"] .perso-day-card.active-day .perso-day-dow,
+    html[data-theme="dark"] .perso-day-card.active-day .perso-day-date {
+      color: #7DD3FC;
+    }
+
+    html[data-theme="dark"] .perso-day-card.garde-day {
+      background: rgba(127, 29, 29, 0.16);
+      border-color: rgba(248, 113, 113, 0.45);
+    }
+
+    html[data-theme="dark"] .perso-day-header {
+      border-bottom-color: var(--border);
+    }
+
+    html[data-theme="dark"] .perso-garde-pill {
+      background: rgba(220, 38, 38, 0.25);
+      color: #FECACA;
+      border-color: rgba(248, 113, 113, 0.5);
+    }
+
+    /* Badges de postes en mode sombre */
+    html[data-theme="dark"] .poste-tdm,
+    html[data-theme="dark"] .poste-tdm-sau {
+      background: rgba(217, 119, 6, 0.22);
+      color: #FDE68A;
+      border-color: rgba(251, 191, 36, 0.4);
+    }
+    html[data-theme="dark"] .poste-achard {
+      background: rgba(234, 88, 12, 0.22);
+      color: #FDBA74;
+      border-color: rgba(251, 146, 60, 0.4);
+    }
+    html[data-theme="dark"] .poste-tdm-ollier {
+      background: rgba(2, 132, 199, 0.22);
+      color: #7DD3FC;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    html[data-theme="dark"] .poste-irm {
+      background: rgba(124, 58, 237, 0.25);
+      color: #DDD6FE;
+      border-color: rgba(167, 139, 250, 0.45);
+    }
+    html[data-theme="dark"] .poste-echo {
+      background: rgba(13, 148, 136, 0.24);
+      color: #99F6E4;
+      border-color: rgba(45, 212, 191, 0.4);
+    }
+    html[data-theme="dark"] .poste-gestes {
+      background: rgba(225, 29, 72, 0.24);
+      color: #FECDD3;
+      border-color: rgba(251, 113, 133, 0.45);
+    }
+    html[data-theme="dark"] .poste-cs {
+      background: rgba(37, 99, 235, 0.25);
+      color: #BFDBFE;
+      border-color: rgba(96, 165, 250, 0.45);
+    }
+    html[data-theme="dark"] .poste-lecture {
+      background: rgba(79, 70, 229, 0.25);
+      color: #C7D2FE;
+      border-color: rgba(129, 140, 248, 0.45);
+    }
+    html[data-theme="dark"] .poste-off {
+      background: #1E293B;
+      color: #94A3B8;
+      border-color: #334155;
+    }
+    html[data-theme="dark"] .poste-vac {
+      background: rgba(22, 163, 74, 0.22);
+      color: #BBF7D0;
+      border-color: rgba(74, 222, 128, 0.4);
+    }
+    html[data-theme="dark"] .poste-rg {
+      background: rgba(220, 38, 38, 0.25);
+      color: #FECACA;
+      border-color: rgba(248, 113, 113, 0.45);
+    }
+    html[data-theme="dark"] .poste-closed {
+      background: rgba(127, 29, 29, 0.28);
+      color: #FCA5A5;
+      border-color: #EF4444;
+    }
+
+    html[data-theme="dark"] .tag-sm {
+      background: rgba(124, 58, 237, 0.28);
+      color: #DDD6FE;
+    }
+    html[data-theme="dark"] .tag-dj {
+      background: rgba(22, 163, 74, 0.25);
+      color: #BBF7D0;
+      border-color: rgba(74, 222, 128, 0.4);
+    }
+    html[data-theme="dark"] .tag-binome {
+      background: rgba(217, 119, 6, 0.25);
+      color: #FDE68A;
+    }
+
+    /* Tableaux du planning en mode sombre */
+    html[data-theme="dark"] table.planning-table {
+      background: var(--bg-card);
+    }
+
+    html[data-theme="dark"] table.planning-table th {
+      background: #0F172A;
+      color: #94A3B8;
+    }
+
+    html[data-theme="dark"] table.planning-table.week-5col th.th-day-col {
+      background: #0F172A;
+    }
+
+    html[data-theme="dark"] table.planning-table.week-5col th.th-day-col .day-pill:hover {
+      background: #283548;
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] table.planning-table tr.period-divider td {
+      background: #1E293B;
+      color: #E2E8F0;
+    }
+
+    html[data-theme="dark"] .interne-badge {
+      background: #1E293B;
+      color: #F1F5F9;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .interne-badge:hover {
+      background: #283548;
+    }
+
+    html[data-theme="dark"] .interne-badge.highlight-me {
+      background: rgba(2, 132, 199, 0.28);
+      color: #7DD3FC;
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .interne-badge.draggable-interne {
+      background: #1E293B;
+      border-color: #475569;
+    }
+
+    html[data-theme="dark"] .interne-badge.draggable-interne:hover {
+      background: rgba(2, 132, 199, 0.22);
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] td.cell-mandatory-vacation {
+      background: rgba(153, 27, 27, 0.12);
+      box-shadow: inset 3px 0 0 rgba(248, 113, 113, 0.55);
+    }
+
+    html[data-theme="dark"] td.cell-chef-without-interne {
+      background: rgba(217, 119, 6, 0.18) !important;
+      box-shadow: inset 3px 0 0 #F59E0B;
+    }
+
+    html[data-theme="dark"] td.cell-blocking-alert {
+      background: rgba(220, 38, 38, 0.22) !important;
+      outline-color: #F87171;
+    }
+
+    html[data-theme="dark"] td.drop-zone-cell.drag-over {
+      background: rgba(2, 132, 199, 0.28) !important;
+      outline-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .month-cell {
+      background: var(--bg-card);
+      border-color: var(--border);
+    }
+
+    html[data-theme="dark"] .month-cell.today {
+      background: rgba(2, 132, 199, 0.16);
+      border-color: #38BDF8;
+    }
+
+    /* Modales et formulaires en mode sombre */
+    html[data-theme="dark"] .modal-backdrop {
+      background: rgba(2, 6, 23, 0.72);
+    }
+
+    html[data-theme="dark"] .choice-btn {
+      background: #1E293B;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .choice-btn:hover {
+      background: rgba(2, 132, 199, 0.22);
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .form-control {
+      background: #0F172A;
+      border-color: #334155;
+      color: #F1F5F9;
+    }
+
+    html[data-theme="dark"] .note-box {
+      background: #1E293B;
+      border-color: #334155;
+      color: #CBD5E1;
+    }
+
+    html[data-theme="dark"] .toast {
+      background: #38BDF8;
+      color: #0F172A;
+    }
+
+    /* Espace Chef et Décompte en mode sombre */
+    html[data-theme="dark"] .btn-chef-lock {
+      background: #1E293B;
+      border-color: #334155;
+      color: #CBD5E1;
+    }
+
+    html[data-theme="dark"] .btn-chef-lock.unlocked {
+      background: rgba(217, 119, 6, 0.25);
+      border-color: #F59E0B;
+      color: #FDE68A;
+    }
+
+    html[data-theme="dark"] .chef-simple-panel {
+      background: var(--bg-card);
+      border-color: #334155;
+      border-left-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .chef-simple-panel.unlocked {
+      border-left-color: #F59E0B;
+    }
+
+    html[data-theme="dark"] .chef-simple-empty {
+      color: #4ADE80;
+      border-top-color: var(--border);
+    }
+
+    html[data-theme="dark"] .chef-simple-list,
+    html[data-theme="dark"] .chef-offvac-section {
+      border-top-color: var(--border);
+    }
+
+    html[data-theme="dark"] .chef-simple-row {
+      background: #1E293B;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .chef-simple-row-left,
+    html[data-theme="dark"] .chef-offvac-bar-header {
+      color: #E2E8F0;
+    }
+
+    html[data-theme="dark"] .chef-offvac-card {
+      background: #1E293B;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .chef-offvac-card:hover {
+      background: #283548;
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .chef-offvac-card.warn-quota {
+      background: rgba(217, 119, 6, 0.16);
+      border-color: #F59E0B;
+    }
+
+    html[data-theme="dark"] .chef-offvac-card.danger-quota {
+      background: rgba(220, 38, 38, 0.16);
+      border-color: #EF4444;
+    }
+
+    html[data-theme="dark"] .chef-offvac-slots,
+    html[data-theme="dark"] .chef-offvac-sem {
+      border-top-color: #334155;
+      color: #94A3B8;
+    }
+
+    html[data-theme="dark"] .chef-offvac-sem strong {
+      color: #F1F5F9;
+    }
+
+    html[data-theme="dark"] .offvac-pill.off-ok,
+    html[data-theme="dark"] .status-pill-approved {
+      background: rgba(22, 163, 74, 0.22);
+      color: #86EFAC;
+      border-color: rgba(74, 222, 128, 0.4);
+    }
+
+    html[data-theme="dark"] .offvac-pill.off-warn,
+    html[data-theme="dark"] .status-pill-pending {
+      background: rgba(217, 119, 6, 0.25);
+      color: #FDE68A;
+      border-color: rgba(251, 191, 36, 0.45);
+    }
+
+    html[data-theme="dark"] .offvac-pill.off-danger {
+      background: rgba(220, 38, 38, 0.25);
+      color: #FCA5A5;
+      border-color: rgba(248, 113, 113, 0.45);
+    }
+
+    html[data-theme="dark"] .offvac-pill.vac-count {
+      background: rgba(2, 132, 199, 0.25);
+      color: #7DD3FC;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    html[data-theme="dark"] .offvac-pill.conges-count {
+      background: rgba(124, 58, 237, 0.25);
+      color: #DDD6FE;
+      border-color: rgba(167, 139, 250, 0.4);
+    }
+
+    html[data-theme="dark"] .week-status-strip {
+      background: #1E293B;
+      border-color: #334155;
+      color: #CBD5E1;
+    }
+
+    html[data-theme="dark"] .week-status-strip.locked {
+      background: rgba(22, 163, 74, 0.16);
+      border-color: rgba(74, 222, 128, 0.4);
+      color: #86EFAC;
+    }
+
+    html[data-theme="dark"] .decompte-quotas-strip {
+      background: #1E293B;
+      border-color: #334155;
+      color: #CBD5E1;
+    }
+
+    html[data-theme="dark"] .decompte-rule-chip {
+      background: #0F172A;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+
+    html[data-theme="dark"] table.decompte-table {
+      background: var(--bg-card);
+    }
+
+    html[data-theme="dark"] table.decompte-table th,
+    html[data-theme="dark"] table.decompte-table td {
+      border-bottom-color: var(--border);
+      border-right-color: var(--border);
+    }
+
+    html[data-theme="dark"] table.decompte-table tr.decompte-group-row th.grp-synthese {
+      background: rgba(37, 99, 235, 0.2);
+      color: #93C5FD;
+    }
+    html[data-theme="dark"] table.decompte-table tr.decompte-group-row th.grp-tdm {
+      background: rgba(217, 119, 6, 0.2);
+      color: #FDE68A;
+    }
+    html[data-theme="dark"] table.decompte-table tr.decompte-group-row th.grp-irm {
+      background: rgba(124, 58, 237, 0.2);
+      color: #DDD6FE;
+    }
+    html[data-theme="dark"] table.decompte-table tr.decompte-group-row th.grp-clinique {
+      background: rgba(13, 148, 136, 0.2);
+      color: #99F6E4;
+    }
+    html[data-theme="dark"] table.decompte-table tr.decompte-group-row th.grp-gardes {
+      background: rgba(225, 29, 72, 0.2);
+      color: #FECDD3;
+    }
+
+    html[data-theme="dark"] table.decompte-table tr.decompte-col-row th {
+      background: #0F172A;
+      color: #CBD5E1;
+      border-bottom-color: #334155;
+    }
+
+    html[data-theme="dark"] table.decompte-table th.col-interne-sticky,
+    html[data-theme="dark"] table.decompte-table td.col-interne-sticky {
+      background: #131C31;
+      border-right-color: #334155;
+    }
+
+    html[data-theme="dark"] table.decompte-table thead th.col-interne-sticky {
+      background: #0F172A;
+      color: #F8FAFC;
+      border-bottom-color: #334155;
+    }
+
+    html[data-theme="dark"] table.decompte-table tbody tr:nth-child(even) {
+      background: #162038;
+    }
+
+    html[data-theme="dark"] table.decompte-table tbody tr:nth-child(even) td.col-interne-sticky {
+      background: #162038;
+    }
+
+    html[data-theme="dark"] table.decompte-table tbody tr:hover td {
+      background: #1E293B !important;
+    }
+
+    html[data-theme="dark"] table.decompte-table th.grp-end,
+    html[data-theme="dark"] table.decompte-table td.grp-end {
+      border-right-color: #334155;
+    }
+
+    html[data-theme="dark"] table.decompte-table tfoot tr.decompte-total-row td {
+      background: #0F172A;
+      color: #F8FAFC;
+      border-top-color: #475569;
+    }
+
+    html[data-theme="dark"] table.decompte-table tfoot tr.decompte-total-row td.col-interne-sticky {
+      background: #0F172A;
+    }
+
+    html[data-theme="dark"] .decompte-zero {
+      color: #475569;
+    }
+
+    html[data-theme="dark"] .decompte-quota-zero {
+      background: #1E293B;
+      color: #64748B;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .decompte-slot-chip {
+      background: #1E293B;
+      color: #CBD5E1;
+      border-color: #334155;
+    }
+
+    html[data-theme="dark"] .decompte-slot-chip.slot-am {
+      background: rgba(2, 132, 199, 0.22);
+      color: #7DD3FC;
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+
+    html[data-theme="dark"] .decompte-slot-chip.slot-pm {
+      background: rgba(79, 70, 229, 0.22);
+      color: #C7D2FE;
+      border-color: rgba(129, 140, 248, 0.4);
+    }
+
+    html[data-theme="dark"] .decompte-slot-chip.slot-garde {
+      background: rgba(220, 38, 38, 0.22);
+      color: #FCA5A5;
+      border-color: rgba(248, 113, 113, 0.4);
+    }
+
+    html[data-theme="dark"] .garde-name {
+      color: #FCA5A5 !important;
+    }
   </style>
 </head>
 <body>
@@ -2114,6 +2768,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
       <div class="header-actions">
+        <button class="btn btn-sm btn-theme-toggle" onclick="toggleDarkMode()" id="themeToggleBtn" title="Basculer le mode sombre / clair" aria-label="Basculer le mode sombre">
+          <span id="themeToggleIcon">🌙</span>
+          <span class="theme-btn-label" id="themeToggleText">Sombre</span>
+        </button>
         <button class="btn btn-sm btn-chef-lock" onclick="toggleChefPlanningMode()" id="chefModeBtn" title="Accéder à l'Espace Chef">
           <span id="chefModeBtnText">🔒 Espace Chef</span>
         </button>
@@ -2316,7 +2974,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <select id="vacEditPm" class="form-control" onchange="refreshVacationModalSummary()"></select>
         </div>
       </div>
-      <div id="vacEditLiveSummary" class="note-box" style="margin-bottom:10px; background:#F8FAFC; border-color:#CBD5E1;"></div>
+      <div id="vacEditLiveSummary" class="note-box" style="margin-bottom:10px;"></div>
       <div class="form-group">
         <label>Note</label>
         <input type="text" id="vacEditNote" class="form-control" placeholder="Ex: Échange avec Noé..." />
@@ -2442,6 +3100,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     const LOCAL_STORAGE_KEY = "cochin_internes_app_state_v2";
     const SELECTED_INTERNE_KEY = "cochin_internes_selected_id_v1";
     const CHEF_MODE_STORAGE_KEY = "cochin_chef_planning_unlocked_v1";
+    const THEME_STORAGE_KEY = "cochin_theme_mode_v1";
     const CHEF_SECRET_CODE = "cocochin";
 
     let STATE = loadInitialState();
@@ -2459,10 +3118,41 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let statsTableTab = "semaine"; // 'semaine' | 'total'
     let showChefOffVacSummary = true;
     let isChefPlanningMode = sessionStorage.getItem(CHEF_MODE_STORAGE_KEY) === "1";
+    let isDarkMode = localStorage.getItem(THEME_STORAGE_KEY) === "dark";
     let activeDragPayload = null;
     let selectedForMove = null; // { dIso, periodKey, interneId, fromPoste }
     let chefHistoryStack = [];
     let pendingChefActionCallback = null;
+
+    function applyThemeMode(dark) {
+      isDarkMode = Boolean(dark);
+      if (isDarkMode) {
+        document.documentElement.setAttribute("data-theme", "dark");
+      } else {
+        document.documentElement.removeAttribute("data-theme");
+      }
+      const metaTheme = document.getElementById("metaThemeColor");
+      if (metaTheme) {
+        metaTheme.setAttribute("content", isDarkMode ? "#0B1120" : "#F8FAFC");
+      }
+      const iconEl = document.getElementById("themeToggleIcon");
+      const textEl = document.getElementById("themeToggleText");
+      const btnEl = document.getElementById("themeToggleBtn");
+      if (iconEl) iconEl.textContent = isDarkMode ? "☀️" : "🌙";
+      if (textEl) textEl.textContent = isDarkMode ? "Clair" : "Sombre";
+      if (btnEl) {
+        btnEl.title = isDarkMode ? "Passer en mode clair" : "Passer en mode sombre";
+        btnEl.setAttribute("aria-label", btnEl.title);
+      }
+    }
+
+    function toggleDarkMode() {
+      applyThemeMode(!isDarkMode);
+      try {
+        localStorage.setItem(THEME_STORAGE_KEY, isDarkMode ? "dark" : "light");
+      } catch (e) {}
+      renderAll();
+    }
 
     function mergePresentationsList(baseList, savedList) {
       const rgSet = new Set(
@@ -7487,25 +8177,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (p.type === "cours_internes") {
             if (p.pasDeCours) return;
             const shortChef = (p.chefIntervenant || "").replace(/^(Dr|Pr)\s+/i, "");
-            cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:#DBEAFE; cursor:pointer; line-height:1.15;" onclick="openPresentationModal('${p.id}')">
-              <strong style="color:#1D4ED8">Cours :</strong> ${shortChef ? shortChef + " — " : ""}${p.coursChef || p.sujet || ""}
+            const cBg = isDarkMode ? "rgba(37, 99, 235, 0.25)" : "#DBEAFE";
+            const cFg = isDarkMode ? "#93C5FD" : "#1D4ED8";
+            cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${cBg}; cursor:pointer; line-height:1.15;" onclick="openPresentationModal('${p.id}')">
+              <strong style="color:${cFg}">Cours :</strong> ${shortChef ? shortChef + " — " : ""}${p.coursChef || p.sujet || ""}
             </div>`;
             return;
           }
           const presBlock = inChefSpace ? (blocking.byDate[dIso] || []).find(iss => iss.category === "pres_absent" && iss.presId === p.id) : null;
-          const bg = presBlock ? "#FEE2E2" : "#F3E8FF";
-          const fg = presBlock ? "#991B1B" : "#6D28D9";
+          const bg = presBlock ? (isDarkMode ? "rgba(220, 38, 38, 0.25)" : "#FEE2E2") : (isDarkMode ? "rgba(124, 58, 237, 0.25)" : "#F3E8FF");
+          const fg = presBlock ? (isDarkMode ? "#FCA5A5" : "#991B1B") : (isDarkMode ? "#DDD6FE" : "#6D28D9");
           const lbl = p.type === "cas_mardi" ? "Cas" : "Biblio";
           cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${bg}; cursor:pointer; line-height:1.15; ${presBlock ? 'border:1px solid #EF4444;' : ''}" onclick="openPresentationModal('${p.id}')">
-            <strong style="color:${fg}">${lbl} :</strong> ${p.interneName} ${presBlock ? '<span style="color:#DC2626; font-weight:800;">(Absent)</span>' : ''}
+            <strong style="color:${fg}">${lbl} :</strong> ${p.interneName} ${presBlock ? '<span style="color:#EF4444; font-weight:800;">(Absent)</span>' : ''}
           </div>`;
         });
         meets.forEach(m => {
-          cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:#DCFCE7; line-height:1.15;">
-            <strong style="color:#15803D">${m.horaire} :</strong> ${m.title}
+          const mBg = isDarkMode ? "rgba(22, 163, 74, 0.22)" : "#DCFCE7";
+          const mFg = isDarkMode ? "#86EFAC" : "#15803D";
+          cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${mBg}; line-height:1.15;">
+            <strong style="color:${mFg}">${m.horaire} :</strong> ${m.title}
           </div>`;
         });
-        staffRowHtml += `<td>${cell || '<span style="color:#CBD5E1">—</span>'}</td>`;
+        staffRowHtml += `<td>${cell || '<span style="color:var(--text-muted)">—</span>'}</td>`;
       });
       staffRowHtml += `</tr>`;
 
@@ -7558,8 +8252,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const slot = (dObj.byInterne && dObj.byInterne[targetId]) ? dObj.byInterne[targetId] : null;
         const gInt = getInterneGardeInfo(dIso);
         const isMeOnGarde = Boolean(gInt && gInt.interneId === targetId);
+        const gardeCellStyle = isMeOnGarde
+          ? (isDarkMode ? "background:rgba(127, 29, 29, 0.18); border-color:rgba(248, 113, 113, 0.45);" : "background:#FFFDFD; border-color:#FCA5A5;")
+          : "";
         cells += `
-          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${isMeOnGarde ? 'background:#FFFDFD; border-color:#FCA5A5;' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('week');">
+          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${gardeCellStyle}" onclick="setCurrentDate('${dIso}'); setPlanningMode('week');">
             <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:12px;">
               <span>${formatDateFr(dIso)}</span>
               ${isMeOnGarde ? `<span class="perso-garde-pill" style="font-size:9px; padding:1px 5px;">🌙 Garde</span>` : ""}
@@ -7757,7 +8454,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <td class="col-interne-sticky" style="font-weight:800;">
             <div style="display:flex; align-items:center; gap:6px; white-space:nowrap;">
               <span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>
-              <span style="color:#0F172A; font-size:12.5px;">${i.shortName}</span>
+              <span style="color:var(--text); font-size:12.5px;">${i.shortName}</span>
               ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
               ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
             </div>
@@ -7821,9 +8518,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             : `<td><span class="decompte-zero">—</span></td>`;
 
           const staffBadges = [];
-          if (w.weekCasMardi) staffBadges.push(`<span class="decompte-slot-chip" style="background:#F3E8FF;color:#6D28D9;border-color:#D8B4FE;">Cas Mar.</span>`);
-          if (w.weekBiblioVendredi) staffBadges.push(`<span class="decompte-slot-chip" style="background:#FEF3C7;color:#B45309;border-color:#FCD34D;">Biblio Ven.</span>`);
-          if (w.weekCoursInternes) staffBadges.push(`<span class="decompte-slot-chip" style="background:#DBEAFE;color:#1D4ED8;border-color:#93C5FD;">Cours (${w.weekCoursInternes})</span>`);
+          if (w.weekCasMardi) staffBadges.push(`<span class="decompte-slot-chip poste-irm">Cas Mar.</span>`);
+          if (w.weekBiblioVendredi) staffBadges.push(`<span class="decompte-slot-chip poste-tdm">Biblio Ven.</span>`);
+          if (w.weekCoursInternes) staffBadges.push(`<span class="decompte-slot-chip poste-cs">Cours (${w.weekCoursInternes})</span>`);
           const staffCellHtml = staffBadges.length
             ? `<td><div class="decompte-cell-stack">${staffBadges.join("")}</div></td>`
             : `<td><span class="decompte-zero">—</span></td>`;
@@ -7934,13 +8631,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </td>
               <td>
                 <div class="decompte-cell-stack">
-                  <span class="decompte-sub" style="color:#B91C1C;">${rgDaysSem}j RG</span>
-                  <span class="decompte-sub" style="color:#15803D;">${vacDaysSem}j Congés</span>
+                  <span class="decompte-sub" style="color:${isDarkMode ? '#FCA5A5' : '#B91C1C'};">${rgDaysSem}j RG</span>
+                  <span class="decompte-sub" style="color:${isDarkMode ? '#86EFAC' : '#15803D'};">${vacDaysSem}j Congés</span>
                 </div>
               </td>
               <td>
                 <div class="decompte-cell-stack">
-                  <span style="font-weight:800; color:#334155;">${s.casMardi} Cas · ${s.biblioVendredi} Biblio</span>
+                  <span style="font-weight:800; color:var(--text);">${s.casMardi} Cas · ${s.biblioVendredi} Biblio</span>
                   ${s.coursInternes ? `<div class="decompte-sub">${s.coursInternes} Cours</div>` : ""}
                 </div>
               </td>
@@ -8372,7 +9069,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           rowsHtml += `
             <tr style="${isPasDeCours ? 'opacity:0.6;' : ''}">
               <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date)}</td>
-              <td style="font-weight:600; color:#0284C7; white-space:nowrap;">${chefTxt}</td>
+              <td style="font-weight:600; color:var(--primary); white-space:nowrap;">${chefTxt}</td>
               <td>${coursTxt}</td>
               <td style="width:1%; white-space:nowrap;">
                 <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
@@ -8409,9 +9106,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       list.forEach(p => {
         const iObj = getInterneById(p.interneId);
         const isMe = (selectedInterneId !== "all" && !isChefId(selectedInterneId) && p.interneId === selectedInterneId);
+        const meBg = isMe ? (isDarkMode ? "background:rgba(56, 189, 248, 0.14);" : "background:#EFF6FF;") : "";
 
         rowsHtml += `
-          <tr style="${isMe ? 'background:#EFF6FF;' : ''}">
+          <tr style="${meBg}">
             <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date)}</td>
             <td style="white-space:nowrap;">
               <span class="interne-badge ${isMe ? 'highlight-me' : ''}" onclick="openPresentationModal('${p.id}')">
@@ -8422,7 +9120,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <td onclick="openPresentationModal('${p.id}')" style="cursor:pointer;">
               ${p.sujet
                 ? `<strong>${p.sujet}</strong>`
-                : `<span style="color:#94A3B8;">—</span>`}
+                : `<span style="color:var(--text-muted);">—</span>`}
             </td>
             <td style="width:1%; white-space:nowrap;">
               <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
@@ -8566,7 +9264,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <span class="poste-pill ${isAm ? 'poste-irm' : 'poste-echo'}">${it.horaire}</span>
                 </td>
                 <td><strong>${it.title}</strong></td>
-                <td style="font-weight:600; color:#334155; white-space:nowrap;">${it.referent || "—"}</td>
+                <td style="font-weight:600; color:var(--text-muted); white-space:nowrap;">${it.referent || "—"}</td>
               </tr>
             `;
           });
@@ -8611,7 +9309,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <td style="font-weight:700; white-space:nowrap;">${formatDateFr(m.date, true)}</td>
           <td style="white-space:nowrap;"><span class="poste-pill poste-irm">${m.horaire}</span></td>
           <td><strong>${m.title}</strong></td>
-          <td style="color:#475569; font-size:12px;">${m.sender || "Pr J-L. Drapé & Pr A. Feydy"}</td>
+          <td style="color:var(--text-muted); font-size:12px;">${m.sender || "Pr J-L. Drapé & Pr A. Feydy"}</td>
           <td style="color:var(--text-muted); font-size:12px; white-space:nowrap;">${m.location || "Amphithéâtre Luton"}</td>
         </tr>
       `).join("");
@@ -8621,7 +9319,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <td style="font-weight:700; white-space:nowrap;">${formatDateFr(m.date, true)}</td>
           <td style="white-space:nowrap;"><span class="poste-pill poste-gestes">${m.horaire}</span></td>
           <td><strong>${m.title}</strong></td>
-          <td style="color:#475569; font-size:12px;">${m.sender || "Radio B & Anapath"}</td>
+          <td style="color:var(--text-muted); font-size:12px;">${m.sender || "Radio B & Anapath"}</td>
           <td style="color:var(--text-muted); font-size:12px; white-space:nowrap;">${m.location || "Salle Staff Albarran -1"}</td>
         </tr>
       `).join("");
@@ -8648,7 +9346,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <td style="font-weight:700; white-space:nowrap;">${formatDateFr(m.date, true)}</td>
                     <td style="white-space:nowrap;"><span class="poste-pill poste-echo">${m.horaire}</span></td>
                     <td><strong>${m.title}</strong></td>
-                    <td style="color:#475569; font-size:12px;">${m.sender || "—"}</td>
+                    <td style="color:var(--text-muted); font-size:12px;">${m.sender || "—"}</td>
                     <td style="color:var(--text-muted); font-size:12px;">${m.location || "—"}</td>
                   </tr>
                 `).join("")}
@@ -8801,7 +9499,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           return `
             <tr>
               <td>
-                <div style="font-weight:700; color:#0F172A;">${c.name}</div>
+                <div style="font-weight:700; color:var(--text);">${c.name}</div>
                 <div style="font-size:11px; color:var(--text-muted);">${c.role || ""}</div>
               </td>
               <td><span class="poste-pill poste-irm">${c.poste || "—"}</span></td>
@@ -8810,7 +9508,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   ? `<a href="tel:${telHref}" class="poste-pill poste-echo" style="text-decoration:none;">${c.phone}</a>`
                   : "—"}
               </td>
-              <td style="font-size:12px; color:#475569;">${c.building || "Cochin"}</td>
+              <td style="font-size:12px; color:var(--text-muted);">${c.building || "Cochin"}</td>
             </tr>
           `;
         }).join("");
@@ -8996,16 +9694,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const os = semStats[other.id] || { activeHalfDays: 0, freeHalfDays: 0 };
         const isCur = other.id === iid;
         const oSauTarget = ow.sauTarget || ((other.isSocle || other.id === "noe") ? 3 : 2);
-        return `<span onclick="document.getElementById('vacEditInterneId').value='${other.id}'; refreshVacationModalFields();" style="display:inline-flex; align-items:center; gap:3px; padding:2px 6px; border-radius:6px; font-size:10.5px; cursor:pointer; border:1px solid ${isCur ? '#0284C7' : '#CBD5E1'}; background:${isCur ? '#E0F2FE' : '#FFFFFF'}; font-weight:${isCur ? '800' : '600'};" title="Semestre : ${os.activeHalfDays} vac • ${os.freeHalfDays} off">
+        const chipBg = isCur ? (isDarkMode ? "rgba(2, 132, 199, 0.28)" : "#E0F2FE") : (isDarkMode ? "#0F172A" : "#FFFFFF");
+        const chipBorder = isCur ? (isDarkMode ? "#38BDF8" : "#0284C7") : "var(--border)";
+        return `<span onclick="document.getElementById('vacEditInterneId').value='${other.id}'; refreshVacationModalFields();" style="display:inline-flex; align-items:center; gap:3px; padding:2px 6px; border-radius:6px; font-size:10.5px; cursor:pointer; border:1px solid ${chipBorder}; background:${chipBg}; color:var(--text); font-weight:${isCur ? '800' : '600'};" title="Semestre : ${os.activeHalfDays} vac • ${os.freeHalfDays} off">
           <span style="width:6px;height:6px;border-radius:50%;background:${other.color};display:inline-block;"></span>
           ${other.shortName}: <strong>${ow.weekOff}/2 off</strong> • <strong>${ow.weekSau}/${oSauTarget} SAU</strong> • <strong>${ow.weekIrmPm || 0}/1 IRM PM</strong> • ${ow.weekVac}v
         </span>`;
       }).join(" ");
 
+      const errColor = isDarkMode ? "#FCA5A5" : "#B91C1C";
+      const warnColor = isDarkMode ? "#FDE68A" : "#B45309";
+
       box.style.display = "block";
       box.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
-          <strong style="color:#0F172A; font-size:12px;">📊 Bilan ${iObj.shortName} (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</strong>
+          <strong style="color:var(--text); font-size:12px;">📊 Bilan ${iObj.shortName} (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</strong>
           <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
             <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
             <span class="offvac-pill ${sauPillClass}">${w.weekSau}/${sauTarget} SAU (${w.weekSauAm || 0}M/${w.weekSauPm || 0}PM)</span>
@@ -9015,19 +9718,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             ${w.weekRgHalf > 0 ? `<span class="offvac-pill off-danger">${w.weekRgHalf / 2}j RG</span>` : ""}
           </div>
         </div>
-        <div style="font-size:11px; color:#334155; margin-bottom:3px;">
+        <div style="font-size:11px; color:var(--text); margin-bottom:3px;">
           <strong>Créneaux Off cette semaine :</strong> ${w.weekOffSlots.length ? w.weekOffSlots.join(" • ") : "Aucun demi-off"}
         </div>
-        <div style="font-size:11px; color:#475569; margin-bottom:6px;">
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:6px;">
           <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. (SAU: <strong>${(s.byModality && s.byModality.TDM_SAU) || 0}</strong> <span style="font-size:10px;">(${(s.byModality && s.byModality.TDM_SAU_AM) || 0}M/${(s.byModality && s.byModality.TDM_SAU_PM) || 0}PM)</span> • Poste C: <strong>${(s.byModality && s.byModality.RI_GESTES) || 0}</strong> <span style="font-size:10px;">(${(s.byModality && s.byModality.RI_GESTES_AM) || 0}M/${(s.byModality && s.byModality.RI_GESTES_PM) || 0}PM)</span> • Achard: <strong>${(s.byModality && s.byModality.SCAN_ACHARD) || 0}</strong> • Ollier: <strong>${(s.byModality && s.byModality.TDM_OLLIER) || 0}</strong> • IRM Mat: <strong>${(s.byModality && s.byModality.IRM_AM) || 0}</strong> • IRM PM: <strong>${(s.byModality && s.byModality.IRM_PM) || 0}</strong>) • <strong>${s.freeHalfDays}</strong> demi-offs
         </div>
-        ${samePosteAllDay ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).</div>` : ""}
-        ${forbiddenPmOff ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.</div>` : ""}
-        ${overOffQuota ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⚠️ Attention : ${w.weekOff} demi-offs sur cette semaine (max 2 autorisés).</div>` : ""}
-        ${(w.weekIrmPm || 0) > 1 ? `<div style="font-size:11px; color:#B45309; font-weight:800; margin-bottom:5px;">⚠️ Quota IRM d'après-midi dépassé : ${w.weekIrmPm}/1 IRM PM cette semaine (acceptable uniquement à titre exceptionnel).</div>` : ""}
-        ${w.weekSau > sauTarget ? `<div style="font-size:11px; color:#B45309; font-weight:800; margin-bottom:5px;">⚠️ Quota SAU dépassé : ${w.weekSau}/${sauTarget} TDM SAU cette semaine (acceptable uniquement à titre exceptionnel).</div>` : ""}
-        <div style="border-top:1px dashed #CBD5E1; padding-top:5px; margin-top:4px;">
-          <div style="font-size:10px; font-weight:700; color:#64748B; margin-bottom:3px;">COMPARATIF DES 6 INTERNES (SEMAINE & SEMESTRE) :</div>
+        ${samePosteAllDay ? `<div style="font-size:11px; color:${errColor}; font-weight:800; margin-bottom:5px;">⛔ Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).</div>` : ""}
+        ${forbiddenPmOff ? `<div style="font-size:11px; color:${errColor}; font-weight:800; margin-bottom:5px;">⛔ Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.</div>` : ""}
+        ${overOffQuota ? `<div style="font-size:11px; color:${errColor}; font-weight:800; margin-bottom:5px;">⚠️ Attention : ${w.weekOff} demi-offs sur cette semaine (max 2 autorisés).</div>` : ""}
+        ${(w.weekIrmPm || 0) > 1 ? `<div style="font-size:11px; color:${warnColor}; font-weight:800; margin-bottom:5px;">⚠️ Quota IRM d'après-midi dépassé : ${w.weekIrmPm}/1 IRM PM cette semaine (acceptable uniquement à titre exceptionnel).</div>` : ""}
+        ${w.weekSau > sauTarget ? `<div style="font-size:11px; color:${warnColor}; font-weight:800; margin-bottom:5px;">⚠️ Quota SAU dépassé : ${w.weekSau}/${sauTarget} TDM SAU cette semaine (acceptable uniquement à titre exceptionnel).</div>` : ""}
+        <div style="border-top:1px dashed var(--border); padding-top:5px; margin-top:4px;">
+          <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:3px;">COMPARATIF DES 6 INTERNES (SEMAINE & SEMESTRE) :</div>
           <div style="display:flex; flex-wrap:wrap; gap:4px;">${otherChips}</div>
         </div>
       `;
@@ -9697,6 +10400,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     // Synchronisation automatique multi-onglets et multi-appareils
     window.addEventListener("storage", (ev) => {
+      if (ev.key === THEME_STORAGE_KEY) {
+        applyThemeMode(ev.newValue === "dark");
+        renderAll();
+        return;
+      }
       if (ev.key === LOCAL_STORAGE_KEY && ev.newValue) {
         STATE = loadInitialState();
         renderAll();
@@ -9726,6 +10434,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     });
 
     window.addEventListener("DOMContentLoaded", () => {
+      applyThemeMode(isDarkMode);
       renderAll();
       syncWithCloud(false);
       setInterval(() => {
