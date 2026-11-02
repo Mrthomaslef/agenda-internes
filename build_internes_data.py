@@ -319,21 +319,35 @@ CURRICULUM_COURS = [
     "Pied et Cheville : Statique du pied - Coalition du tarse - Ostéochondroses - Arthrose de cheville et du pied",
 ]
 
-# Sujets des cours des chefs du mardi (20-30 min, organisés par Dr Fadila Mihoubi Bouvier)
-CHEFS_TUESDAY_COURS = [
-    ("Dr Fadila MIHOUBI BOUVIER", "Introduction à la séméiologie ostéo-articulaire & organisation du staff"),
-    ("Dr Thomas LEFÈVRE", "Analyse radiologique d'une prothèse totale de hanche (PTH)"),
-    ("Dr Hippolyte MONNIER", "Troubles de la statique du pied : mesures et points clés"),
-    ("Dr Stéphano LUSI", "Tumeurs cartilagineuses : enchondrome vs tumeur cartilagineuse atypique"),
-    ("Dr Yazid ALLEL", "Urgences traumatiques du poignet et du carpe au TDM SAU"),
-    ("Dr Macil HAMADOUCHE", "Échographie de l'épaule : protocole standardisé et pièges"),
-    ("Dr Amandine LAPORTE", "Bilan d'extension et biopsie des sarcomes des tissus mous"),
-    ("Dr Henri GUÉRINI", "Imagerie des prothèses du genou et conflits péri-prothétiques"),
-    ("Dr YANG", "IRM du rachis inflammatoire vs mécanique"),
-    ("Pr Antoine FEYDY", "IRM de l'épaule : instabilité et bourrelet glénoïdien"),
-    ("Pr Jean-Luc DRAPÉ", "Imagerie de la main et des tendons fléchisseurs/extenseurs"),
-    ("Dr Marie-Pauline TALABARD", "Radiologie interventionnelle ostéo-articulaire : infiltrations & cimentoplasties"),
-]
+# Planning officiel des cours hebdomadaires du mardi (13h00 – 14h00) envoyé par Dr Fadila Mihoubi Bouvier (V3 + erratum WhatsApp)
+FADILA_COURS_SCHEDULE = {
+    "2026-11-03": ("Pr Jean-Luc DRAPÉ", "Mesures EOS Rachis"),
+    "2026-11-10": ("Dr Amandine LAPORTE", "Consultation pré-interventionnelle"),
+    "2026-11-17": ("Dr Fadila MIHOUBI BOUVIER", "Produits de contraste"),
+    "2026-11-24": ("Dr Wassef KHALED", "IRM Fat Sat"),
+    "2026-12-01": ("Dr Éric PESSIS", "Ménisques 1"),
+    "2026-12-08": ("Dr Éric PESSIS", "Ménisques 2"),
+    "2026-12-15": ("Dr Wassef KHALED", "Artéfacts IRM"),
+    "2026-12-22": ("—", "Pas de cours"),
+    "2026-12-29": ("—", "Pas de cours"),
+    "2027-01-05": ("Pr Antoine FEYDY", "Rhumatisme axial"),
+    "2027-01-12": ("Pr Jean-Luc DRAPÉ", "Optimisation séquences IRM"),
+    "2027-01-19": ("Pr Jean-Luc DRAPÉ", "Ligament scapho-lunaire"),
+    "2027-01-26": ("Dr Wassef KHALED", "Douleur du bord ulnaire"),
+    "2027-02-02": ("Dr Hippolyte MONNIER", "Statique du pied"),
+    "2027-02-09": ("Dr Macil HAMADOUCHE", "Sacro-iliaques : variantes"),
+    "2027-02-16": ("Dr Étienne PLUOT", "Instabilité de l'épaule"),
+    "2027-02-23": ("Dr Amandine LAPORTE", "Don't touch lesion"),
+    "2027-03-02": ("Dr Wassef KHALED", "MODIC ou SPD"),
+    "2027-03-09": ("Dr Éric PESSIS", "Artéfacts et prothèses"),
+    "2027-03-16": ("Dr Marie-Pauline TALABARD", "Ablation percutanée OS"),
+    "2027-03-23": ("Dr Thomas LEFÈVRE", "Lésions d'aspect kystique"),
+    "2027-03-30": ("Dr Fadila MIHOUBI BOUVIER", "Lésion de surface"),
+    "2027-04-06": ("Dr Wassef KHALED", "Tumeurs des tissus mous"),
+    "2027-04-13": ("Dr Yazid ALLEL", "PTH"),
+    "2027-04-20": ("Dr S. YANG", "Diagnostic d'un hypersignal musculaire"),
+    "2027-04-27": ("Dr Stéphano LUSI", "Tumeurs cartilagineuses"),
+}
 
 JOURS_FERIES_HIVER = {
     "2026-11-11": "Armistice 1918",
@@ -2177,12 +2191,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
 def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
     """
-    Génère le calendrier complet des présentations du semestre Hiver 2026-2027 :
-    - Tous les Mardis (Cas clinique des internes + Cours des chefs)
-    - Tous les Vendredis (Bibliographie des internes)
-    - Les séances Bone Club & Confrontations Radio-Anatomopathologiques
-    Avec répartition initiale équilibrée par roulement (en évitant systématiquement
-    les jours de Repos de garde RG ou congés de l'interne).
+    Génère le calendrier des 3 pages séparées du semestre Hiver 2026-2027 :
+    1. Cas des internes (Mardis) : type = 'cas_mardi'
+    2. Biblio des internes (Vendredis) : type = 'biblio_vendredi'
+    3. Cours des internes faits par les chefs (Mardis, planning officiel de Dr Fadila Mihoubi Bouvier) : type = 'cours_internes'
     """
     start_date = datetime.date(2026, 11, 2)
     end_date = datetime.date(2027, 4, 30)
@@ -2210,36 +2222,41 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
         ]
         pool = present_ids if present_ids else main_ids
 
-        if wd == 1:  # MARDI : Cas clinique + Cours des chefs
-            cands = sorted(
-                pool,
-                key=lambda x: (tue_counts[x], (main_ids.index(x) - tuesday_idx) % len(main_ids)),
-            )
-            assigned_id = cands[0]
-            tue_counts[assigned_id] += 1
-            assigned_obj = next(x for x in INTERNES_LIST if x["id"] == assigned_id)
-            chef_nom, chef_sujet = CHEFS_TUESDAY_COURS[tuesday_idx % len(CHEFS_TUESDAY_COURS)]
-            cours_programme = CURRICULUM_COURS[tuesday_idx % len(CURRICULUM_COURS)]
-            items.append({
-                "id": f"cas-{iso}",
-                "date": iso,
-                "type": "cas_mardi",
-                "typeLabel": "Cas Clinique du Mardi",
-                "horaire": "12h30 – 13h30",
-                "salle": "Salle de Staff Radio B (Albarran -1)",
-                "interneId": assigned_id,
-                "interneName": assigned_obj["shortName"],
-                "sujet": "" if iso > "2026-11-17" else (
-                    "Dossier ostéo-articulaire inaugural (choix libre)" if iso == "2026-11-03" else ""
-                ),
-                "chefIntervenant": chef_nom,
-                "coursChef": chef_sujet,
-                "themeSemaine": cours_programme,
-                "notes": "Présentation d'un cas clinique (10 min) suivie du cours hebdo des chefs (20-30 min).",
-            })
+        if wd == 1:  # MARDI : 1) Cas des internes + 2) Cours des internes (fait par le chef)
+            chef_nom, chef_sujet = FADILA_COURS_SCHEDULE.get(iso, ("—", ""))
+            pas_de_cours = (chef_sujet == "Pas de cours")
+
+            if not pas_de_cours:
+                cands = sorted(
+                    pool,
+                    key=lambda x: (tue_counts[x], (main_ids.index(x) - tuesday_idx) % len(main_ids)),
+                )
+                assigned_id = cands[0]
+                tue_counts[assigned_id] += 1
+                assigned_obj = next(x for x in INTERNES_LIST if x["id"] == assigned_id)
+                items.append({
+                    "id": f"cas-{iso}",
+                    "date": iso,
+                    "type": "cas_mardi",
+                    "typeLabel": "Cas des internes",
+                    "interneId": assigned_id,
+                    "interneName": assigned_obj["shortName"],
+                    "sujet": "",
+                })
             tuesday_idx += 1
 
-        elif wd == 4:  # VENDREDI : Biblio du vendredi
+            items.append({
+                "id": f"cours-{iso}",
+                "date": iso,
+                "type": "cours_internes",
+                "typeLabel": "Cours des internes",
+                "chefIntervenant": "" if pas_de_cours else chef_nom,
+                "coursChef": chef_sujet,
+                "sujet": chef_sujet,
+                "pasDeCours": pas_de_cours,
+            })
+
+        elif wd == 4:  # VENDREDI : Biblio des internes
             cands = sorted(
                 pool,
                 key=lambda x: (fri_counts[x], (main_ids.index(x) - (friday_idx + 3)) % len(main_ids)),
@@ -2251,166 +2268,15 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
                 "id": f"biblio-{iso}",
                 "date": iso,
                 "type": "biblio_vendredi",
-                "typeLabel": "Biblio du Vendredi",
-                "horaire": "12h30 – 13h30",
-                "salle": "Salle de Staff Radio B (Albarran -1)",
+                "typeLabel": "Biblio",
                 "interneId": assigned_id,
                 "interneName": assigned_obj["shortName"],
                 "sujet": "",
-                "articleRef": "",
-                "notes": "Présentation critique d'un article récent d'imagerie musculo-squelettique ou interventionnelle.",
             })
             friday_idx += 1
 
         cur += datetime.timedelta(days=1)
 
-    # Ajout des Confrontations Radio-Anatomopathologiques (CRA) & Bone Club (Amphi Luton)
-    # Sources : Mails de Sandrine CAMBLONG ([CCH] Enseignement Radiob Cochin <enseignement.radiob.cch@aphp.fr>)
-    # - Calendrier-CRA-V3.pdf (reçu le 21/09/2026) : Vendredis 27/11/2026, 15/01/2027, 26/03/2027, 14/05/2027, 18/06/2027 (14h15–16h00, Salle de réunion Radio B, Albarran -1)
-    # - BONE CLUB (mercredis 18h00–20h00, Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin, 24 rue du Fg St-Jacques Paris 14e)
-    special_staffs = [
-        {
-            "id": "cra-2026-11-27",
-            "date": "2026-11-27",
-            "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
-            "horaire": "14h15 – 16h00",
-            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
-            "interneId": "gabriel",
-            "interneName": "Gabriel & Noé",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques dans les maladies de l'appareil locomoteur",
-            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Pr B. Terris / Dr F. Larousserie / Dr V. Audard",
-            "coursChef": "Corrélation radio-histologique (Service Radio B & Anatomie Pathologique)",
-            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026) — Salle de réunion Radio B (Albarran -1) de 14h15 à 16h00.",
-        },
-        {
-            "id": "boneclub-2026-12-02",
-            "date": "2026-12-02",
-            "type": "bone_club",
-            "typeLabel": "Bone Club Cochin (Amphi Luton)",
-            "horaire": "18h00 – 20h00",
-            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
-            "interneId": "gabriel",
-            "interneName": "Gabriel & Noé",
-            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Décembre",
-            "chefIntervenant": "Pr V. Bousson (Lariboisière), Dr A. Miquel (St-Antoine), Pr A. Feydy & Pr J-L. Drapé",
-            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
-            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton face à l'entrée principale de Cochin).",
-        },
-        {
-            "id": "cra-2027-01-15",
-            "date": "2027-01-15",
-            "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
-            "horaire": "14h15 – 16h00",
-            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
-            "interneId": "marwane",
-            "interneName": "Marwane & Milan",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Janvier",
-            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath (Dr F. Larousserie, Dr V. Audard)",
-            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
-            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026) — Dossiers biopsiés au Scanner Achard / Écho.",
-        },
-        {
-            "id": "boneclub-2027-01-20",
-            "date": "2027-01-20",
-            "type": "bone_club",
-            "typeLabel": "Bone Club Cochin (Amphi Luton)",
-            "horaire": "18h00 – 20h00",
-            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
-            "interneId": "marwane",
-            "interneName": "Marwane & Milan",
-            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Janvier",
-            "chefIntervenant": "Dr M. Lacroix (HEGP) & Pr J-L. Drapé (Cochin)",
-            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
-            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton).",
-        },
-        {
-            "id": "boneclub-2027-03-24",
-            "date": "2027-03-24",
-            "type": "bone_club",
-            "typeLabel": "Bone Club Cochin (Amphi Luton)",
-            "horaire": "18h00 – 20h00",
-            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
-            "interneId": "nathanael",
-            "interneName": "Nathanaël & Oussama",
-            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Mars",
-            "chefIntervenant": "Pr É. Dion (Hôtel-Dieu), Dr M. Crézé (Bicêtre) & Pr A. Feydy (Cochin)",
-            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
-            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton).",
-        },
-        {
-            "id": "cra-2027-03-26",
-            "date": "2027-03-26",
-            "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
-            "horaire": "14h15 – 16h00",
-            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
-            "interneId": "nathanael",
-            "interneName": "Nathanaël & Oussama",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Mars",
-            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath (Dr F. Larousserie, Dr V. Audard)",
-            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
-            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026) — Salle de réunion Radio B (Albarran -1).",
-        },
-        {
-            "id": "cra-2027-05-14",
-            "date": "2027-05-14",
-            "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
-            "horaire": "14h15 – 16h00",
-            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
-            "interneId": "gabriel",
-            "interneName": "Équipe Internes Radio B",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Mai",
-            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath",
-            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
-            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026).",
-        },
-        {
-            "id": "boneclub-2027-05-26",
-            "date": "2027-05-26",
-            "type": "bone_club",
-            "typeLabel": "Bone Club Cochin (Amphi Luton)",
-            "horaire": "18h00 – 20h00",
-            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
-            "interneId": "gabriel",
-            "interneName": "Équipe Internes Radio B",
-            "sujet": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur — Session de Mai",
-            "chefIntervenant": "Pr A. Feydy (Cochin) & Dr M. Lacroix (HEGP)",
-            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
-            "notes": "Réunion d'imagerie ostéo-articulaire des équipes hospitalières d'Île-de-France (Entrée libre, Amphi Luton).",
-        },
-        {
-            "id": "cra-2027-06-18",
-            "date": "2027-06-18",
-            "type": "confrontation_anapath",
-            "typeLabel": "Confrontations Radio-Anatomopathologiques (CRA)",
-            "horaire": "14h15 – 16h00",
-            "salle": "Salle de réunion Radio B (Pavillon Albarran -1)",
-            "interneId": "gabriel",
-            "interneName": "Équipe Internes Radio B",
-            "sujet": "Confrontations Radio-Anatomo-Pathologiques — Session de Juin",
-            "chefIntervenant": "Pr A. Feydy, Pr J-L. Drapé & Service d'Anapath",
-            "coursChef": "Corrélation radio-histologique (Albarran -1 • 14h15 – 16h00)",
-            "notes": "Calendrier officiel CRA 2026-2027 (Sandrine Camblong, 21/09/2026).",
-        },
-        {
-            "id": "boneclub-2027-06-30",
-            "date": "2027-06-30",
-            "type": "bone_club",
-            "typeLabel": "Bone Club Cochin × APRAMEN (Amphi Luton)",
-            "horaire": "18h00 – 20h00",
-            "salle": "Amphithéâtre LUTON — RDC UFR Médecine Site Cochin (24 rue du Fg St-Jacques)",
-            "interneId": "gabriel",
-            "interneName": "Équipe Internes Radio B",
-            "sujet": "Réunion Jumelée Bone Club & APRAMEN (Association des Praticiens de Médecine Nucléaire d'IDF)",
-            "chefIntervenant": "Pr A. Feydy (Paris-Cochin) & Dr F. Paycha (Paris-Lariboisière)",
-            "coursChef": "Amphi LUTON (RDC UFR Médecine, 24 rue Fg St-Jacques) • 18h00 – 20h00",
-            "notes": "Séance annuelle jumelée Bone Club / APRAMEN (Entrée libre, Amphi Luton).",
-        },
-    ]
-    items.extend(special_staffs)
     items.sort(key=lambda x: (x["date"], x["type"]))
     return items
 
@@ -2493,25 +2359,25 @@ def build_service_meetings() -> list[dict]:
             "mandatory": False,
         },
         {
+            "id": "reunion-2026-11-25-boneclub",
+            "date": "2026-11-25",
+            "horaire": "18h00 – 20h00",
+            "title": "BONE CLUB Cochin — Session de Novembre",
+            "category": "Bone Club",
+            "sender": "Dr Fadila MIHOUBI BOUVIER / Sandrine CAMBLONG",
+            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques)",
+            "description": "Réunion de radiologie ostéo-articulaire : présentation et discussion de dossiers de pathologies de l'appareil locomoteur. Entrée libre.",
+            "mandatory": True,
+        },
+        {
             "id": "reunion-2026-11-27-anapath",
             "date": "2026-11-27",
-            "horaire": "14h15 – 16h00",
+            "horaire": "14h00 – 16h00",
             "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #1)",
             "category": "Staff Multidisciplinaire",
             "sender": "Sandrine CAMBLONG (Enseignement Radio B — 01 58 41 24 81)",
             "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
             "description": "Réunion mensuelle de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Service d'Anapath Pr B. Terris / Dr V. Audard / Dr F. Larousserie & Service de Radiologie B Prs J-L. Drapé et A. Feydy).",
-            "mandatory": True,
-        },
-        {
-            "id": "reunion-2026-12-02-boneclub",
-            "date": "2026-12-02",
-            "horaire": "18h00 – 20h00",
-            "title": "BONE CLUB Cochin — Session de Décembre",
-            "category": "Bone Club",
-            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
-            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, face à Cochin)",
-            "description": "Réunion de radiologie ostéo-articulaire (Pr V. Bousson, Pr R. Carlier, Pr A. Feydy, Pr J-L. Drapé) : présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France. Entrée libre et sans réservation.",
             "mandatory": True,
         },
         {
@@ -3548,17 +3414,27 @@ def sync_initial_state_to_cloud(dataset: dict):
       cur.presentations = incoming.presentations.map(function(baseP) {{
         var sv = savedMap[baseP.id];
         if (!sv) return baseP;
-        if (baseP.type === 'bone_club' || baseP.type === 'confrontation_anapath') {{
-          var merged = Object.assign({{}}, baseP);
-          if (sv.sujet) merged.sujet = sv.sujet;
-          if (sv.interneId) merged.interneId = sv.interneId;
-          if (sv.interneName) merged.interneName = sv.interneName;
-          return merged;
+        if (baseP.type === 'cours_internes') {{
+          if (sv.userEditedCours) {{
+            var mergedCours = Object.assign({{}}, baseP);
+            if (sv.chefIntervenant !== undefined) mergedCours.chefIntervenant = sv.chefIntervenant;
+            if (sv.coursChef !== undefined) mergedCours.coursChef = sv.coursChef;
+            if (sv.sujet !== undefined) mergedCours.sujet = sv.sujet;
+            mergedCours.userEditedCours = true;
+            return mergedCours;
+          }}
+          return baseP;
         }}
         if (sv.interneId && rgPairs[baseP.date + '__' + sv.interneId] && !sv.sujet) {{
           return baseP;
         }}
-        return Object.assign({{}}, baseP, sv);
+        var merged = Object.assign({{}}, baseP);
+        if (sv.interneId) merged.interneId = sv.interneId;
+        if (sv.interneName) merged.interneName = sv.interneName;
+        if (sv.sujet && sv.sujet !== 'Dossier ostéo-articulaire inaugural (choix libre)') {{
+          merged.sujet = sv.sujet;
+        }}
+        return merged;
       }});
       cur.meetings = incoming.meetings;
       cur.phoneDirectory = incoming.phoneDirectory;

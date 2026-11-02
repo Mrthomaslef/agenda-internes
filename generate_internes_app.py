@@ -1813,42 +1813,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Modal : Cours Mardi / Vendredi -->
+  <!-- Modal : Cas / Biblio / Cours -->
   <div class="modal-backdrop" id="modalPresentation">
     <div class="modal-box">
       <div class="card-header">
-        <div class="card-title" id="presModalTitle">Présentation Mardi / Vendredi</div>
+        <div class="card-title" id="presModalTitle">Modifier</div>
         <button class="btn btn-sm" onclick="closeModal('modalPresentation')">Fermer</button>
       </div>
-      <div class="note-box">
-        Indiquez uniquement la pathologie, le thème du cours ou le titre de l'article (aucun nom de patient).
-      </div>
       <input type="hidden" id="presIdInput" />
-      <input type="hidden" id="presTypeInput" value="cas_mardi" />
       <div class="form-group">
         <label>Date</label>
         <select id="presDateSelect" class="form-control" onchange="onPresDateChange(this.value)"></select>
-        <input type="text" id="presDateDisplay" class="form-control" readonly style="display:none;" />
       </div>
-      <div class="form-group" id="presTypeGroup">
-        <label>Format de la séance</label>
-        <div class="segmented" style="width:100%; display:grid; grid-template-columns:repeat(3, 1fr);">
-          <button type="button" class="seg-btn" id="modalTypeBtnBiblio" onclick="setModalPresType('biblio_vendredi')">Biblio</button>
-          <button type="button" class="seg-btn" id="modalTypeBtnCas" onclick="setModalPresType('cas_mardi')">Cas</button>
-          <button type="button" class="seg-btn" id="modalTypeBtnCours" onclick="setModalPresType('cours_internes')">Cours aux internes</button>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Interne / DJ</label>
+      <div class="form-group" id="presInterneGroup">
+        <label>Interne</label>
         <select id="presInterneSelect" class="form-control"></select>
       </div>
-      <div class="form-group">
-        <label>Sujet (cas, article biblio ou cours aux internes)</label>
-        <textarea id="presSujetInput" class="form-control" rows="2" placeholder="Ex: Tumeur cartilagineuse en IRM..."></textarea>
+      <div class="form-group" id="presChefGroup" style="display:none;">
+        <label>Chef / Intervenant</label>
+        <input type="text" id="presChefInput" class="form-control" placeholder="Ex: Dr T. Lefèvre" />
       </div>
       <div class="form-group">
-        <label>Cours du Chef / Intervenant associé</label>
-        <input type="text" id="presChefInput" class="form-control" placeholder="Ex: Dr T. Lefèvre — PTH" />
+        <label id="presSujetLabel">Sujet</label>
+        <input type="text" id="presSujetInput" class="form-control" placeholder="Sujet..." />
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
         <button class="btn" onclick="closeModal('modalPresentation')">Annuler</button>
@@ -2014,7 +2001,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let planningScope = (selectedInterneId === "all") ? "internes" : (selectedInterneId === "all_chefs" ? "chefs" : "perso"); // 'internes' | 'perso' | 'chefs' | 'combined'
     let planningMode = "week";      // 'day' | 'week' | 'month'
     let currentDateIso = "2026-11-02";
-    let presFilter = "all";
+    let presFilter = "cas_mardi"; // 'cas_mardi' | 'biblio_vendredi' | 'cours_internes'
     let annuaireSearch = "";
     let annuaireCategory = "all";
     let vacFilter = "all"; // 'all' | 'conges' | 'rg' | 'gardes'
@@ -2027,7 +2014,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let pendingChefActionCallback = null;
 
     function mergePresentationsList(baseList, savedList) {
-      const obsoleteIds = new Set(["boneclub-2026-12-10", "cra-2027-01-29"]);
       const rgSet = new Set(
         ((INITIAL_DATA && INITIAL_DATA.absences) || [])
           .filter(a => a && a.type === "Repos de garde")
@@ -2036,29 +2022,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const map = {};
       (baseList || []).forEach(p => { if (p && p.id) map[p.id] = Object.assign({}, p); });
       (savedList || []).forEach(p => {
-        if (!p || !p.id || obsoleteIds.has(p.id)) return;
-        if (map[p.id] && (p.type === "bone_club" || p.type === "confrontation_anapath")) {
-          if (p.sujet && p.sujet !== map[p.id].sujet) map[p.id].sujet = p.sujet;
-          if (p.interneId) {
-            map[p.id].interneId = p.interneId;
-            map[p.id].interneName = p.interneName || map[p.id].interneName;
+        if (!p || !p.id || !map[p.id]) return;
+        const baseP = map[p.id];
+        if (baseP.type === "cours_internes") {
+          if (p.userEditedCours) {
+            if (p.chefIntervenant !== undefined) baseP.chefIntervenant = p.chefIntervenant;
+            if (p.coursChef !== undefined) baseP.coursChef = p.coursChef;
+            if (p.sujet !== undefined) baseP.sujet = p.sujet;
+            baseP.pasDeCours = (baseP.coursChef === "Pas de cours" || baseP.sujet === "Pas de cours");
+            baseP.userEditedCours = true;
           }
-        } else if (map[p.id] && p.interneId && rgSet.has(map[p.id].date + "__" + p.interneId) && !p.sujet) {
-          // Si l'ancienne affectation par défaut tombe sur un Repos de garde officiel et qu'aucun sujet n'a été saisi, garder l'affectation mise à jour
           return;
-        } else {
-          map[p.id] = p;
+        }
+        if (p.interneId && rgSet.has(baseP.date + "__" + p.interneId) && !p.sujet) {
+          return;
+        }
+        if (p.interneId) baseP.interneId = p.interneId;
+        if (p.interneName) baseP.interneName = p.interneName;
+        if (p.sujet !== undefined && p.sujet !== "Dossier ostéo-articulaire inaugural (choix libre)") {
+          baseP.sujet = p.sujet;
         }
       });
-      return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
+      return Object.values(map).sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));
     }
 
     function mergeMeetingsList(baseList, savedList) {
-      const obsoleteTitles = new Set(["Bone Club — Novembre", "Bone Club — Janvier", "Confrontation Radio-Anatomo-Pathologique (Janvier)"]);
+      const obsoleteTitles = new Set(["Bone Club — Novembre", "Bone Club — Janvier", "Confrontation Radio-Anatomo-Pathologique (Janvier)", "BONE CLUB Cochin — Session de Décembre"]);
       const map = {};
       (baseList || []).forEach(m => { if (m && m.id) map[m.id] = Object.assign({}, m); });
       (savedList || []).forEach(m => {
-        if (!m || !m.id || obsoleteTitles.has(m.title)) return;
+        if (!m || !m.id || obsoleteTitles.has(m.title) || m.id === "reunion-2026-12-02-boneclub") return;
         if (!map[m.id]) map[m.id] = m;
       });
       return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
@@ -5473,25 +5466,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const meets = STATE.meetings.filter(m => m.date === dIso);
         let cell = "";
         pres.forEach(p => {
-          const isBone = p.type === "bone_club";
-          const isCra = p.type === "confrontation_anapath";
-          const isCoursInt = p.type === "cours_internes";
+          if (p.type === "cours_internes") {
+            if (p.pasDeCours) return;
+            const shortChef = (p.chefIntervenant || "").replace(/^(Dr|Pr)\s+/i, "");
+            cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:#DBEAFE; cursor:pointer; line-height:1.15;" onclick="openPresentationModal('${p.id}')">
+              <strong style="color:#1D4ED8">Cours :</strong> ${shortChef ? shortChef + " — " : ""}${p.coursChef || p.sujet || ""}
+            </div>`;
+            return;
+          }
           const presBlock = inChefSpace ? (blocking.byDate[dIso] || []).find(iss => iss.category === "pres_absent" && iss.presId === p.id) : null;
-          const bg = presBlock ? "#FEE2E2" : (isBone ? "#FEF2F2" : (isCra ? "#FEF3C7" : (isCoursInt ? "#DBEAFE" : "#F3E8FF")));
-          const fg = presBlock ? "#991B1B" : (isBone ? "#B91C1C" : (isCra ? "#B45309" : (isCoursInt ? "#1D4ED8" : "#6D28D9")));
-          const lbl = isBone
-            ? `Bone Club`
-            : (isCra
-              ? `CRA Anapath`
-              : (isCoursInt
-                ? `Cours 12h30`
-                : (p.type === 'cas_mardi' ? 'Cas 12h30' : 'Biblio 12h30')));
+          const bg = presBlock ? "#FEE2E2" : "#F3E8FF";
+          const fg = presBlock ? "#991B1B" : "#6D28D9";
+          const lbl = p.type === "cas_mardi" ? "Cas" : "Biblio";
           cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${bg}; cursor:pointer; line-height:1.15; ${presBlock ? 'border:1px solid #EF4444;' : ''}" onclick="openPresentationModal('${p.id}')">
             <strong style="color:${fg}">${lbl} :</strong> ${p.interneName} ${presBlock ? '<span style="color:#DC2626; font-weight:800;">(Absent)</span>' : ''}
           </div>`;
         });
         meets.forEach(m => {
-          if (pres.some(p => (p.type === "bone_club" && m.category === "Bone Club") || (p.type === "confrontation_anapath" && m.category === "Anapath"))) return;
           cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:#DCFCE7; line-height:1.15;">
             <strong style="color:#15803D">${m.horaire} :</strong> ${m.title}
           </div>`;
@@ -6176,146 +6167,120 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* =========================================================================
-     * ONGLET 3 : COURS & CAS (BIBLIO / CAS / COURS AUX INTERNES / BONE CLUB / CRA)
+     * ONGLET 3 : 3 PAGES SÉPARÉES (CAS DES INTERNES / BIBLIO / COURS DES INTERNES)
      * ========================================================================= */
     function getPresTypeMeta(p) {
       if (p.type === "cas_mardi") {
-        return { badgeClass: "poste-irm", shortType: "Cas • 12h30", modalLabel: "Cas clinique (12h30)", typeLabel: "Cas Clinique" };
+        return { modalLabel: "Cas des internes", typeLabel: "Cas des internes" };
       }
       if (p.type === "cours_internes") {
-        return { badgeClass: "poste-cs", shortType: "Cours aux internes • 12h30", modalLabel: "Cours aux internes (12h30)", typeLabel: "Cours aux internes" };
+        return { modalLabel: "Cours des internes (Chef)", typeLabel: "Cours des internes" };
       }
-      if (p.type === "bone_club") {
-        return { badgeClass: "poste-gestes", shortType: `Bone Club • ${p.horaire || "18h–20h"}`, modalLabel: `Bone Club (${p.horaire || "18h00–20h00"})`, typeLabel: "Bone Club Cochin" };
-      }
-      if (p.type === "confrontation_anapath") {
-        return { badgeClass: "poste-echo", shortType: `CRA Anapath • ${p.horaire || "14h15"}`, modalLabel: `Confrontation Radio-Anapath (${p.horaire || "14h15–16h00"})`, typeLabel: "CRA Anapath" };
-      }
-      return { badgeClass: "poste-tdm", shortType: "Biblio • 12h30", modalLabel: "Biblio (12h30)", typeLabel: "Biblio" };
-    }
-
-    function isSwitchablePresType(type) {
-      return type === "cas_mardi" || type === "biblio_vendredi" || type === "cours_internes";
-    }
-
-    function switchPresentationType(presId, newType, ev) {
-      if (ev && ev.stopPropagation) ev.stopPropagation();
-      const p = (STATE.presentations || []).find(x => x.id === presId);
-      if (!p) return;
-      p.type = newType;
-      const meta = getPresTypeMeta(p);
-      p.typeLabel = meta.typeLabel;
-      saveStateLocal();
-      renderAll();
-      showToast(`Format changé : ${meta.typeLabel}`);
-      pushStateToCloud({ syncStaffSheet: true });
-    }
-
-    function cyclePresentationType(presId, ev) {
-      if (ev && ev.stopPropagation) ev.stopPropagation();
-      const p = (STATE.presentations || []).find(x => x.id === presId);
-      if (!p) return;
-      const order = ["biblio_vendredi", "cas_mardi", "cours_internes"];
-      const idx = order.indexOf(p.type);
-      const nextType = order[(idx + 1) % order.length];
-      switchPresentationType(presId, nextType);
+      return { modalLabel: "Biblio", typeLabel: "Biblio" };
     }
 
     function renderPresentationsTab() {
-      let list = (STATE.presentations || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+      if (presFilter !== "cas_mardi" && presFilter !== "biblio_vendredi" && presFilter !== "cours_internes") {
+        presFilter = "cas_mardi";
+      }
+      const list = (STATE.presentations || [])
+        .filter(p => p.type === presFilter)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
 
-      if (presFilter === "cas_mardi") list = list.filter(p => p.type === "cas_mardi");
-      else if (presFilter === "biblio_vendredi") list = list.filter(p => p.type === "biblio_vendredi");
-      else if (presFilter === "cours_internes") list = list.filter(p => p.type === "cours_internes");
-      else if (presFilter === "bone_club") list = list.filter(p => p.type === "bone_club");
-      else if (presFilter === "confrontation_anapath") list = list.filter(p => p.type === "confrontation_anapath");
-      else if (presFilter === "mine" && selectedInterneId !== "all" && !isChefId(selectedInterneId)) {
-        const myObj = getInterneById(selectedInterneId);
-        list = list.filter(p => p.interneId === selectedInterneId || (p.interneName && myObj && p.interneName.toLowerCase().includes(myObj.shortName.toLowerCase())));
+      const pageTabsHtml = `
+        <div class="main-tabs" style="grid-template-columns:repeat(3, 1fr); margin-bottom:10px;">
+          <button class="tab-btn ${presFilter === 'cas_mardi' ? 'active' : ''}" onclick="setPresFilter('cas_mardi')">Cas des internes</button>
+          <button class="tab-btn ${presFilter === 'biblio_vendredi' ? 'active' : ''}" onclick="setPresFilter('biblio_vendredi')">Biblio</button>
+          <button class="tab-btn ${presFilter === 'cours_internes' ? 'active' : ''}" onclick="setPresFilter('cours_internes')">Cours des internes</button>
+        </div>
+      `;
+
+      if (presFilter === "cours_internes") {
+        let rowsHtml = "";
+        list.forEach(p => {
+          const isPasDeCours = Boolean(p.pasDeCours || p.coursChef === "Pas de cours" || p.sujet === "Pas de cours");
+          const chefTxt = isPasDeCours ? "—" : (p.chefIntervenant || "—");
+          const coursTxt = isPasDeCours
+            ? `<span style="color:var(--text-muted);">Pas de cours</span>`
+            : `<strong>${p.coursChef || p.sujet || "—"}</strong>`;
+
+          rowsHtml += `
+            <tr style="${isPasDeCours ? 'opacity:0.6;' : ''}">
+              <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date)}</td>
+              <td style="font-weight:600; color:#0284C7; white-space:nowrap;">${chefTxt}</td>
+              <td>${coursTxt}</td>
+              <td style="width:1%; white-space:nowrap;">
+                <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
+              </td>
+            </tr>
+          `;
+        });
+
+        return `
+          ${pageTabsHtml}
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Cours des internes (faits par les chefs)</div>
+            </div>
+            <div class="week-table-wrap">
+              <table class="planning-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Chef</th>
+                    <th>Cours</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>${rowsHtml}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
       }
 
+      const pageTitle = presFilter === "cas_mardi" ? "Cas des internes" : "Biblio";
       let rowsHtml = "";
       list.forEach(p => {
         const iObj = getInterneById(p.interneId);
-        const isDJ = Boolean(iObj.isDJ || iObj.id === "oussama");
-        const isMe = (selectedInterneId !== "all" && (p.interneId === selectedInterneId || (p.interneName && iObj && p.interneName.toLowerCase().includes(getInterneById(selectedInterneId).shortName.toLowerCase()))));
-        const meta = getPresTypeMeta(p);
-        const lieuHtml = p.salle ? `<div style="font-size:11px; color:var(--text-muted); margin-top:2px;">📍 ${p.salle}</div>` : "";
-        const canSwitch = isSwitchablePresType(p.type);
-        const switcherHtml = canSwitch ? `
-          <div>
-            <div class="pres-type-switcher" title="Changer entre Biblio, Cas et Cours aux internes">
-              <button type="button" class="pres-type-btn ${p.type === 'biblio_vendredi' ? 'active-biblio' : ''}" onclick="switchPresentationType('${p.id}', 'biblio_vendredi', event)">Biblio</button>
-              <button type="button" class="pres-type-btn ${p.type === 'cas_mardi' ? 'active-cas' : ''}" onclick="switchPresentationType('${p.id}', 'cas_mardi', event)">Cas</button>
-              <button type="button" class="pres-type-btn ${p.type === 'cours_internes' ? 'active-cours' : ''}" onclick="switchPresentationType('${p.id}', 'cours_internes', event)">Cours aux internes</button>
-            </div>
-          </div>
-        ` : "";
+        const isMe = (selectedInterneId !== "all" && !isChefId(selectedInterneId) && p.interneId === selectedInterneId);
 
         rowsHtml += `
           <tr style="${isMe ? 'background:#EFF6FF;' : ''}">
-            <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date, true)}</td>
-            <td>
-              <span class="poste-pill ${meta.badgeClass}">${meta.shortType}</span>
-              ${switcherHtml}
-            </td>
-            <td>
+            <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date)}</td>
+            <td style="white-space:nowrap;">
               <span class="interne-badge ${isMe ? 'highlight-me' : ''}" onclick="openPresentationModal('${p.id}')">
                 <span style="width:7px;height:7px;border-radius:50%;background:${iObj.color};display:inline-block;"></span>
                 ${p.interneName || iObj.shortName}
-                ${iObj.isSocle && (!p.interneName || p.interneName === iObj.shortName) ? `<span class="tag-sm">Socle</span>` : ""}
-                ${isDJ && (!p.interneName || p.interneName === iObj.shortName) ? `<span class="tag-dj">DJ</span>` : ""}
               </span>
             </td>
-            <td>
+            <td onclick="openPresentationModal('${p.id}')" style="cursor:pointer;">
               ${p.sujet
                 ? `<strong>${p.sujet}</strong>`
-                : `<span style="color:#B45309; font-weight:600; cursor:pointer;" onclick="openPresentationModal('${p.id}')">+ Ajouter le sujet</span>`}
-              ${lieuHtml}
+                : `<span style="color:#94A3B8;">—</span>`}
             </td>
-            <td>
-              ${p.coursChef
-                ? `<span style="color:#0284C7; font-weight:700;">${p.chefIntervenant || ''}</span> ${p.coursChef}`
-                : `<span style="color:var(--text-muted);">${p.notes || '—'}</span>`}
-            </td>
-            <td>
-              <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                ${canSwitch ? `<button class="btn btn-sm" onclick="cyclePresentationType('${p.id}', event)" title="Basculer entre Biblio, Cas et Cours aux internes">⇄ Format</button>` : ""}
-                <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
-              </div>
+            <td style="width:1%; white-space:nowrap;">
+              <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
             </td>
           </tr>
         `;
       });
 
       return `
+        ${pageTabsHtml}
         <div class="card">
           <div class="card-header">
-            <div>
-              <div class="card-title">Cas, Biblio, Cours aux internes, Bone Club & CRA Anapath</div>
-              <div style="font-size:12px; color:var(--text-muted);">Cliquez sur <strong>Biblio / Cas / Cours aux internes</strong> (ou ⇄ Format) sur une ligne pour changer le type de séance en 1 clic</div>
-            </div>
-            <div class="segmented" style="flex-wrap:wrap;">
-              <button class="seg-btn ${presFilter === 'all' ? 'active' : ''}" onclick="setPresFilter('all')">Tous</button>
-              <button class="seg-btn ${presFilter === 'cas_mardi' ? 'active' : ''}" onclick="setPresFilter('cas_mardi')">Cas</button>
-              <button class="seg-btn ${presFilter === 'biblio_vendredi' ? 'active' : ''}" onclick="setPresFilter('biblio_vendredi')">Biblio</button>
-              <button class="seg-btn ${presFilter === 'cours_internes' ? 'active' : ''}" onclick="setPresFilter('cours_internes')">Cours aux internes</button>
-              <button class="seg-btn ${presFilter === 'bone_club' ? 'active' : ''}" onclick="setPresFilter('bone_club')">Bone Club (18h)</button>
-              <button class="seg-btn ${presFilter === 'confrontation_anapath' ? 'active' : ''}" onclick="setPresFilter('confrontation_anapath')">CRA Anapath (14h15)</button>
-              <button class="seg-btn ${presFilter === 'mine' ? 'active' : ''}" onclick="setPresFilter('mine')">Mes dates</button>
-            </div>
+            <div class="card-title">${pageTitle}</div>
           </div>
-
           <div class="week-table-wrap">
             <table class="planning-table">
               <thead>
                 <tr>
                   <th>Date</th>
-                  <th>Créneau / Format</th>
-                  <th>Interne / DJ</th>
-                  <th>Sujet / Lieu</th>
-                  <th>Cours Chef / Modérateurs</th>
-                  <th>Action</th>
+                  <th>Interne</th>
+                  <th>Sujet</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody>${rowsHtml}</tbody>
@@ -6327,30 +6292,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function setPresFilter(f) {
       presFilter = f;
-      if (f === "mine" && (selectedInterneId === "all" || isChefId(selectedInterneId))) selectedInterneId = "gabriel";
       renderAll();
     }
 
-    function setModalPresType(newType) {
-      const inp = document.getElementById("presTypeInput");
-      if (inp) inp.value = newType;
-      const btnBiblio = document.getElementById("modalTypeBtnBiblio");
-      const btnCas = document.getElementById("modalTypeBtnCas");
-      const btnCours = document.getElementById("modalTypeBtnCours");
-      if (btnBiblio) btnBiblio.classList.toggle("active", newType === "biblio_vendredi");
-      if (btnCas) btnCas.classList.toggle("active", newType === "cas_mardi");
-      if (btnCours) btnCours.classList.toggle("active", newType === "cours_internes");
-    }
-
     function openPresentationModal(presId) {
-      const list = (STATE.presentations || []).slice().sort((a, b) => a.date.localeCompare(b.date));
-      const p = list.find(x => x.id === presId) || list[0];
+      const allList = (STATE.presentations || []).slice().sort((a, b) => a.date.localeCompare(b.date));
+      const p = allList.find(x => x.id === presId) || allList[0];
       if (!p) return;
 
+      const sameTypeList = allList.filter(x => x.type === p.type);
       const dateSel = document.getElementById("presDateSelect");
-      dateSel.innerHTML = list.map(item => {
-        const meta = getPresTypeMeta(item);
-        const lbl = `${formatDateFr(item.date, true)} — ${meta.shortType} (${item.interneName})`;
+      dateSel.innerHTML = sameTypeList.map(item => {
+        const who = item.type === "cours_internes" ? (item.chefIntervenant || "—") : (item.interneName || "");
+        const lbl = `${formatDateFr(item.date)} — ${who}`;
         return `<option value="${item.id}" ${item.id === p.id ? 'selected' : ''}>${lbl}</option>`;
       }).join("");
 
@@ -6367,23 +6321,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const meta = getPresTypeMeta(p);
       document.getElementById("presIdInput").value = p.id;
       document.getElementById("presModalTitle").textContent = `${meta.modalLabel} — ${formatDateFr(p.date)}`;
-      document.getElementById("presDateDisplay").value = formatDateFr(p.date, true);
 
-      const typeGroup = document.getElementById("presTypeGroup");
-      if (typeGroup) {
-        if (isSwitchablePresType(p.type)) {
-          typeGroup.style.display = "block";
-          setModalPresType(p.type);
-        } else {
-          typeGroup.style.display = "none";
-          document.getElementById("presTypeInput").value = p.type;
-        }
+      const isCours = (p.type === "cours_internes");
+      const intGroup = document.getElementById("presInterneGroup");
+      const chefGroup = document.getElementById("presChefGroup");
+      const sujetLabel = document.getElementById("presSujetLabel");
+
+      if (intGroup) intGroup.style.display = isCours ? "none" : "block";
+      if (chefGroup) chefGroup.style.display = isCours ? "block" : "none";
+      if (sujetLabel) sujetLabel.textContent = isCours ? "Cours" : "Sujet";
+
+      if (isCours) {
+        document.getElementById("presChefInput").value = p.chefIntervenant || "";
+        document.getElementById("presSujetInput").value = p.coursChef || p.sujet || "";
+      } else {
+        const sel = document.getElementById("presInterneSelect");
+        sel.innerHTML = STATE.internes.map(i => `<option value="${i.id}" ${i.id === p.interneId ? 'selected' : ''}>${i.shortName}</option>`).join("");
+        document.getElementById("presSujetInput").value = p.sujet || "";
       }
-
-      const sel = document.getElementById("presInterneSelect");
-      sel.innerHTML = STATE.internes.map(i => `<option value="${i.id}" ${i.id === p.interneId ? 'selected' : ''}>${i.fullName}${i.isDJ || i.id === 'oussama' ? ' (DJ)' : (i.isSocle ? ' (Socle)' : '')}</option>`).join("");
-      document.getElementById("presSujetInput").value = p.sujet || "";
-      document.getElementById("presChefInput").value = p.coursChef ? `${p.chefIntervenant ? p.chefIntervenant + ' — ' : ''}${p.coursChef}` : "";
     }
 
     function savePresentationForm() {
@@ -6391,34 +6346,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const p = (STATE.presentations || []).find(x => x.id === pid);
       if (!p) return;
 
-      const iid = document.getElementById("presInterneSelect").value;
-      const iObj = getInterneById(iid);
       const sujet = document.getElementById("presSujetInput").value.trim();
-      const chefRaw = document.getElementById("presChefInput").value.trim();
-      const chosenType = document.getElementById("presTypeInput") ? document.getElementById("presTypeInput").value : p.type;
 
-      if (chosenType && isSwitchablePresType(p.type)) {
-        p.type = chosenType;
-        p.typeLabel = getPresTypeMeta(p).typeLabel;
-      }
-
-      p.interneId = iid;
-      p.interneName = iObj.shortName;
-      p.sujet = sujet;
-      if (chefRaw) {
-        const parts = chefRaw.split("—");
-        if (parts.length > 1) {
-          p.chefIntervenant = parts[0].trim();
-          p.coursChef = parts.slice(1).join("—").trim();
-        } else {
-          p.coursChef = chefRaw;
-        }
+      if (p.type === "cours_internes") {
+        const chefRaw = document.getElementById("presChefInput").value.trim();
+        p.chefIntervenant = chefRaw;
+        p.coursChef = sujet;
+        p.sujet = sujet;
+        p.pasDeCours = (sujet.toLowerCase() === "pas de cours");
+        p.userEditedCours = true;
+      } else {
+        const iid = document.getElementById("presInterneSelect").value;
+        const iObj = getInterneById(iid);
+        p.interneId = iid;
+        p.interneName = iObj.shortName;
+        p.sujet = sujet;
       }
 
       saveStateLocal();
       closeModal("modalPresentation");
       renderAll();
-      showToast("Séance enregistrée");
+      showToast("Enregistré");
       pushStateToCloud({ syncStaffSheet: true });
     }
 
