@@ -498,17 +498,17 @@ PH_DOC_TOKENS = {
     "HAMMOUD",
 }
 
-DEFAULT_WEEKLY_PH_POSTES = {
-    (0, "am"): {"GESTES (C)", "ECHO"},
-    (0, "pm"): {"IRM", "GESTES (C)"},
-    (1, "am"): {"GESTES (C)", "IRM 3T", "IRM 1,5T"},
-    (1, "pm"): {"LECTURE/CS", "SCAN ACHARD", "ECHO", "TDM SAU"},
-    (2, "am"): {"IRM 3T", "IRM 1,5T"},
-    (2, "pm"): {"GESTES (C)", "SCAN ACHARD", "ECHO"},
+MANDATORY_WEEKLY_POSTES = {
+    (0, "am"): {"ECHO"},
+    (0, "pm"): {"IRM"},
+    (1, "am"): {"GESTES (C)", "IRM 3T"},
+    (1, "pm"): {"LECTURE/CS"},
+    (2, "am"): set(),
+    (2, "pm"): {"GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"},
     (3, "am"): {"ECHO", "GESTES (C)"},
-    (3, "pm"): {"SCAN ACHARD", "IRM"},
-    (4, "am"): {"ECHO", "TDM SAU"},
-    (4, "pm"): {"SCAN ACHARD"},
+    (3, "pm"): {"IRM"},
+    (4, "am"): {"IRM 3T"},
+    (4, "pm"): set(),
 }
 
 
@@ -524,34 +524,34 @@ def is_ph_doc(doc_str: str) -> bool:
 
 def get_ph_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None = None, day_iso: str = "") -> set[str]:
     """
-    Retourne l'ensemble des postes d'internes ouverts occupés par un PH ou PU-PH
-    sur la demi-journée donnée (qui doivent systématiquement avoir un interne).
-    Exception : Pas d'interne en Écho le mercredi matin en novembre avec Dr F. Thévenin.
+    Retourne l'ensemble des postes d'internes obligatoires (les 13 vacations prioritaires)
+    réellement OUVERTS sur la demi-journée donnée :
+    - Lundi matin : ECHO
+    - Lundi après-midi : IRM
+    - Mardi matin : GESTES (C), IRM (IRM 3T)
+    - Mardi après-midi : LECTURE/CS (Relecture Pr Drapé)
+    - Mercredi matin : (uniquement TDM SAU géré séparément)
+    - Mercredi après-midi : GESTES (C), IRM, SCAN ACHARD, ECHO
+    - Jeudi matin : ECHO, GESTES (C)
+    - Jeudi après-midi : IRM
+    - Vendredi matin : IRM 3T
+    - Vendredi après-midi : (uniquement TDM SAU géré séparément)
     """
+    if wd is None and day_iso:
+        try:
+            wd = datetime.date.fromisoformat(day_iso).weekday()
+        except Exception:
+            wd = None
     no_interne_thevenin_nov = (half == "am" and wd == 2 and day_iso.startswith("2026-11"))
+    mandatory_for_slot = set(MANDATORY_WEEKLY_POSTES.get((wd, half), set()))
+    if no_interne_thevenin_nov:
+        mandatory_for_slot.discard("ECHO")
     if not chefs_day:
-        base = set(DEFAULT_WEEKLY_PH_POSTES.get((wd, half), set()))
-        if no_interne_thevenin_nov:
-            base.discard("ECHO")
-        return base
+        return mandatory_for_slot
 
-    ph_set = set()
-    for entry in chefs_day.get(half, []):
-        doc_val = str(entry.get("doc", "")).strip()
-        poste_chef = str(entry.get("poste", "")).strip()
-        is_closed = bool(entry.get("closed")) or doc_val.upper().startswith("FERM") or doc_val.upper() == "MAINTENANCE"
-        if is_closed:
-            continue
-        if not is_ph_doc(doc_val):
-            continue
-        if poste_chef in CHEF_TO_INTERNE_POSTE:
-            p_int = CHEF_TO_INTERNE_POSTE[poste_chef]
-            if no_interne_thevenin_nov and p_int == "ECHO":
-                continue
-            ph_set.add(p_int)
-        elif poste_chef == "CONSULTATION" and half == "pm" and wd in (1, 4):
-            ph_set.add("LECTURE/CS")
-    return ph_set
+    open_set = get_open_interne_postes_for_halfday(chefs_day, half, wd)
+    closed_codes = {c["poste"] for c in get_closed_vacations_for_halfday(chefs_day, half, wd)}
+    return {p for p in mandatory_for_slot if p in open_set and p not in closed_codes}
 
 
 def get_closed_vacations_for_halfday(chefs_day: dict, half: str, wd: int | None = None) -> list[dict]:

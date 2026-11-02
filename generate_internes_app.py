@@ -1471,6 +1471,165 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .btn-unfix-week:hover {
       background: #FEF3C7;
     }
+
+    /* Résumé Off & Vacations en Mode Chef */
+    .chef-offvac-section {
+      margin-top: 9px;
+      padding-top: 9px;
+      border-top: 1px solid #E2E8F0;
+    }
+
+    .chef-offvac-bar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 7px;
+      font-size: 11.5px;
+      color: #334155;
+    }
+
+    .chef-offvac-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .chef-offvac-card {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 9px;
+      padding: 6px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      cursor: pointer;
+      transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+      min-width: 0;
+    }
+
+    .chef-offvac-card:hover {
+      border-color: var(--primary);
+      background: #F0F9FF;
+      box-shadow: 0 2px 5px rgba(2, 132, 199, 0.1);
+    }
+
+    .chef-offvac-card.warn-quota {
+      border-color: #F59E0B;
+      background: #FFFBEB;
+    }
+
+    .chef-offvac-card.danger-quota {
+      border-color: #EF4444;
+      background: #FEF2F2;
+    }
+
+    .chef-offvac-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .chef-offvac-name {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-weight: 800;
+      font-size: 12px;
+      color: #0F172A;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chef-offvac-badges {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .offvac-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      padding: 1.5px 6px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .offvac-pill.off-ok {
+      background: #DCFCE7;
+      color: #166534;
+      border: 1px solid #86EFAC;
+    }
+
+    .offvac-pill.off-warn {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+    }
+
+    .offvac-pill.off-danger {
+      background: #FEE2E2;
+      color: #991B1B;
+      border: 1px solid #FCA5A5;
+    }
+
+    .offvac-pill.vac-count {
+      background: #E0F2FE;
+      color: #0369A1;
+      border: 1px solid #BAE6FD;
+    }
+
+    .offvac-pill.conges-count {
+      background: #F3E8FF;
+      color: #6D28D9;
+      border: 1px solid #D8B4FE;
+    }
+
+    .chef-offvac-slots {
+      font-size: 10px;
+      color: #475569;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chef-offvac-sem {
+      font-size: 10px;
+      color: #64748B;
+      border-top: 1px dashed #E2E8F0;
+      padding-top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .chef-offvac-sem strong {
+      color: #1E293B;
+      font-weight: 800;
+    }
+
+    @media (max-width: 960px) {
+      .chef-offvac-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      .chef-offvac-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
   </style>
 </head>
 <body>
@@ -1698,13 +1857,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
           <label>Matin</label>
-          <select id="vacEditAm" class="form-control"></select>
+          <select id="vacEditAm" class="form-control" onchange="refreshVacationModalSummary()"></select>
         </div>
         <div class="form-group">
           <label>Après-midi</label>
-          <select id="vacEditPm" class="form-control"></select>
+          <select id="vacEditPm" class="form-control" onchange="refreshVacationModalSummary()"></select>
         </div>
       </div>
+      <div id="vacEditLiveSummary" class="note-box" style="margin-bottom:10px; background:#F8FAFC; border-color:#CBD5E1;"></div>
       <div class="form-group">
         <label>Note</label>
         <input type="text" id="vacEditNote" class="form-control" placeholder="Ex: Échange avec Noé..." />
@@ -1835,6 +1995,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let annuaireCategory = "all";
     let vacFilter = "all"; // 'all' | 'conges' | 'rg' | 'gardes'
     let showStatsTable = false;
+    let showChefOffVacSummary = true;
     let isChefPlanningMode = sessionStorage.getItem(CHEF_MODE_STORAGE_KEY) === "1";
     let activeDragPayload = null;
     let selectedForMove = null; // { dIso, periodKey, interneId, fromPoste }
@@ -2616,7 +2777,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
     }
 
-    function computeStatsByInterne() {
+    function computeStatsByInterne(overrideSlot) {
       const stats = {};
       STATE.internes.forEach(i => {
         stats[i.id] = {
@@ -2650,7 +2811,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (!d || d.holiday || !d.byInterne) return;
         Object.keys(d.byInterne).forEach(iid => {
           if (!stats[iid]) return;
-          const slots = [d.byInterne[iid].am, d.byInterne[iid].pm];
+          const isOver = Boolean(overrideSlot && overrideSlot.iso === iso && overrideSlot.iid === iid);
+          const slots = isOver
+            ? [overrideSlot.am, overrideSlot.pm]
+            : [d.byInterne[iid].am, d.byInterne[iid].pm];
           slots.forEach(p => {
             const up = String(p || "").toUpperCase();
             if (up.includes("LIBRE")) {
@@ -2680,6 +2844,140 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
 
       return stats;
+    }
+
+    function computeWeekStatsByInterne(monIso, overrideSlot) {
+      const targetMon = monIso || getMondayOfWeek(currentDateIso);
+      const dayLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
+      const weekStats = {};
+      STATE.internes.forEach(i => {
+        weekStats[i.id] = {
+          weekVac: 0,
+          weekOff: 0,
+          weekOffSlots: [],
+          weekCongesHalf: 0,
+          weekRgHalf: 0
+        };
+      });
+
+      for (let off = 0; off < 5; off++) {
+        const dIso = addDaysIso(targetMon, off);
+        const dObj = STATE.schedule[dIso];
+        if (!dObj || dObj.holiday || !dObj.byInterne) continue;
+        STATE.internes.forEach(i => {
+          const iid = i.id;
+          const isOver = Boolean(overrideSlot && overrideSlot.iso === dIso && overrideSlot.iid === iid);
+          const rawSlot = dObj.byInterne[iid];
+          if (!rawSlot && !isOver) return;
+          const am = isOver ? overrideSlot.am : rawSlot.am;
+          const pm = isOver ? overrideSlot.pm : rawSlot.pm;
+          [["am", am, "Mat"], ["pm", pm, "PM"]].forEach(([hKey, pVal, hShort]) => {
+            const up = String(pVal || "").toUpperCase();
+            if (up.includes("LIBRE")) {
+              weekStats[iid].weekOff++;
+              weekStats[iid].weekOffSlots.push(`${dayLabels[off]} ${hShort}`);
+            } else if (up === "VACANCES") {
+              weekStats[iid].weekCongesHalf++;
+            } else if (up === "RG") {
+              weekStats[iid].weekRgHalf++;
+            } else if (up !== "FÉRIÉ") {
+              weekStats[iid].weekVac++;
+            }
+          });
+        });
+      }
+
+      return weekStats;
+    }
+
+    function toggleChefOffVacSummary() {
+      showChefOffVacSummary = !showChefOffVacSummary;
+      renderChefModeUI();
+    }
+
+    function renderChefOffVacSummaryHtml(monIso) {
+      const targetMon = monIso || getMondayOfWeek(currentDateIso);
+      const friIso = addDaysIso(targetMon, 4);
+      const weekStats = computeWeekStatsByInterne(targetMon);
+      const semStats = computeStatsByInterne();
+
+      let cardsHtml = "";
+      STATE.internes.forEach(i => {
+        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekCongesHalf: 0, weekRgHalf: 0 };
+        const s = semStats[i.id] || { activeHalfDays: 0, freeHalfDays: 0, vacHalfDays: 0, rgHalfDays: 0, gardesCount: 0 };
+        const isDJ = Boolean(i.isDJ || i.id === "oussama");
+        const absHalf = w.weekCongesHalf + w.weekRgHalf;
+        const isFullWeekAbs = absHalf >= 8;
+
+        let offPillClass = "off-ok";
+        let cardQuotaClass = "";
+        if (w.weekOff > 2) {
+          offPillClass = "off-danger";
+          cardQuotaClass = "danger-quota";
+        } else if (w.weekOff < 2 && absHalf < 6) {
+          offPillClass = "off-warn";
+          cardQuotaClass = "warn-quota";
+        }
+
+        let offSlotsLabel = "";
+        if (w.weekOffSlots.length > 0) {
+          offSlotsLabel = `Off : ${w.weekOffSlots.join(" • ")}`;
+        } else if (isFullWeekAbs) {
+          offSlotsLabel = `En congés / RG cette semaine`;
+        } else {
+          offSlotsLabel = `⚠️ Aucun demi-off posé`;
+        }
+
+        const absBadges = [];
+        if (w.weekCongesHalf > 0) {
+          const cj = w.weekCongesHalf / 2;
+          absBadges.push(`<span class="offvac-pill conges-count" title="Congés sur cette semaine">${cj}j Cong.</span>`);
+        }
+        if (w.weekRgHalf > 0) {
+          const rj = w.weekRgHalf / 2;
+          absBadges.push(`<span class="offvac-pill off-danger" title="Repos de garde sur cette semaine">${rj}j RG</span>`);
+        }
+
+        cardsHtml += `
+          <div class="chef-offvac-card ${cardQuotaClass}" onclick="openVacationEditModal('${currentDateIso}', '${i.id}')" title="Cliquer pour modifier le poste de ${i.fullName} le ${formatDateFr(currentDateIso)}">
+            <div class="chef-offvac-top">
+              <div class="chef-offvac-name">
+                <span style="width:7px;height:7px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>
+                <span>${i.shortName}</span>
+                ${i.isSocle ? `<span class="tag-sm" style="font-size:8.5px;padding:0 4px;">Socle</span>` : ""}
+                ${isDJ ? `<span class="tag-dj" style="font-size:8.5px;padding:0 4px;">DJ</span>` : ""}
+              </div>
+              <span style="font-size:10px; color:#64748B; font-weight:700;">✎</span>
+            </div>
+            <div class="chef-offvac-badges">
+              <span class="offvac-pill ${offPillClass}" title="Demi-offs sur la semaine (quota max 2)">${w.weekOff}/2 Off</span>
+              <span class="offvac-pill vac-count" title="Vacations travaillées sur la semaine">${w.weekVac} Vac.</span>
+              ${absBadges.join("")}
+            </div>
+            <div class="chef-offvac-slots" title="${offSlotsLabel}">${offSlotsLabel}</div>
+            <div class="chef-offvac-sem">
+              <span title="Total sur le semestre : vacations travaillées et demi-offs">Sem. : <strong>${s.activeHalfDays}</strong> vac • <strong>${s.freeHalfDays}</strong> off</span>
+              <span title="Congés et Repos de garde sur le semestre"><strong>${Math.round(s.vacHalfDays / 2)}j</strong> CA • <strong>${Math.round((s.rgHalfDays || 0) / 2)}</strong> RG</span>
+            </div>
+          </div>
+        `;
+      });
+
+      return `
+        <div class="chef-offvac-section">
+          <div class="chef-offvac-bar-header">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <strong style="color:#0F172A; font-size:12px;">📊 Résumé Offs & Vacations (${formatShortDayHeader(targetMon)} – ${formatShortDayHeader(friIso)})</strong>
+              <span style="color:#64748B; font-size:11px;">Semaine (quota 2 Off max) & cumul semestre • Touchez un interne pour modifier son poste</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <button class="btn btn-sm" style="padding:2px 8px; font-size:11px;" onclick="toggleStatsTable()">${showStatsTable ? "Masquer détail modalités" : "Détail par modalité"}</button>
+              <button class="btn btn-sm" style="padding:2px 8px; font-size:11px;" onclick="toggleChefOffVacSummary()">${showChefOffVacSummary ? "Réduire" : "Afficher"}</button>
+            </div>
+          </div>
+          ${showChefOffVacSummary ? `<div class="chef-offvac-grid">${cardsHtml}</div>` : ""}
+        </div>
+      `;
     }
 
     function formatDateFr(iso, withYear = false) {
@@ -3489,6 +3787,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
           </div>
           ${rows.length > 0 ? `<div class="chef-simple-list">${rows.join("")}</div>` : ""}
+          ${renderChefOffVacSummaryHtml(monIso)}
         </div>
       `;
     }
@@ -5001,7 +5300,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function toggleStatsTable() {
       showStatsTable = !showStatsTable;
-      renderTabContent();
+      renderAll();
     }
 
     function renderBalanceSummaryCard() {
@@ -5014,26 +5313,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         `;
       }
 
+      const monIso = getMondayOfWeek(currentDateIso);
+      const weekStatsAll = computeWeekStatsByInterne(monIso);
       const statsAll = computeStatsByInterne();
       let rows = "";
       STATE.internes.forEach(i => {
         if (isSingleInterneSelected && !isChefPlanningMode && i.id !== selectedInterneId) return;
         const s = statsAll[i.id];
+        const w = weekStatsAll[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [] };
         const isDJ = Boolean(i.isDJ || i.id === "oussama");
+        const offClass = w.weekOff > 2 ? "off-danger" : (w.weekOff < 2 ? "off-warn" : "off-ok");
         rows += `
           <tr>
             <td style="font-weight:700;">
+              <span style="width:7px;height:7px;border-radius:50%;background:${i.color};display:inline-block;margin-right:4px;"></span>
               ${i.shortName}
               ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
               ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
             </td>
+            <td>
+              <span class="offvac-pill ${offClass}">${w.weekOff}/2 Off</span>
+              ${w.weekOffSlots.length ? `<div style="font-size:10px; color:#64748B; margin-top:2px;">${w.weekOffSlots.join(" • ")}</div>` : ""}
+            </td>
+            <td><span class="offvac-pill vac-count">${w.weekVac} vac.</span></td>
             <td><strong>${s.activeHalfDays}</strong></td>
+            <td><strong>${s.freeHalfDays}</strong></td>
             <td>${s.byModality.TDM}</td>
             <td>${s.byModality.IRM}</td>
             <td>${s.byModality.ECHO}</td>
             <td>${s.byModality.RI_GESTES}</td>
             <td>${s.byModality.LECTURE_CS}</td>
-            <td>${s.freeHalfDays}</td>
             <td><strong>${s.gardesCount || 0}</strong>${s.gardesWeekendCount ? ` <span style="font-size:10px; color:var(--text-muted);">(${s.gardesWeekendCount} WE/Fér.)</span>` : ""}</td>
             <td>${Math.round((s.rgHalfDays || 0) / 2)} j.</td>
             <td>${Math.round(s.vacHalfDays / 2)} j.</td>
@@ -5045,7 +5354,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return `
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Répartition des postes & gardes sur le semestre</div>
+            <div class="card-title">Répartition des Offs, Vacations & Gardes (Semaine & Semestre)</div>
             <button class="btn btn-sm" onclick="toggleStatsTable()">Masquer</button>
           </div>
           <div class="week-table-wrap">
@@ -5053,13 +5362,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <thead>
                 <tr>
                   <th>Interne / DJ</th>
-                  <th>Total</th>
+                  <th>Offs (Sem.)</th>
+                  <th>Vac. (Sem.)</th>
+                  <th>Total Vac. (Semestre)</th>
+                  <th>Total Demi-offs</th>
                   <th>TDM</th>
                   <th>IRM</th>
                   <th>Écho</th>
                   <th>Gestes</th>
                   <th>CS</th>
-                  <th>Demi-offs</th>
                   <th>Gardes</th>
                   <th>RG</th>
                   <th>Congés</th>
@@ -5886,6 +6197,70 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       document.getElementById("vacEditAm").innerHTML = options.map(c => `<option value="${c}" ${c === slot.am ? 'selected' : ''}>${c}</option>`).join("");
       document.getElementById("vacEditPm").innerHTML = options.map(c => `<option value="${c}" ${c === slot.pm ? 'selected' : ''}>${c}</option>`).join("");
       document.getElementById("vacEditNote").value = slot.note || "";
+      refreshVacationModalSummary();
+    }
+
+    function refreshVacationModalSummary() {
+      const box = document.getElementById("vacEditLiveSummary");
+      if (!box) return;
+      const iso = document.getElementById("vacEditDate").value;
+      const iid = document.getElementById("vacEditInterneId").value;
+      const am = document.getElementById("vacEditAm").value;
+      const pm = document.getElementById("vacEditPm").value;
+      if (!iso || !iid) {
+        box.style.display = "none";
+        return;
+      }
+      const iObj = getInterneById(iid);
+      const monIso = getMondayOfWeek(iso);
+      const friIso = addDaysIso(monIso, 4);
+      const overrideSlot = { iso, iid, am, pm };
+      const weekStats = computeWeekStatsByInterne(monIso, overrideSlot);
+      const semStats = computeStatsByInterne(overrideSlot);
+      const w = weekStats[iid] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekCongesHalf: 0, weekRgHalf: 0 };
+      const s = semStats[iid] || { activeHalfDays: 0, freeHalfDays: 0, vacHalfDays: 0, rgHalfDays: 0 };
+
+      const [yy, mm, dd] = iso.split("-").map(Number);
+      const jsDay = new Date(yy, mm - 1, dd).getDay();
+      const forbiddenPmOff = (jsDay === 2 || jsDay === 5) && pm === "1/2 journée libre";
+      const overOffQuota = w.weekOff > 2;
+      const offPillClass = overOffQuota ? "off-danger" : (w.weekOff < 2 ? "off-warn" : "off-ok");
+
+      const otherChips = STATE.internes.map(other => {
+        const ow = weekStats[other.id] || { weekVac: 0, weekOff: 0 };
+        const os = semStats[other.id] || { activeHalfDays: 0, freeHalfDays: 0 };
+        const isCur = other.id === iid;
+        const oClass = ow.weekOff > 2 ? "off-danger" : (ow.weekOff < 2 ? "off-warn" : "off-ok");
+        return `<span onclick="document.getElementById('vacEditInterneId').value='${other.id}'; refreshVacationModalFields();" style="display:inline-flex; align-items:center; gap:3px; padding:2px 6px; border-radius:6px; font-size:10.5px; cursor:pointer; border:1px solid ${isCur ? '#0284C7' : '#CBD5E1'}; background:${isCur ? '#E0F2FE' : '#FFFFFF'}; font-weight:${isCur ? '800' : '600'};" title="Semestre : ${os.activeHalfDays} vac • ${os.freeHalfDays} off">
+          <span style="width:6px;height:6px;border-radius:50%;background:${other.color};display:inline-block;"></span>
+          ${other.shortName}: <strong>${ow.weekOff}/2 off</strong> • ${ow.weekVac}v <span style="color:#64748B; font-size:9.5px;">(${os.activeHalfDays}v/${os.freeHalfDays}o)</span>
+        </span>`;
+      }).join(" ");
+
+      box.style.display = "block";
+      box.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:4px;">
+          <strong style="color:#0F172A; font-size:12px;">📊 Bilan ${iObj.shortName} (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</strong>
+          <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+            <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
+            <span class="offvac-pill vac-count">${w.weekVac} Vac. sem.</span>
+            ${w.weekCongesHalf > 0 ? `<span class="offvac-pill conges-count">${w.weekCongesHalf / 2}j Cong.</span>` : ""}
+            ${w.weekRgHalf > 0 ? `<span class="offvac-pill off-danger">${w.weekRgHalf / 2}j RG</span>` : ""}
+          </div>
+        </div>
+        <div style="font-size:11px; color:#334155; margin-bottom:3px;">
+          <strong>Créneaux Off cette semaine :</strong> ${w.weekOffSlots.length ? w.weekOffSlots.join(" • ") : "Aucun demi-off"}
+        </div>
+        <div style="font-size:11px; color:#475569; margin-bottom:6px;">
+          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. travaillées • <strong>${s.freeHalfDays}</strong> demi-offs • <strong>${Math.round(s.vacHalfDays / 2)}j</strong> congés • <strong>${Math.round((s.rgHalfDays || 0) / 2)}j</strong> RG
+        </div>
+        ${forbiddenPmOff ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.</div>` : ""}
+        ${overOffQuota ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⚠️ Attention : ${w.weekOff} demi-offs sur cette semaine (max 2 autorisés).</div>` : ""}
+        <div style="border-top:1px dashed #CBD5E1; padding-top:5px; margin-top:4px;">
+          <div style="font-size:10px; font-weight:700; color:#64748B; margin-bottom:3px;">COMPARATIF DES 6 INTERNES (SEMAINE & SEMESTRE) :</div>
+          <div style="display:flex; flex-wrap:wrap; gap:4px;">${otherChips}</div>
+        </div>
+      `;
     }
 
     function saveSingleVacation() {
