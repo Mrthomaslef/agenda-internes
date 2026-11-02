@@ -4521,6 +4521,244 @@ def build_full_dataset() -> dict:
                             sl["preRgPm"] = b_sl["preRgPm"]
                     schedule[d_iso] = d_val
 
+    # Équilibrage global final des Consultations sur les semaines non verrouillées (après intégration des congés et customVacations)
+    all_iids_global = [x["id"] for x in INTERNES_LIST]
+    non_active_global = ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL")
+    weeks_by_mon_global: dict[str, list[str]] = {}
+    for d_iso in sorted(schedule.keys()):
+        weeks_by_mon_global.setdefault(_mon_of_iso(d_iso), []).append(d_iso)
+    unlocked_mons_global = [
+        m for m in sorted(weeks_by_mon_global.keys())
+        if not (isinstance(locked_weeks.get(m), dict) and locked_weeks[m].get("locked"))
+    ]
+
+    def _effective_slot_post(d_iso: str, iid: str, half: str) -> str:
+        ck = f"{d_iso}__{iid}"
+        cv = custom_vacations.get(ck)
+        if isinstance(cv, dict) and cv.get(half):
+            return cv[half]
+        return schedule[d_iso]["byInterne"][iid][half]
+
+    def _is_same_poste_day_global(p1: str, p2: str) -> bool:
+        if not p1 or not p2 or p1 in non_active_global or p2 in non_active_global:
+            return False
+        if p1 == p2:
+            return True
+        if "IRM" in p1 and "IRM" in p2:
+            return True
+        return False
+
+    def _format_pm_note_global(d_iso: str, iid: str, p_code: str) -> str:
+        wd_d = datetime.date.fromisoformat(d_iso).weekday()
+        if p_code == "CONSULTATION":
+            return "Consultation Internes (Mardi PM)" if wd_d == 1 else "Consultation Internes (Vendredi PM)"
+        if p_code == "LECTURE":
+            if wd_d == 1:
+                return "Relecture avec Pr Drapé" if iid == "noe" else "Relecture avec Pr Drapé (systématique)"
+            return "Lecture (Vendredi PM)"
+        if iid == "noe":
+            return f"Phase Socle ({p_code})"
+        return ""
+
+    # Convertir une LECTURE du Vendredi PM en CONSULTATION si la CONSULTATION du Vendredi PM n'est pas couverte (ex: interne en VACANCES)
+    for mon_iso in unlocked_mons_global:
+        for d_iso in weeks_by_mon_global[mon_iso]:
+            if schedule[d_iso].get("holiday"):
+                continue
+            if datetime.date.fromisoformat(d_iso).weekday() != 4:
+                continue
+            has_cs_fri = any(_effective_slot_post(d_iso, iid, "pm") == "CONSULTATION" for iid in all_iids_global)
+            if not has_cs_fri:
+                for iid in all_iids_global:
+                    ck = f"{d_iso}__{iid}"
+                    if isinstance(custom_vacations.get(ck), dict) and custom_vacations[ck].get("pm"):
+                        continue
+                    if _effective_slot_post(d_iso, iid, "pm") == "LECTURE" and not _is_same_poste_day_global(_effective_slot_post(d_iso, iid, "am"), "CONSULTATION"):
+                        sl = schedule[d_iso]["byInterne"][iid]
+                        sl["pm"] = "CONSULTATION"
+                        sl["notePm"] = _format_pm_note_global(d_iso, iid, "CONSULTATION")
+                        sl["note"] = " • ".join(x for x in (sl.get("noteAm", ""), sl.get("notePm", "")) if x)
+                        rebuild_day_lists(schedule[d_iso])
+                        break
+
+    def _week_cs_cnt(mon_iso: str, iid: str) -> int:
+        return sum(
+            1
+            for d_iso in weeks_by_mon_global[mon_iso]
+            if not schedule[d_iso].get("holiday")
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "CONSULTATION"
+        )
+
+    def _total_cs_cnt(iid: str) -> int:
+        return sum(
+            1
+            for d_iso, d_obj in schedule.items()
+            if not d_obj.get("holiday")
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "CONSULTATION"
+        )
+
+    def _total_cs_wd_cnt(iid: str, wd_target: int) -> int:
+        return sum(
+            1
+            for d_iso, d_obj in schedule.items()
+            if not d_obj.get("holiday") and datetime.date.fromisoformat(d_iso).weekday() == wd_target
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "CONSULTATION"
+        )
+
+    def _can_swap_cs_global(d_iso: str, from_id: str, to_id: str, allowed_postes: tuple[str, ...]) -> bool:
+        if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+            return False
+        if isinstance(custom_vacations.get(f"{d_iso}__{from_id}"), dict) and custom_vacations[f"{d_iso}__{from_id}"].get("pm"):
+            return False
+        if isinstance(custom_vacations.get(f"{d_iso}__{to_id}"), dict) and custom_vacations[f"{d_iso}__{to_id}"].get("pm"):
+            return False
+        wd_d = datetime.date.fromisoformat(d_iso).weekday()
+        if _effective_slot_post(d_iso, from_id, "pm") != "CONSULTATION":
+            return False
+        p_other = _effective_slot_post(d_iso, to_id, "pm")
+        if p_other not in allowed_postes:
+            return False
+        if wd_d == 1 and p_other == "LECTURE" and from_id == "noe":
+            return False
+        if _is_same_poste_day_global(_effective_slot_post(d_iso, from_id, "am"), p_other):
+            return False
+        if _is_same_poste_day_global(_effective_slot_post(d_iso, to_id, "am"), "CONSULTATION"):
+            return False
+        return True
+
+    def _exec_swap_cs_global(d_iso: str, from_id: str, to_id: str) -> None:
+        by_s = schedule[d_iso]["byInterne"]
+        p_other = by_s[to_id]["pm"]
+        by_s[from_id]["pm"] = p_other
+        by_s[from_id]["notePm"] = _format_pm_note_global(d_iso, from_id, p_other)
+        by_s[from_id]["note"] = " • ".join(x for x in (by_s[from_id].get("noteAm", ""), by_s[from_id].get("notePm", "")) if x)
+        by_s[to_id]["pm"] = "CONSULTATION"
+        by_s[to_id]["notePm"] = _format_pm_note_global(d_iso, to_id, "CONSULTATION")
+        by_s[to_id]["note"] = " • ".join(x for x in (by_s[to_id].get("noteAm", ""), by_s[to_id].get("notePm", "")) if x)
+        rebuild_day_lists(schedule[d_iso])
+
+    # 1) Éliminer les semaines avec >= 2 consultations pour un même interne
+    for mon_iso in unlocked_mons_global:
+        for _ in range(10):
+            sw = False
+            for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
+                for over_id in all_iids_global:
+                    if _week_cs_cnt(mon_iso, over_id) < 2:
+                        continue
+                    under_cands = sorted(
+                        [u for u in all_iids_global if u != over_id and _week_cs_cnt(mon_iso, u) == 0],
+                        key=_total_cs_cnt,
+                    )
+                    for under_id in under_cands:
+                        for d_iso in weeks_by_mon_global[mon_iso]:
+                            if _can_swap_cs_global(d_iso, over_id, under_id, allowed_list):
+                                _exec_swap_cs_global(d_iso, over_id, under_id)
+                                sw = True
+                                break
+                        if sw:
+                            break
+                    if sw:
+                        break
+                if sw:
+                    break
+            if not sw:
+                break
+
+    # 2) Égaliser le total de CONSULTATION sur le semestre (cible 8 par interne)
+    for _ in range(80):
+        swapped_g = False
+        counts_g = {iid: _total_cs_cnt(iid) for iid in all_iids_global}
+        sorted_iids_g = sorted(all_iids_global, key=lambda x: (-counts_g[x], 1 if x == "noe" else 0))
+        max_c = counts_g[sorted_iids_g[0]]
+        min_c = counts_g[sorted_iids_g[-1]]
+        if max_c - min_c <= 1 and not (counts_g["noe"] > min_c and counts_g["noe"] > 8):
+            break
+        for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
+            for over_id in sorted_iids_g:
+                for under_id in reversed(sorted_iids_g):
+                    if under_id == over_id:
+                        continue
+                    diff = counts_g[over_id] - counts_g[under_id]
+                    if not (diff >= 2 or (over_id == "noe" and diff >= 1 and counts_g[over_id] > 8)):
+                        continue
+                    for mon_iso in unlocked_mons_global:
+                        if _week_cs_cnt(mon_iso, over_id) == 0 or _week_cs_cnt(mon_iso, under_id) > 0:
+                            continue
+                        for d_iso in weeks_by_mon_global[mon_iso]:
+                            if _can_swap_cs_global(d_iso, over_id, under_id, allowed_list):
+                                _exec_swap_cs_global(d_iso, over_id, under_id)
+                                swapped_g = True
+                                break
+                        if swapped_g:
+                            break
+                    if swapped_g:
+                        break
+                if swapped_g:
+                    break
+            if swapped_g:
+                break
+        if not swapped_g:
+            break
+
+    # 3) Équilibrer Mardi PM vs Vendredi PM sans dégrader le total par interne
+    for _ in range(40):
+        swapped_tf = False
+        tot_c = {iid: _total_cs_cnt(iid) for iid in all_iids_global}
+        tue_c = {iid: _total_cs_wd_cnt(iid, 1) for iid in all_iids_global}
+        fri_c = {iid: _total_cs_wd_cnt(iid, 4) for iid in all_iids_global}
+        for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
+            for over_tue_id in all_iids_global:
+                if tue_c[over_tue_id] - fri_c[over_tue_id] < 2:
+                    continue
+                for over_fri_id in all_iids_global:
+                    if over_fri_id == over_tue_id or fri_c[over_fri_id] - tue_c[over_fri_id] < 2:
+                        continue
+                    if abs(tot_c[over_tue_id] - tot_c[over_fri_id]) > 1:
+                        continue
+                    for mon_tue in unlocked_mons_global:
+                        if _week_cs_cnt(mon_tue, over_tue_id) == 0 or _week_cs_cnt(mon_tue, over_fri_id) > 0:
+                            continue
+                        tue_day = next(
+                            (
+                                d for d in weeks_by_mon_global[mon_tue]
+                                if datetime.date.fromisoformat(d).weekday() == 1
+                                and _can_swap_cs_global(d, over_tue_id, over_fri_id, allowed_list)
+                            ),
+                            None,
+                        )
+                        if not tue_day:
+                            continue
+                        for mon_fri in unlocked_mons_global:
+                            if mon_fri == mon_tue or _week_cs_cnt(mon_fri, over_fri_id) == 0 or _week_cs_cnt(mon_fri, over_tue_id) > 0:
+                                continue
+                            fri_day = next(
+                                (
+                                    d for d in weeks_by_mon_global[mon_fri]
+                                    if datetime.date.fromisoformat(d).weekday() == 4
+                                    and _can_swap_cs_global(d, over_fri_id, over_tue_id, allowed_list)
+                                ),
+                                None,
+                            )
+                            if not fri_day:
+                                continue
+                            _exec_swap_cs_global(tue_day, over_tue_id, over_fri_id)
+                            _exec_swap_cs_global(fri_day, over_fri_id, over_tue_id)
+                            swapped_tf = True
+                            break
+                        if swapped_tf:
+                            break
+                    if swapped_tf:
+                        break
+                if swapped_tf:
+                    break
+            if swapped_tf:
+                break
+        if not swapped_tf:
+            break
+
     presentations = build_initial_presentations(schedule)
     meetings = build_service_meetings()
     recurring_staffs = build_recurring_staffs()

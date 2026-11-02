@@ -3878,105 +3878,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!swappedG) break;
           }
 
-          // 2B-septies. Équilibrage des Consultations (CONSULTATION : max 1/semaine, équilibre cumulé) entre les internes
-          const countWeekCsJs = (interneId) => {
-            let cnt = 0;
-            activeIsos.forEach(dChk => {
-              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
-              if (!sl) return;
-              if (sl.am === "CONSULTATION") cnt++;
-              if (sl.pm === "CONSULTATION") cnt++;
-            });
-            return cnt;
-          };
-          const countWeekLectureJs = (interneId) => {
-            let cnt = 0;
-            activeIsos.forEach(dChk => {
-              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
-              if (!sl) return;
-              if (sl.am === "LECTURE") cnt++;
-              if (sl.pm === "LECTURE") cnt++;
-            });
-            return cnt;
-          };
-          const formatPmNoteForPosteJs = (dIso, iid, pCode) => {
-            const [yy, mm, dd] = dIso.split("-").map(Number);
-            const jsDay = new Date(yy, mm - 1, dd).getDay();
-            if (pCode === "CONSULTATION") {
-              return jsDay === 2 ? "Consultation Internes (Mardi PM)" : "Consultation Internes (Vendredi PM)";
-            }
-            if (pCode === "LECTURE") {
-              if (jsDay === 2) return iid === "noe" ? "Relecture avec Pr Drapé" : "Relecture avec Pr Drapé (systématique)";
-              return "Lecture (Vendredi PM)";
-            }
-            if (iid === "noe") return `Phase Socle (${pCode})`;
-            return "";
-          };
-          const canSwapCsSlotJs = (dIso, fromId, toId, allowedPostes) => {
-            if (dIso === "2026-11-02") return false;
-            if (custom[dIso + "__" + fromId] && custom[dIso + "__" + fromId].pm) return false;
-            if (custom[dIso + "__" + toId] && custom[dIso + "__" + toId].pm) return false;
-            const [yy, mm, dd] = dIso.split("-").map(Number);
-            const jsDay = new Date(yy, mm - 1, dd).getDay();
-            const byS = st.schedule[dIso].byInterne;
-            if (!byS[fromId] || byS[fromId].pm !== "CONSULTATION" || !byS[toId]) return false;
-            const pOther = byS[toId].pm;
-            if (!pOther || !allowedPostes.includes(pOther)) return false;
-            if (jsDay === 2 && pOther === "LECTURE" && fromId === "noe") return false;
-            if (isSamePosteDayJs(byS[fromId].am, pOther) || isSamePosteDayJs(byS[toId].am, "CONSULTATION")) return false;
-            return true;
-          };
-          const execSwapCsSlotJs = (dIso, fromId, toId) => {
-            const byS = st.schedule[dIso].byInterne;
-            const pOther = byS[toId].pm;
-            byS[fromId].pm = pOther;
-            byS[fromId].notePm = formatPmNoteForPosteJs(dIso, fromId, pOther);
-            byS[toId].pm = "CONSULTATION";
-            byS[toId].notePm = formatPmNoteForPosteJs(dIso, toId, "CONSULTATION");
-          };
-          for (let iterCs = 0; iterCs < 30; iterCs++) {
-            let swappedCs = false;
-            const sortedCsIids = allIidsJs.slice().sort((a, b) => {
-              const wa = countWeekCsJs(a), wb = countWeekCsJs(b);
-              const hiA = wa >= 2 ? 1 : 0, hiB = wb >= 2 ? 1 : 0;
-              if (hiA !== hiB) return hiB - hiA;
-              const ca = (totalCsCounts[a] || 0) + wa, cb = (totalCsCounts[b] || 0) + wb;
-              if (ca !== cb) return cb - ca;
-              const na = a === "noe" ? 1 : 0, nb = b === "noe" ? 1 : 0;
-              if (na !== nb) return nb - na;
-              if (wa !== wb) return wb - wa;
-              return ((totalLectureCounts[a] || 0) + countWeekLectureJs(a)) - ((totalLectureCounts[b] || 0) + countWeekLectureJs(b));
-            });
-            for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
-              for (const overId of sortedCsIids) {
-                const wOver = countWeekCsJs(overId);
-                if (wOver === 0) continue;
-                const cOver = (totalCsCounts[overId] || 0) + wOver;
-                for (let uIdx = sortedCsIids.length - 1; uIdx >= 0; uIdx--) {
-                  const underId = sortedCsIids[uIdx];
-                  if (underId === overId) continue;
-                  const wUnder = countWeekCsJs(underId);
-                  const cUnder = (totalCsCounts[underId] || 0) + wUnder;
-                  if (!(
-                    (wOver >= 2 && wUnder === 0) ||
-                    (cOver >= cUnder + 2 && wUnder === 0) ||
-                    (overId === "noe" && seniorIds.includes(underId) && cOver >= cUnder + 1 && cOver > 8 && wUnder === 0)
-                  )) continue;
-                  for (const dIso of activeIsos) {
-                    if (canSwapCsSlotJs(dIso, overId, underId, allowedList)) {
-                      execSwapCsSlotJs(dIso, overId, underId);
-                      swappedCs = true;
-                      break;
-                    }
-                  }
-                  if (swappedCs) break;
-                }
-                if (swappedCs) break;
-              }
-              if (swappedCs) break;
-            }
-            if (!swappedCs) break;
-          }
         }
 
         // Accumuler les compteurs inter-semaines sur baseSched (et non st.schedule)
@@ -4056,6 +3957,239 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
         }
       });
+
+      // 2D. Équilibrage global des Consultations (CONSULTATION : max 1/semaine, égalisation totale et équilibre Mardi/Vendredi) sur les semaines non verrouillées
+      {
+        const allIidsGlobal = (st.internes || []).map(x => x.id);
+        const isSamePosteDayGlobal = (p1, p2) => {
+          if (!p1 || !p2) return false;
+          if (nonActivePostes.includes(p1) || nonActivePostes.includes(p2)) return false;
+          if (p1 === p2) return true;
+          const irmSet = ["IRM", "IRM 1,5T", "IRM 3T"];
+          if (irmSet.includes(p1) && irmSet.includes(p2)) return true;
+          return false;
+        };
+        const formatPmNoteForPosteGlobal = (dIso, iid, pCode) => {
+          const [yy, mm, dd] = dIso.split("-").map(Number);
+          const jsDay = new Date(yy, mm - 1, dd).getDay();
+          if (pCode === "CONSULTATION") {
+            return jsDay === 2 ? "Consultation Internes (Mardi PM)" : "Consultation Internes (Vendredi PM)";
+          }
+          if (pCode === "LECTURE") {
+            if (jsDay === 2) return iid === "noe" ? "Relecture avec Pr Drapé" : "Relecture avec Pr Drapé (systématique)";
+            return "Lecture (Vendredi PM)";
+          }
+          if (iid === "noe") return `Phase Socle (${pCode})`;
+          return "";
+        };
+        const unlockedWeekMons = Object.keys(weeksMap).sort().filter(monIso => {
+          return !(st.lockedWeeks && st.lockedWeeks[monIso] && st.lockedWeeks[monIso].locked);
+        });
+        // Si un Vendredi PM n'a pas de CONSULTATION mais a une LECTURE disponible (ex: interne en VACANCES), convertir LECTURE -> CONSULTATION
+        unlockedWeekMons.forEach(monIso => {
+          weeksMap[monIso].forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const [yy, mm, dd] = dIso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+            if (jsDay !== 5) return;
+            const byS = st.schedule[dIso].byInterne;
+            const hasCs = allIidsGlobal.some(iid => byS[iid] && byS[iid].pm === "CONSULTATION");
+            if (!hasCs) {
+              for (const iid of allIidsGlobal) {
+                if (custom[dIso + "__" + iid] && custom[dIso + "__" + iid].pm) continue;
+                const sl = byS[iid];
+                if (sl && sl.pm === "LECTURE" && !isSamePosteDayGlobal(sl.am, "CONSULTATION")) {
+                  sl.pm = "CONSULTATION";
+                  sl.notePm = formatPmNoteForPosteGlobal(dIso, iid, "CONSULTATION");
+                  if (!(custom[dIso + "__" + iid] && custom[dIso + "__" + iid].note)) {
+                    sl.note = [sl.noteAm, sl.notePm].filter(Boolean).join(" • ");
+                  }
+                  break;
+                }
+              }
+            }
+          });
+        });
+        const getWeekCsCountGlobal = (monIso, iid) => {
+          let c = 0;
+          (weeksMap[monIso] || []).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "CONSULTATION") c++;
+            if (sl.pm === "CONSULTATION") c++;
+          });
+          return c;
+        };
+        const getTotalCsCountGlobal = (iid) => {
+          let c = 0;
+          Object.keys(st.schedule).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "CONSULTATION") c++;
+            if (sl.pm === "CONSULTATION") c++;
+          });
+          return c;
+        };
+        const getTotalCsDayCountGlobal = (iid, targetJsDay) => {
+          let c = 0;
+          Object.keys(st.schedule).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const [yy, mm, dd] = dIso.split("-").map(Number);
+            if (new Date(yy, mm - 1, dd).getDay() !== targetJsDay) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "CONSULTATION") c++;
+            if (sl.pm === "CONSULTATION") c++;
+          });
+          return c;
+        };
+        const canSwapCsGlobal = (dIso, fromId, toId, allowedPostes) => {
+          if (dIso === "2026-11-02") return false;
+          if (!st.schedule[dIso] || st.schedule[dIso].holiday) return false;
+          if (custom[dIso + "__" + fromId] && custom[dIso + "__" + fromId].pm) return false;
+          if (custom[dIso + "__" + toId] && custom[dIso + "__" + toId].pm) return false;
+          const [yy, mm, dd] = dIso.split("-").map(Number);
+          const jsDay = new Date(yy, mm - 1, dd).getDay();
+          const byS = st.schedule[dIso].byInterne;
+          if (!byS[fromId] || byS[fromId].pm !== "CONSULTATION" || !byS[toId]) return false;
+          const pOther = byS[toId].pm;
+          if (!pOther || !allowedPostes.includes(pOther)) return false;
+          if (jsDay === 2 && pOther === "LECTURE" && fromId === "noe") return false;
+          if (isSamePosteDayGlobal(byS[fromId].am, pOther) || isSamePosteDayGlobal(byS[toId].am, "CONSULTATION")) return false;
+          return true;
+        };
+        const execSwapCsGlobal = (dIso, fromId, toId) => {
+          const byS = st.schedule[dIso].byInterne;
+          const pOther = byS[toId].pm;
+          byS[fromId].pm = pOther;
+          byS[fromId].notePm = formatPmNoteForPosteGlobal(dIso, fromId, pOther);
+          if (!(custom[dIso + "__" + fromId] && custom[dIso + "__" + fromId].note)) {
+            byS[fromId].note = [byS[fromId].noteAm, byS[fromId].notePm].filter(Boolean).join(" • ");
+          }
+          byS[toId].pm = "CONSULTATION";
+          byS[toId].notePm = formatPmNoteForPosteGlobal(dIso, toId, "CONSULTATION");
+          if (!(custom[dIso + "__" + toId] && custom[dIso + "__" + toId].note)) {
+            byS[toId].note = [byS[toId].noteAm, byS[toId].notePm].filter(Boolean).join(" • ");
+          }
+        };
+
+        // 1) Éliminer les semaines avec >= 2 consultations pour un même interne
+        unlockedWeekMons.forEach(monIso => {
+          for (let it = 0; it < 10; it++) {
+            let sw = false;
+            for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
+              for (const overId of allIidsGlobal) {
+                if (getWeekCsCountGlobal(monIso, overId) < 2) continue;
+                const underCandidates = allIidsGlobal
+                  .filter(u => u !== overId && getWeekCsCountGlobal(monIso, u) === 0)
+                  .sort((a, b) => getTotalCsCountGlobal(a) - getTotalCsCountGlobal(b));
+                for (const underId of underCandidates) {
+                  for (const dIso of weeksMap[monIso]) {
+                    if (canSwapCsGlobal(dIso, overId, underId, allowedList)) {
+                      execSwapCsGlobal(dIso, overId, underId);
+                      sw = true;
+                      break;
+                    }
+                  }
+                  if (sw) break;
+                }
+                if (sw) break;
+              }
+              if (sw) break;
+            }
+            if (!sw) break;
+          }
+        });
+
+        // 2) Égaliser le total de CONSULTATION sur le semestre (écart max <= 1, cible 8 par interne)
+        for (let iterG = 0; iterG < 80; iterG++) {
+          let swappedG = false;
+          const counts = {};
+          allIidsGlobal.forEach(iid => { counts[iid] = getTotalCsCountGlobal(iid); });
+          const sortedIids = allIidsGlobal.slice().sort((a, b) => {
+            if (counts[b] !== counts[a]) return counts[b] - counts[a];
+            return (a === "noe" ? 1 : 0) - (b === "noe" ? 1 : 0);
+          });
+          const maxC = counts[sortedIids[0]];
+          const minC = counts[sortedIids[sortedIids.length - 1]];
+          if (maxC - minC <= 1 && !(counts.noe > minC && counts.noe > 8)) break;
+
+          for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
+            for (const overId of sortedIids) {
+              for (let uIdx = sortedIids.length - 1; uIdx >= 0; uIdx--) {
+                const underId = sortedIids[uIdx];
+                if (underId === overId) continue;
+                const diff = counts[overId] - counts[underId];
+                if (!(diff >= 2 || (overId === "noe" && diff >= 1 && counts[overId] > 8))) continue;
+                for (const monIso of unlockedWeekMons) {
+                  if (getWeekCsCountGlobal(monIso, overId) === 0 || getWeekCsCountGlobal(monIso, underId) > 0) continue;
+                  for (const dIso of weeksMap[monIso]) {
+                    if (canSwapCsGlobal(dIso, overId, underId, allowedList)) {
+                      execSwapCsGlobal(dIso, overId, underId);
+                      swappedG = true;
+                      break;
+                    }
+                  }
+                  if (swappedG) break;
+                }
+                if (swappedG) break;
+              }
+              if (swappedG) break;
+            }
+            if (swappedG) break;
+          }
+          if (!swappedG) break;
+        }
+
+        // 3) Équilibrer Mardi PM vs Vendredi PM sans dégrader le total par interne
+        for (let iterTF = 0; iterTF < 40; iterTF++) {
+          let swappedTF = false;
+          const totalC = {}, tueC = {}, friC = {};
+          allIidsGlobal.forEach(iid => {
+            totalC[iid] = getTotalCsCountGlobal(iid);
+            tueC[iid] = getTotalCsDayCountGlobal(iid, 2);
+            friC[iid] = getTotalCsDayCountGlobal(iid, 5);
+          });
+          for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
+            for (const overTueId of allIidsGlobal) {
+              if (tueC[overTueId] - friC[overTueId] < 2) continue;
+              for (const overFriId of allIidsGlobal) {
+                if (overFriId === overTueId) continue;
+                if (friC[overFriId] - tueC[overFriId] < 2) continue;
+                if (Math.abs(totalC[overTueId] - totalC[overFriId]) > 1) continue;
+                for (const monTue of unlockedWeekMons) {
+                  if (getWeekCsCountGlobal(monTue, overTueId) === 0 || getWeekCsCountGlobal(monTue, overFriId) > 0) continue;
+                  const tueDay = weeksMap[monTue].find(d => {
+                    const [y, m, dd] = d.split("-").map(Number);
+                    return new Date(y, m - 1, dd).getDay() === 2 && canSwapCsGlobal(d, overTueId, overFriId, allowedList);
+                  });
+                  if (!tueDay) continue;
+                  for (const monFri of unlockedWeekMons) {
+                    if (monFri === monTue) continue;
+                    if (getWeekCsCountGlobal(monFri, overFriId) === 0 || getWeekCsCountGlobal(monFri, overTueId) > 0) continue;
+                    const friDay = weeksMap[monFri].find(d => {
+                      const [y, m, dd] = d.split("-").map(Number);
+                      return new Date(y, m - 1, dd).getDay() === 5 && canSwapCsGlobal(d, overFriId, overTueId, allowedList);
+                    });
+                    if (!friDay) continue;
+                    execSwapCsGlobal(tueDay, overTueId, overFriId);
+                    execSwapCsGlobal(friDay, overFriId, overTueId);
+                    swappedTF = true;
+                    break;
+                  }
+                  if (swappedTF) break;
+                }
+                if (swappedTF) break;
+              }
+              if (swappedTF) break;
+            }
+            if (swappedTF) break;
+          }
+          if (!swappedTF) break;
+        }
+      }
 
       // 3. Reconstruire dayObj.am, dayObj.pm et dayObj.slots
       Object.keys(st.schedule).forEach(iso => {

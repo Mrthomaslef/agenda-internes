@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-02T20:19:41.426211+00:00",
+  "updatedAt": "2026-11-02T20:30:52.140642+00:00",
   "chefValidatedAt": "2026-11-02T20:03:11.276Z",
   "chefRevision": 49,
   "deletedAbsenceIds": [],
@@ -34698,12 +34698,12 @@
       ],
       "pm": [
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "ECHO fermé → Relecture Pr Drapé"
+          "note": "Consultation Internes (Mardi PM)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -34714,12 +34714,12 @@
           "note": "Scanner Achard 1"
         },
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Mardi PM)"
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "LECTURE",
@@ -34795,19 +34795,19 @@
       "byInterne": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "LECTURE",
-          "note": "Demi-journée off fixe hebdomadaire",
+          "pm": "CONSULTATION",
+          "note": "Demi-journée off fixe hebdomadaire • Consultation Internes (Mardi PM)",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "ECHO fermé → Relecture Pr Drapé",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "TDM SAU"
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "Consultation Internes (Mardi PM)",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "IRM 3T",
           "preRgPm": "CONSULTATION"
         },
@@ -34851,19 +34851,19 @@
       "slots": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "LECTURE",
-          "note": "Demi-journée off fixe hebdomadaire",
+          "pm": "CONSULTATION",
+          "note": "Demi-journée off fixe hebdomadaire • Consultation Internes (Mardi PM)",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "ECHO fermé → Relecture Pr Drapé",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "TDM SAU"
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "Consultation Internes (Mardi PM)",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "IRM 3T",
           "preRgPm": "CONSULTATION"
         },
@@ -37690,20 +37690,20 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Lecture (Vendredi PM)"
+          "note": "Consultation Internes (Vendredi PM)"
         },
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Vendredi PM)"
+          "note": "Lecture (Vendredi PM)"
         },
         {
           "poste": "IRM",
@@ -37754,19 +37754,19 @@
         },
         "nathanael": {
           "am": "1/2 journée libre",
-          "pm": "LECTURE",
-          "note": "Demi-off hebdomadaire",
+          "pm": "CONSULTATION",
+          "note": "Demi-off hebdomadaire • Consultation Internes (Vendredi PM)",
           "noteAm": "Demi-off hebdomadaire",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "GESTES (C)"
         },
         "oussama": {
           "am": "IRM 1,5T",
-          "pm": "CONSULTATION",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Lecture (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "CONSULTATION"
         },
@@ -37810,19 +37810,19 @@
         },
         "nathanael": {
           "am": "1/2 journée libre",
-          "pm": "LECTURE",
-          "note": "Demi-off hebdomadaire",
+          "pm": "CONSULTATION",
+          "note": "Demi-off hebdomadaire • Consultation Internes (Vendredi PM)",
           "noteAm": "Demi-off hebdomadaire",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "GESTES (C)"
         },
         "oussama": {
           "am": "IRM 1,5T",
-          "pm": "CONSULTATION",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Lecture (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "CONSULTATION"
         },
@@ -39209,12 +39209,12 @@
           "note": "Phase Socle (GESTES (C))"
         },
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
           "binome": false,
-          "note": "Relecture avec Pr Drapé (systématique)"
+          "note": "Consultation Internes (Mardi PM)"
         },
         {
           "poste": "TDM SAU",
@@ -39233,12 +39233,12 @@
           "note": ""
         },
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Mardi PM)"
+          "note": "Relecture avec Pr Drapé (systématique)"
         }
       ],
       "closedAm": [],
@@ -39255,10 +39255,10 @@
         },
         "marwane": {
           "am": "IRM 1,5T",
-          "pm": "LECTURE",
+          "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "ECHO"
         },
@@ -39282,10 +39282,10 @@
         },
         "oussama": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "pm": "LECTURE",
+          "note": "Vacation obligatoire (IRM 3T) • Relecture avec Pr Drapé (systématique)",
           "noteAm": "Vacation obligatoire (IRM 3T)",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "LECTURE"
         },
@@ -39311,10 +39311,10 @@
         },
         "marwane": {
           "am": "IRM 1,5T",
-          "pm": "LECTURE",
+          "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "ECHO"
         },
@@ -39338,10 +39338,10 @@
         },
         "oussama": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "pm": "LECTURE",
+          "note": "Vacation obligatoire (IRM 3T) • Relecture avec Pr Drapé (systématique)",
           "noteAm": "Vacation obligatoire (IRM 3T)",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "LECTURE"
         },
@@ -41722,12 +41722,12 @@
       ],
       "pm": [
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Vendredi PM)"
+          "note": "Lecture (Vendredi PM)"
         },
         {
           "poste": "TDM SAU",
@@ -41738,12 +41738,12 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         },
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
           "binome": false,
-          "note": "Lecture (Vendredi PM)"
+          "note": "Consultation Internes (Vendredi PM)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -41791,19 +41791,19 @@
       "byInterne": {
         "gabriel": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "IRM fermé",
+          "pm": "LECTURE",
+          "note": "Lecture (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "ECHO",
           "preRgPm": "CONSULTATION"
         },
         "marwane": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
-          "note": "Lecture (Vendredi PM)",
+          "pm": "CONSULTATION",
+          "note": "Remplacement TDM SAU (congés/RG) • Consultation Internes (Vendredi PM)",
           "noteAm": "Remplacement TDM SAU (congés/RG)",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
         },
@@ -41847,19 +41847,19 @@
       "slots": {
         "gabriel": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "IRM fermé",
+          "pm": "LECTURE",
+          "note": "Lecture (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "ECHO",
           "preRgPm": "CONSULTATION"
         },
         "marwane": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
-          "note": "Lecture (Vendredi PM)",
+          "pm": "CONSULTATION",
+          "note": "Remplacement TDM SAU (congés/RG) • Consultation Internes (Vendredi PM)",
           "noteAm": "Remplacement TDM SAU (congés/RG)",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
         },
@@ -43257,12 +43257,12 @@
       ],
       "pm": [
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Mardi PM)"
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "ECHO",
@@ -43281,12 +43281,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
           "binome": false,
-          "note": "Relecture avec Pr Drapé (systématique)"
+          "note": "Consultation Internes (Mardi PM)"
         },
         {
           "poste": "TDM SAU",
@@ -43310,10 +43310,10 @@
       "byInterne": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "CONSULTATION",
-          "note": "Demi-journée off fixe hebdomadaire",
+          "pm": "LECTURE",
+          "note": "Demi-journée off fixe hebdomadaire • Relecture avec Pr Drapé (systématique)",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "TDM SAU"
         },
@@ -43328,10 +43328,10 @@
         },
         "milan": {
           "am": "IRM 1,5T",
-          "pm": "LECTURE",
-          "note": "Vacation obligatoire (IRM 1,5T)",
+          "pm": "CONSULTATION",
+          "note": "Vacation obligatoire (IRM 1,5T) • Consultation Internes (Mardi PM)",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "SCAN ACHARD"
         },
@@ -43366,10 +43366,10 @@
       "slots": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "CONSULTATION",
-          "note": "Demi-journée off fixe hebdomadaire",
+          "pm": "LECTURE",
+          "note": "Demi-journée off fixe hebdomadaire • Relecture avec Pr Drapé (systématique)",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "TDM SAU"
         },
@@ -43384,10 +43384,10 @@
         },
         "milan": {
           "am": "IRM 1,5T",
-          "pm": "LECTURE",
-          "note": "Vacation obligatoire (IRM 1,5T)",
+          "pm": "CONSULTATION",
+          "note": "Vacation obligatoire (IRM 1,5T) • Consultation Internes (Mardi PM)",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "SCAN ACHARD"
         },
@@ -54041,12 +54041,12 @@
       ],
       "pm": [
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Mardi PM)"
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -54065,12 +54065,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
           "binome": false,
-          "note": "Relecture avec Pr Drapé (systématique)"
+          "note": "Consultation Internes (Mardi PM)"
         },
         {
           "poste": "TDM SAU",
@@ -54094,10 +54094,10 @@
       "byInterne": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "CONSULTATION",
-          "note": "Demi-journée off fixe hebdomadaire",
+          "pm": "LECTURE",
+          "note": "Demi-journée off fixe hebdomadaire • Relecture avec Pr Drapé (systématique)",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "LECTURE"
         },
@@ -54112,10 +54112,10 @@
         },
         "milan": {
           "am": "IRM 1,5T",
-          "pm": "LECTURE",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "pm": "CONSULTATION",
+          "note": "Vacation obligatoire (IRM 1,5T) • Consultation Internes (Mardi PM)",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "CONSULTATION"
         },
@@ -54150,10 +54150,10 @@
       "slots": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "CONSULTATION",
-          "note": "Demi-journée off fixe hebdomadaire",
+          "pm": "LECTURE",
+          "note": "Demi-journée off fixe hebdomadaire • Relecture avec Pr Drapé (systématique)",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "LECTURE"
         },
@@ -54168,10 +54168,10 @@
         },
         "milan": {
           "am": "IRM 1,5T",
-          "pm": "LECTURE",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "pm": "CONSULTATION",
+          "note": "Vacation obligatoire (IRM 1,5T) • Consultation Internes (Mardi PM)",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "CONSULTATION"
         },
