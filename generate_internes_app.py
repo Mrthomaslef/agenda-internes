@@ -1429,6 +1429,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       box-shadow: inset 3px 0 0 #FCA5A5;
     }
 
+    td.cell-chef-without-interne {
+      background: #FEF3C7 !important;
+      box-shadow: inset 3px 0 0 #F59E0B;
+    }
+
     .poste-pill.poste-mandatory-slot {
       box-shadow: 0 0 0 1.5px #FCA5A5;
       background: #FFF1F2;
@@ -2454,6 +2459,43 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!posteName || !iso || !halfKey) return false;
       const reqSet = getOpenMandatoryPostesForHalfDay(iso, halfKey, stRef);
       return reqSet.has(posteName);
+    }
+
+    function getOpenChefDocsForInternePoste(iso, halfKey, posteName, stRef) {
+      stRef = stRef || STATE;
+      if (!iso || !halfKey || !posteName || !stRef) return [];
+      const dObj = stRef.schedule ? stRef.schedule[iso] : null;
+      if (dObj && dObj.holiday) return [];
+      const [yy, mm, dd] = iso.split("-").map(Number);
+      const jsDay = new Date(yy, mm - 1, dd).getDay();
+      if (jsDay < 1 || jsDay > 5) return [];
+      const chDay = (stRef.chefsPlanning || {})[iso];
+      if (!chDay || !Array.isArray(chDay[halfKey])) return [];
+      const docs = [];
+      chDay[halfKey].forEach(entry => {
+        const docVal = String(entry.doc || "").trim();
+        const pChef = String(entry.poste || "").trim();
+        const isClosed = Boolean(entry.closed) || docVal.toUpperCase().startsWith("FERM") || docVal.toUpperCase() === "MAINTENANCE";
+        if (isClosed || !docVal) return;
+        let mappedPoste = CHEF_TO_INTERNE_POSTE_MAP[pChef] || null;
+        if (!mappedPoste && pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+          mappedPoste = "LECTURE/CS";
+        }
+        if (mappedPoste === posteName) {
+          docs.push(docVal);
+        }
+      });
+      return docs;
+    }
+
+    function getChefWithoutInterneDocsForPoste(iso, halfKey, posteName, stRef) {
+      stRef = stRef || STATE;
+      const docs = getOpenChefDocsForInternePoste(iso, halfKey, posteName, stRef);
+      if (!docs.length) return [];
+      const dObj = (stRef && stRef.schedule) ? stRef.schedule[iso] : null;
+      const periodList = (dObj && Array.isArray(dObj[halfKey])) ? dObj[halfKey] : [];
+      const hasInterne = periodList.some(x => !x.closed && x.interneId && x.poste === posteName);
+      return hasInterne ? [] : docs;
     }
 
     function recomputeScheduleInPlace(st) {

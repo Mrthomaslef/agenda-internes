@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-02T18:06:46.764898+00:00",
+  "updatedAt": "2026-11-02T18:09:05.535168+00:00",
   "chefValidatedAt": null,
   "chefRevision": 0,
   "deletedAbsenceIds": [],
@@ -23,7 +23,7 @@
       "IRM d'après-midi séparées des IRM du matin (3T / 1,5T) : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (sauf exception en cas de congés / RG).",
       "Horaires des vacations : IRM du matin commence à 07h45 (IRM d'après-midi de 13h30 à 18h30) • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
       "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
-      "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
+      "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior, créneaux fixes le 1er mois puis variables en jours et Matin/Après-midi à partir du 2e mois) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
       "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
       "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
       "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
@@ -7192,12 +7192,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Marwane"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "TDM SAU",
@@ -7242,12 +7242,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -7347,13 +7347,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "ECHO",
-          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Phase Socle (ECHO)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
-          "notePm": "Phase Socle (ECHO)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "ECHO"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -7403,13 +7403,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "ECHO",
-          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Phase Socle (ECHO)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
-          "notePm": "Phase Socle (ECHO)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "ECHO"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -7642,12 +7642,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
         },
         {
           "poste": "IRM 3T",
@@ -7781,12 +7781,12 @@
           "preRgPm": "IRM"
         },
         "noe": {
-          "am": "GESTES (C)",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (GESTES (C)) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (GESTES (C))",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
       },
@@ -7837,12 +7837,12 @@
           "preRgPm": "IRM"
         },
         "noe": {
-          "am": "GESTES (C)",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (GESTES (C)) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (GESTES (C))",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
       }
@@ -7859,12 +7859,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "1/2 journée libre",
@@ -8014,12 +8014,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -8070,12 +8070,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -11450,12 +11450,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "ECHO",
@@ -11500,12 +11500,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -11589,13 +11589,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -11645,13 +11645,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -12389,12 +12389,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "GESTES (C)",
@@ -12439,12 +12439,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Milan"
         },
         {
           "poste": "1/2 journée libre",
@@ -12528,13 +12528,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -12584,13 +12584,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -12967,7 +12967,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM OLLIER DIAG",
+          "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         }
       },
@@ -13023,7 +13023,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM OLLIER DIAG",
+          "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         }
       }
@@ -13184,7 +13184,7 @@
           "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
           "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -13240,7 +13240,7 @@
           "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
           "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -15820,7 +15820,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Demi-off hebdomadaire",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -15876,7 +15876,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Demi-off hebdomadaire",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -16688,7 +16688,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Oussama • Scanner Achard 1",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Oussama",
           "notePm": "Scanner Achard 1",
-          "preRgAm": "ECHO",
+          "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         }
       },
@@ -16744,7 +16744,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Oussama • Scanner Achard 1",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Oussama",
           "notePm": "Scanner Achard 1",
-          "preRgAm": "ECHO",
+          "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         }
       }
@@ -16905,8 +16905,8 @@
           "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
           "noteAm": "Phase Socle (ECHO)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -16961,8 +16961,8 @@
           "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
           "noteAm": "Phase Socle (ECHO)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -17556,7 +17556,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama • Demi-off hebdomadaire (hors vacations obligatoires)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama",
           "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -17612,7 +17612,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama • Demi-off hebdomadaire (hors vacations obligatoires)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama",
           "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -17781,7 +17781,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "TDM SAU",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
           "am": "1/2 journée libre",
@@ -17790,7 +17790,7 @@
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
           "preRgAm": "1/2 journée libre",
-          "preRgPm": "SCAN ACHARD"
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -17837,7 +17837,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "TDM SAU",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
           "am": "1/2 journée libre",
@@ -17846,7 +17846,7 @@
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
           "preRgAm": "1/2 journée libre",
-          "preRgPm": "SCAN ACHARD"
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -17862,12 +17862,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "ECHO",
@@ -17912,12 +17912,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -18001,13 +18001,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (GESTES (C))",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -18057,13 +18057,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (GESTES (C))",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -18440,7 +18440,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM OLLIER DIAG",
+          "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
       },
@@ -18496,7 +18496,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM OLLIER DIAG",
+          "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
       }
@@ -18657,7 +18657,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël • Demi-off hebdomadaire",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -18713,7 +18713,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël • Demi-off hebdomadaire",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -21052,7 +21052,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "ECHO",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
           "am": "IRM 1,5T",
@@ -21060,8 +21060,8 @@
           "note": "Phase Socle (IRM 1,5T) • Consultation Internes (Vendredi PM)",
           "noteAm": "Phase Socle (IRM 1,5T)",
           "notePm": "Consultation Internes (Vendredi PM)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "SCAN ACHARD"
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -21108,7 +21108,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "ECHO",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
           "am": "IRM 1,5T",
@@ -21116,8 +21116,8 @@
           "note": "Phase Socle (IRM 1,5T) • Consultation Internes (Vendredi PM)",
           "noteAm": "Phase Socle (IRM 1,5T)",
           "notePm": "Consultation Internes (Vendredi PM)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "SCAN ACHARD"
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -21277,7 +21277,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Demi-off hebdomadaire",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -21333,7 +21333,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Demi-off hebdomadaire",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -22161,7 +22161,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Milan • Scanner Achard 1",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Milan",
           "notePm": "Scanner Achard 1",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
       },
@@ -22217,7 +22217,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Milan • Scanner Achard 1",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Milan",
           "notePm": "Scanner Achard 1",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
       }
@@ -22378,8 +22378,8 @@
           "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
           "noteAm": "Phase Socle (ECHO)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -22434,8 +22434,8 @@
           "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
           "noteAm": "Phase Socle (ECHO)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -23029,7 +23029,7 @@
           "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire (hors vacations obligatoires)",
           "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -23085,7 +23085,7 @@
           "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire (hors vacations obligatoires)",
           "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -23211,7 +23211,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "ECHO",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "milan": {
           "am": "1/2 journée libre",
@@ -23247,7 +23247,7 @@
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
           "preRgAm": "1/2 journée libre",
-          "preRgPm": "SCAN ACHARD"
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -23267,7 +23267,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "ECHO",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "milan": {
           "am": "1/2 journée libre",
@@ -23303,7 +23303,7 @@
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
           "preRgAm": "1/2 journée libre",
-          "preRgPm": "SCAN ACHARD"
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -23319,12 +23319,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "GESTES (C)",
@@ -23369,15 +23369,15 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Milan"
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -23423,12 +23423,12 @@
         },
         "marwane": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": "",
           "preRgAm": "GESTES (C)",
-          "preRgPm": "ECHO"
+          "preRgPm": "TDM OLLIER DIAG"
         },
         "milan": {
           "am": "1/2 journée libre",
@@ -23458,13 +23458,13 @@
           "preRgPm": "IRM"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -23479,12 +23479,12 @@
         },
         "marwane": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": "",
           "preRgAm": "GESTES (C)",
-          "preRgPm": "ECHO"
+          "preRgPm": "TDM OLLIER DIAG"
         },
         "milan": {
           "am": "1/2 journée libre",
@@ -23514,13 +23514,13 @@
           "preRgPm": "IRM"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "TDM OLLIER DIAG"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -23753,12 +23753,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         },
         {
           "poste": "TDM OLLIER DIAG",
@@ -23892,12 +23892,12 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM OLLIER DIAG",
+          "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
       },
@@ -23948,12 +23948,12 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM OLLIER DIAG",
+          "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
       }
@@ -23970,12 +23970,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "1/2 journée libre",
@@ -24109,12 +24109,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -24165,12 +24165,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -25288,12 +25288,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "GESTES (C)",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "binome": false,
+          "note": "Phase Socle (GESTES (C))"
         },
         {
           "poste": "IRM 3T",
@@ -25338,12 +25338,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Scanner Achard 1"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane"
         },
         {
           "poste": "TDM SAU",
@@ -25362,12 +25362,12 @@
           "note": "Consultation Internes (Vendredi PM)"
         },
         {
-          "poste": "LECTURE/CS",
+          "poste": "SCAN ACHARD",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Vendredi PM)"
+          "note": ""
         },
         {
           "poste": "GESTES (C)",
@@ -25410,10 +25410,10 @@
         },
         "nathanael": {
           "am": "ECHO",
-          "pm": "LECTURE/CS",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "ECHO",
           "preRgPm": "IRM"
         },
@@ -25424,16 +25424,16 @@
           "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": "",
           "preRgAm": "GESTES (C)",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Scanner Achard 1",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Scanner Achard 1",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "SCAN ACHARD"
+          "am": "GESTES (C)",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (GESTES (C)) • Posté Socle Urgences • Binôme SAU avec Marwane",
+          "noteAm": "Phase Socle (GESTES (C))",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Marwane",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -25466,10 +25466,10 @@
         },
         "nathanael": {
           "am": "ECHO",
-          "pm": "LECTURE/CS",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "ECHO",
           "preRgPm": "IRM"
         },
@@ -25480,16 +25480,16 @@
           "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": "",
           "preRgAm": "GESTES (C)",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Scanner Achard 1",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Scanner Achard 1",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "SCAN ACHARD"
+          "am": "GESTES (C)",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (GESTES (C)) • Posté Socle Urgences • Binôme SAU avec Marwane",
+          "noteAm": "Phase Socle (GESTES (C))",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Marwane",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -25902,7 +25902,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "preRgPm": "ECHO"
         },
         "milan": {
           "am": "TDM OLLIER DIAG",
@@ -25937,8 +25937,8 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "ECHO"
+          "preRgAm": "ECHO",
+          "preRgPm": "GESTES (C)"
         }
       },
       "slots": {
@@ -25958,7 +25958,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "preRgPm": "ECHO"
         },
         "milan": {
           "am": "TDM OLLIER DIAG",
@@ -25993,8 +25993,8 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "ECHO"
+          "preRgAm": "ECHO",
+          "preRgPm": "GESTES (C)"
         }
       }
     },
@@ -26387,7 +26387,7 @@
           "note": "Demi-off hebdomadaire (hors vacations obligatoires) • Posté Socle Urgences • Binôme SAU avec Gabriel",
           "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -26443,7 +26443,7 @@
           "note": "Demi-off hebdomadaire (hors vacations obligatoires) • Posté Socle Urgences • Binôme SAU avec Gabriel",
           "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -26604,7 +26604,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -26660,7 +26660,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -27472,7 +27472,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Scanner Achard 1",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Scanner Achard 1",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
       },
@@ -27528,7 +27528,7 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Scanner Achard 1",
           "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Scanner Achard 1",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
       }
@@ -27545,12 +27545,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "GESTES (C)",
@@ -27595,12 +27595,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -27684,13 +27684,13 @@
           "preRgPm": "TDM OLLIER DIAG"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -27740,13 +27740,13 @@
           "preRgPm": "TDM OLLIER DIAG"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -27812,12 +27812,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "GESTES (C)",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "binome": false,
+          "note": "Phase Socle (GESTES (C))"
         },
         {
           "poste": "ECHO",
@@ -27902,10 +27902,10 @@
         },
         "noe": {
           "am": "IRM 1,5T",
-          "pm": "TDM SAU",
-          "note": "Vacation obligatoire (IRM 1,5T) • Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "pm": "GESTES (C)",
+          "note": "Vacation obligatoire (IRM 1,5T) • Phase Socle (GESTES (C))",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "notePm": "Phase Socle (GESTES (C))",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -27958,10 +27958,10 @@
         },
         "noe": {
           "am": "IRM 1,5T",
-          "pm": "TDM SAU",
-          "note": "Vacation obligatoire (IRM 1,5T) • Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "pm": "GESTES (C)",
+          "note": "Vacation obligatoire (IRM 1,5T) • Phase Socle (GESTES (C))",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "notePm": "Phase Socle (GESTES (C))",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -27979,12 +27979,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane"
         },
         {
           "poste": "TDM SAU",
@@ -28118,10 +28118,10 @@
           "preRgPm": "SCAN ACHARD"
         },
         "noe": {
-          "am": "ECHO",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Phase Socle (ECHO) • Demi-off hebdomadaire",
-          "noteAm": "Phase Socle (ECHO)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Demi-off hebdomadaire",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Demi-off hebdomadaire",
           "preRgAm": "ECHO",
           "preRgPm": "IRM"
@@ -28174,10 +28174,10 @@
           "preRgPm": "SCAN ACHARD"
         },
         "noe": {
-          "am": "ECHO",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Phase Socle (ECHO) • Demi-off hebdomadaire",
-          "noteAm": "Phase Socle (ECHO)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Demi-off hebdomadaire",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Demi-off hebdomadaire",
           "preRgAm": "ECHO",
           "preRgPm": "IRM"
@@ -28196,12 +28196,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
+          "binome": false,
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "RG",
@@ -28246,12 +28246,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (SCAN ACHARD)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         },
         {
           "poste": "RG",
@@ -28335,12 +28335,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (SCAN ACHARD)",
-          "preRgAm": "TDM SAU",
+          "am": "SCAN ACHARD",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (SCAN ACHARD) • Posté Socle Urgences • Binôme SAU avec Nathanaël",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -28391,12 +28391,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (SCAN ACHARD)",
-          "preRgAm": "TDM SAU",
+          "am": "SCAN ACHARD",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (SCAN ACHARD) • Posté Socle Urgences • Binôme SAU avec Nathanaël",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -28565,7 +28565,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "TDM SAU",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
           "am": "1/2 journée libre",
@@ -28574,7 +28574,7 @@
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "1/2 journée libre",
-          "preRgPm": "SCAN ACHARD"
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -28621,7 +28621,7 @@
           "noteAm": "",
           "notePm": "",
           "preRgAm": "TDM SAU",
-          "preRgPm": "LECTURE/CS"
+          "preRgPm": "SCAN ACHARD"
         },
         "noe": {
           "am": "1/2 journée libre",
@@ -28630,7 +28630,7 @@
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "1/2 journée libre",
-          "preRgPm": "SCAN ACHARD"
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -28646,12 +28646,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Milan"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "ECHO",
@@ -28696,12 +28696,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -28785,13 +28785,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Milan • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Milan",
-          "notePm": "Phase Socle (GESTES (C))",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       },
       "slots": {
@@ -28841,13 +28841,13 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Milan • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Milan",
-          "notePm": "Phase Socle (GESTES (C))",
-          "preRgAm": "TDM SAU",
-          "preRgPm": "GESTES (C)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "preRgAm": "ECHO",
+          "preRgPm": "TDM SAU"
         }
       }
     },
@@ -29080,12 +29080,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
         },
         {
           "poste": "IRM 3T",
@@ -29219,12 +29219,12 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         }
       },
@@ -29275,12 +29275,12 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         }
       }
@@ -29297,12 +29297,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "1/2 journée libre",
@@ -29436,12 +29436,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       },
@@ -29492,12 +29492,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire",
-          "preRgAm": "TDM SAU",
+          "preRgAm": "SCAN ACHARD",
           "preRgPm": "1/2 journée libre"
         }
       }
@@ -34855,12 +34855,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Marwane"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "TDM SAU",
@@ -34905,12 +34905,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -35000,11 +35000,11 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "ECHO",
-          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Phase Socle (ECHO)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
-          "notePm": "Phase Socle (ECHO)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       },
       "slots": {
@@ -35044,11 +35044,11 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "ECHO",
-          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Phase Socle (ECHO)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
-          "notePm": "Phase Socle (ECHO)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       }
     },
@@ -35257,12 +35257,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
         },
         {
           "poste": "IRM 3T",
@@ -35386,10 +35386,10 @@
           "notePm": ""
         },
         "noe": {
-          "am": "GESTES (C)",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (GESTES (C)) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (GESTES (C))",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)"
         }
       },
@@ -35430,10 +35430,10 @@
           "notePm": ""
         },
         "noe": {
-          "am": "GESTES (C)",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (GESTES (C)) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (GESTES (C))",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)"
         }
       }
@@ -35450,12 +35450,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "1/2 journée libre",
@@ -35595,10 +35595,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire"
         }
       },
@@ -35639,10 +35639,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire"
         }
       }
@@ -38657,12 +38657,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "ECHO",
@@ -38707,12 +38707,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -38786,11 +38786,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       },
       "slots": {
@@ -38830,11 +38830,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       }
     },
@@ -39500,12 +39500,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "GESTES (C)",
@@ -39550,12 +39550,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Milan"
         },
         {
           "poste": "1/2 journée libre",
@@ -39629,11 +39629,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan"
         }
       },
       "slots": {
@@ -39673,11 +39673,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan"
         }
       }
     },
@@ -44373,12 +44373,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "ECHO",
@@ -44423,12 +44423,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -44502,11 +44502,11 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (GESTES (C))"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       },
       "slots": {
@@ -44546,11 +44546,11 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (GESTES (C))"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       }
     },
@@ -49230,12 +49230,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "GESTES (C)",
@@ -49280,15 +49280,15 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Milan"
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -49332,7 +49332,7 @@
         },
         "marwane": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": ""
@@ -49359,11 +49359,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan"
         }
       },
       "slots": {
@@ -49376,7 +49376,7 @@
         },
         "marwane": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": ""
@@ -49403,11 +49403,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Milan",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Milan"
         }
       }
     },
@@ -49616,12 +49616,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         },
         {
           "poste": "TDM OLLIER DIAG",
@@ -49745,10 +49745,10 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)"
         }
       },
@@ -49789,10 +49789,10 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
           "notePm": "Vacation obligatoire (ECHO)"
         }
       }
@@ -49809,12 +49809,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "1/2 journée libre",
@@ -49938,10 +49938,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire"
         }
       },
@@ -49982,10 +49982,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Oussama",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire"
         }
       }
@@ -53000,12 +53000,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "GESTES (C)",
@@ -53050,12 +53050,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -53129,11 +53129,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       },
       "slots": {
@@ -53173,11 +53173,11 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "TDM OLLIER DIAG",
-          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël • Phase Socle (TDM OLLIER DIAG)",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Nathanaël",
-          "notePm": "Phase Socle (TDM OLLIER DIAG)"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       }
     },
@@ -53243,12 +53243,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "GESTES (C)",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "binome": false,
+          "note": "Phase Socle (GESTES (C))"
         },
         {
           "poste": "ECHO",
@@ -53323,10 +53323,10 @@
         },
         "noe": {
           "am": "IRM 1,5T",
-          "pm": "TDM SAU",
-          "note": "Vacation obligatoire (IRM 1,5T) • Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "pm": "GESTES (C)",
+          "note": "Vacation obligatoire (IRM 1,5T) • Phase Socle (GESTES (C))",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "notePm": "Phase Socle (GESTES (C))"
         }
       },
       "slots": {
@@ -53367,10 +53367,10 @@
         },
         "noe": {
           "am": "IRM 1,5T",
-          "pm": "TDM SAU",
-          "note": "Vacation obligatoire (IRM 1,5T) • Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "pm": "GESTES (C)",
+          "note": "Vacation obligatoire (IRM 1,5T) • Phase Socle (GESTES (C))",
           "noteAm": "Vacation obligatoire (IRM 1,5T)",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "notePm": "Phase Socle (GESTES (C))"
         }
       }
     },
@@ -53386,12 +53386,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane"
         },
         {
           "poste": "TDM SAU",
@@ -53515,10 +53515,10 @@
           "notePm": "Vacation obligatoire (ECHO)"
         },
         "noe": {
-          "am": "ECHO",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Phase Socle (ECHO) • Demi-off hebdomadaire",
-          "noteAm": "Phase Socle (ECHO)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Demi-off hebdomadaire",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Demi-off hebdomadaire"
         }
       },
@@ -53559,10 +53559,10 @@
           "notePm": "Vacation obligatoire (ECHO)"
         },
         "noe": {
-          "am": "ECHO",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Phase Socle (ECHO) • Demi-off hebdomadaire",
-          "noteAm": "Phase Socle (ECHO)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Marwane • Demi-off hebdomadaire",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Marwane",
           "notePm": "Demi-off hebdomadaire"
         }
       }
@@ -53579,12 +53579,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
+          "binome": false,
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "RG",
@@ -53629,12 +53629,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (SCAN ACHARD)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         },
         {
           "poste": "RG",
@@ -53708,11 +53708,11 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (SCAN ACHARD)"
+          "am": "SCAN ACHARD",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (SCAN ACHARD) • Posté Socle Urgences • Binôme SAU avec Nathanaël",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         }
       },
       "slots": {
@@ -53752,11 +53752,11 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
-          "notePm": "Phase Socle (SCAN ACHARD)"
+          "am": "SCAN ACHARD",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (SCAN ACHARD) • Posté Socle Urgences • Binôme SAU avec Nathanaël",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Nathanaël"
         }
       }
     },
@@ -53981,12 +53981,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Milan"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "ECHO",
@@ -54031,12 +54031,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
           "poste": "1/2 journée libre",
@@ -54110,11 +54110,11 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Milan • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Milan",
-          "notePm": "Phase Socle (GESTES (C))"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       },
       "slots": {
@@ -54154,11 +54154,11 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "GESTES (C)",
-          "note": "Posté Socle Urgences • Binôme SAU avec Milan • Phase Socle (GESTES (C))",
-          "noteAm": "Posté Socle Urgences • Binôme SAU avec Milan",
-          "notePm": "Phase Socle (GESTES (C))"
+          "am": "ECHO",
+          "pm": "TDM SAU",
+          "note": "Phase Socle (ECHO) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (ECHO)",
+          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama"
         }
       }
     },
@@ -54367,12 +54367,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "TDM SAU",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "binome": true,
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
         },
         {
           "poste": "IRM 3T",
@@ -54496,10 +54496,10 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)"
         }
       },
@@ -54540,10 +54540,10 @@
           "notePm": ""
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
+          "am": "TDM SAU",
           "pm": "ECHO",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Vacation obligatoire (ECHO)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
+          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel • Vacation obligatoire (ECHO)",
+          "noteAm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
           "notePm": "Vacation obligatoire (ECHO)"
         }
       }
@@ -54560,12 +54560,12 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "1/2 journée libre",
@@ -54689,10 +54689,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire"
         }
       },
@@ -54733,10 +54733,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "noe": {
-          "am": "TDM SAU",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel • Demi-off hebdomadaire",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "note": "Phase Socle (SCAN ACHARD) • Demi-off hebdomadaire",
+          "noteAm": "Phase Socle (SCAN ACHARD)",
           "notePm": "Demi-off hebdomadaire"
         }
       }

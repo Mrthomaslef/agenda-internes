@@ -1582,13 +1582,15 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 # 1. Éviter le vendredi après-midi sauf dernier recours
                 # 2. Éviter de poser 2 demi-offs le même jour (AM + PM sur le même jour)
                 # 3. Privilégier la demi-journée (AM ou PM) manquante pour avoir 1 AM + 1 PM
-                # 4. Privilégier la demi-journée fixe demandée si c'est le matin
+                # 4. Pour Noé, éviter d'écraser ses créneaux TDM SAU de la semaine tant qu'un autre poste est libérable
+                # 5. Privilégier la demi-journée fixe demandée si c'est le matin
                 slot_candidates = sorted(
                     raw_slots,
                     key=lambda s: (
                         1 if (datetime.date.fromisoformat(s[0]).weekday() == 4 and s[1] == "pm") else 0,
                         1 if schedule[s[0]]["byInterne"][iid]["pm" if s[1] == "am" else "am"] == "1/2 journée libre" else 0,
                         0 if s[1] == preferred_h else 1,
+                        1 if (iid == "noe" and schedule[s[0]]["byInterne"]["noe"][s[1]] == "TDM SAU") else 0,
                         0 if is_protected_fixed_off(iid, s[0], s[1]) else 1,
                     ),
                 )
@@ -1610,7 +1612,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
                     # Passe 1 : libération directe si le poste de l'interne est non obligatoire
                     for cand_poste in cand_list:
-                        if iid == "noe" and cand_poste == "TDM SAU" and wd_cur == 1 and h == "am" and w_idx < 3:
+                        if iid == "noe" and cand_poste == "TDM SAU" and wd_cur == 1 and h == "am" and w_idx < 4:
                             continue
                         if cand_poste in ph_set and not (iid == "noe" and cand_poste == "TDM SAU"):
                             continue
@@ -1691,9 +1693,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         if is_protected_fixed_off(iid, d_same, h_move):
                             continue
                         target_h = h_move if (w_am == w_pm) else ("pm" if w_am > w_pm else "am")
-                        for d_dest in active_isos:
-                            if d_dest in ("2026-11-02", d_same):
-                                continue
+                        dest_candidates = sorted(
+                            [d for d in active_isos if d not in ("2026-11-02", d_same)],
+                            key=lambda d: 1 if (iid == "noe" and schedule[d]["byInterne"]["noe"][target_h] == "TDM SAU") else 0,
+                        )
+                        for d_dest in dest_candidates:
                             wd_dest = datetime.date.fromisoformat(d_dest).weekday()
                             if target_h == "pm" and wd_dest in (1, 4):
                                 continue
@@ -1706,7 +1710,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             ch_dest = (chefs_planning or {}).get(d_dest, {})
                             ph_dest = get_ph_interne_postes_for_halfday(ch_dest, target_h, wd_dest, d_dest)
                             can_free_dest = (dest_p != "TDM SAU" and dest_p not in ph_dest) or (
-                                iid == "noe" and dest_p == "TDM SAU" and not (wd_dest == 1 and target_h == "am" and w_idx < 3)
+                                iid == "noe" and dest_p == "TDM SAU" and not (wd_dest == 1 and target_h == "am" and w_idx < 4)
                             )
                             swap_partner_dest = None
                             if not can_free_dest and iid in senior_interne_ids:
@@ -1789,6 +1793,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             key=lambda d: (
                                 1 if (to_h == "pm" and datetime.date.fromisoformat(d).weekday() == 4) else 0,
                                 1 if (d != d_from and schedule[d]["byInterne"][iid][other_to_h] == "1/2 journée libre") else 0,
+                                1 if (iid == "noe" and schedule[d]["byInterne"]["noe"][to_h] == "TDM SAU") else 0,
                                 0 if is_protected_fixed_off(iid, d, to_h) else 1,
                             ),
                         )
@@ -1801,7 +1806,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             cur_to_p = schedule[d_to]["byInterne"][iid][to_h]
 
                             can_free_to = (cur_to_p != "TDM SAU" and cur_to_p not in ph_to) or (
-                                iid == "noe" and cur_to_p == "TDM SAU" and not (wd_to == 1 and to_h == "am" and w_idx < 3)
+                                iid == "noe" and cur_to_p == "TDM SAU" and not (wd_to == 1 and to_h == "am" and w_idx < 4)
                             )
                             swap_partner_to = None
                             if not can_free_to and iid in senior_interne_ids:
@@ -2120,6 +2125,21 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 break
 
         # C) Quota hebdomadaire de TDM SAU pour Noé (Phase Socle) : cible = 3 TDM SAU / semaine (jamais matin ET après-midi le même jour)
+        if w_idx == 0:
+            noe_pref_sau_slots = {(1, "am"), (3, "am"), (4, "pm")}
+        elif w_idx < 4:
+            noe_pref_sau_slots = {(0, "am"), (1, "am"), (3, "am")}
+        else:
+            rot_noe_w = (w_idx - 4) % 5
+            noe_pref_sau_by_rot = {
+                0: {(0, "pm"), (2, "am"), (4, "am")},
+                1: {(1, "pm"), (3, "am"), (4, "pm")},
+                2: {(0, "am"), (2, "pm"), (3, "pm")},
+                3: {(1, "am"), (2, "pm"), (4, "am")},
+                4: {(0, "pm"), (1, "am"), (3, "pm")},
+            }
+            noe_pref_sau_slots = noe_pref_sau_by_rot[rot_noe_w]
+
         while count_week_sau("noe") > 3 or any(
             schedule[d]["byInterne"]["noe"]["am"] == "TDM SAU" and schedule[d]["byInterne"]["noe"]["pm"] == "TDM SAU"
             for d in active_isos
@@ -2135,11 +2155,9 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 wd_s = datetime.date.fromisoformat(d_s).weekday()
                 other_h_s = "pm" if h_s == "am" else "am"
                 if schedule[d_s]["byInterne"]["noe"][other_h_s] == "TDM SAU":
-                    return -2 if h_s == "pm" else -1  # Retirer en priorité le PM si Noé a TDM SAU matin ET après-midi le même jour
-                if h_s == "am" and wd_s in (1, 3):
-                    return 3   # Garder en priorité Mardi AM et Jeudi AM avec MH
-                if h_s == "am" and wd_s == 0:
-                    return 2   # Garder Lundi AM
+                    return -2 if (wd_s, h_s) not in noe_pref_sau_slots else -1
+                if (wd_s, h_s) in noe_pref_sau_slots:
+                    return 3
                 return 0
 
             noe_sau_slots.sort(key=noe_slot_drop_priority)
@@ -2221,34 +2239,44 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         noe_target_sau = min(3, noe_active_halfdays)
         while count_week_sau("noe") < noe_target_sau:
             added_noe = False
-            for d_iso in active_isos:
-                if d_iso == "2026-11-02":
-                    continue
+            sau_am_cnt = sum(1 for d_c in active_isos if schedule[d_c]["byInterne"]["noe"]["am"] == "TDM SAU")
+            sau_pm_cnt = sum(1 for d_c in active_isos if schedule[d_c]["byInterne"]["noe"]["pm"] == "TDM SAU")
+            add_candidates: list[tuple[str, str]] = [
+                (d_iso, h)
+                for d_iso in active_isos
+                if d_iso != "2026-11-02"
+                for h in ("am", "pm")
+            ]
+            add_candidates.sort(
+                key=lambda s: (
+                    0 if (datetime.date.fromisoformat(s[0]).weekday(), s[1]) in noe_pref_sau_slots else 1,
+                    0 if (w_idx >= 4 and ((s[1] == "pm" and sau_pm_cnt == 0) or (s[1] == "am" and sau_am_cnt == 0))) else 1,
+                    (datetime.date.fromisoformat(s[0]).weekday() * 2 + (0 if s[1] == "am" else 1) + w_idx * 3) % 10,
+                )
+            )
+            for d_iso, h in add_candidates:
                 wd_cur = datetime.date.fromisoformat(d_iso).weekday()
                 ch_day = (chefs_planning or {}).get(d_iso, {})
                 by_int = schedule[d_iso]["byInterne"]
-                for h in ("am", "pm"):
-                    other_h = "pm" if h == "am" else "am"
-                    noe_p = by_int["noe"][h]
-                    if noe_p in non_active_codes or noe_p == "TDM SAU":
+                other_h = "pm" if h == "am" else "am"
+                noe_p = by_int["noe"][h]
+                if noe_p in non_active_codes or noe_p == "TDM SAU":
+                    continue
+                if by_int["noe"][other_h] == "TDM SAU":
+                    continue
+                if not any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids):
+                    continue
+                ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
+                if noe_p in ph_set:
+                    # Si un autre interne couvre déjà noe_p ou si un poste ouvert permet à un senior de reprendre noe_p, autoriser
+                    other_covers = any(by_int[s_id][h] == noe_p for s_id in senior_interne_ids)
+                    if not other_covers:
                         continue
-                    if by_int["noe"][other_h] == "TDM SAU":
-                        continue
-                    if not any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids):
-                        continue
-                    ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
-                    if noe_p in ph_set:
-                        # Si un autre interne couvre déjà noe_p ou si un poste ouvert permet à un senior de reprendre noe_p, autoriser
-                        other_covers = any(by_int[s_id][h] == noe_p for s_id in senior_interne_ids)
-                        if not other_covers:
-                            continue
-                    nk = "noteAm" if h == "am" else "notePm"
-                    by_int["noe"][h] = "TDM SAU"
-                    by_int["noe"][nk] = "Posté Socle Urgences"
-                    added_noe = True
-                    break
-                if added_noe:
-                    break
+                nk = "noteAm" if h == "am" else "notePm"
+                by_int["noe"][h] = "TDM SAU"
+                by_int["noe"][nk] = "Posté Socle Urgences"
+                added_noe = True
+                break
             if not added_noe:
                 break
 
@@ -3645,7 +3673,7 @@ def build_full_dataset() -> dict:
                 "IRM d'après-midi séparées des IRM du matin (3T / 1,5T) : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (sauf exception en cas de congés / RG).",
                 "Horaires des vacations : IRM du matin commence à 07h45 (IRM d'après-midi de 13h30 à 18h30) • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
                 "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
-                "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
+                "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle, toujours en binôme avec un co-interne senior, créneaux fixes le 1er mois puis variables en jours et Matin/Après-midi à partir du 2e mois) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
                 "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
