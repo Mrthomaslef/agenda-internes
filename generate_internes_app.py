@@ -3216,6 +3216,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const totalGestesCounts = {};
       const totalGestesAmCounts = {};
       const totalGestesPmCounts = {};
+      const totalCsCounts = {};
+      const totalLectureCounts = {};
       (st.internes || []).forEach(intObj => {
         carryOverOffs[intObj.id] = 0;
         totalAmOffs[intObj.id] = 0;
@@ -3225,6 +3227,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         totalGestesCounts[intObj.id] = 0;
         totalGestesAmCounts[intObj.id] = 0;
         totalGestesPmCounts[intObj.id] = 0;
+        totalCsCounts[intObj.id] = 0;
+        totalLectureCounts[intObj.id] = 0;
       });
 
       Object.keys(weeksMap).sort().forEach(monIso => {
@@ -3873,13 +3877,113 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             if (!swappedG) break;
           }
+
+          // 2B-septies. Équilibrage des Consultations (CONSULTATION : max 1/semaine, équilibre cumulé) entre les internes
+          const countWeekCsJs = (interneId) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (!sl) return;
+              if (sl.am === "CONSULTATION") cnt++;
+              if (sl.pm === "CONSULTATION") cnt++;
+            });
+            return cnt;
+          };
+          const countWeekLectureJs = (interneId) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (!sl) return;
+              if (sl.am === "LECTURE") cnt++;
+              if (sl.pm === "LECTURE") cnt++;
+            });
+            return cnt;
+          };
+          const formatPmNoteForPosteJs = (dIso, iid, pCode) => {
+            const [yy, mm, dd] = dIso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+            if (pCode === "CONSULTATION") {
+              return jsDay === 2 ? "Consultation Internes (Mardi PM)" : "Consultation Internes (Vendredi PM)";
+            }
+            if (pCode === "LECTURE") {
+              if (jsDay === 2) return iid === "noe" ? "Relecture avec Pr Drapé" : "Relecture avec Pr Drapé (systématique)";
+              return "Lecture (Vendredi PM)";
+            }
+            if (iid === "noe") return `Phase Socle (${pCode})`;
+            return "";
+          };
+          const canSwapCsSlotJs = (dIso, fromId, toId, allowedPostes) => {
+            if (dIso === "2026-11-02") return false;
+            if (custom[dIso + "__" + fromId] && custom[dIso + "__" + fromId].pm) return false;
+            if (custom[dIso + "__" + toId] && custom[dIso + "__" + toId].pm) return false;
+            const [yy, mm, dd] = dIso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+            const byS = st.schedule[dIso].byInterne;
+            if (!byS[fromId] || byS[fromId].pm !== "CONSULTATION" || !byS[toId]) return false;
+            const pOther = byS[toId].pm;
+            if (!pOther || !allowedPostes.includes(pOther)) return false;
+            if (jsDay === 2 && pOther === "LECTURE" && fromId === "noe") return false;
+            if (isSamePosteDayJs(byS[fromId].am, pOther) || isSamePosteDayJs(byS[toId].am, "CONSULTATION")) return false;
+            return true;
+          };
+          const execSwapCsSlotJs = (dIso, fromId, toId) => {
+            const byS = st.schedule[dIso].byInterne;
+            const pOther = byS[toId].pm;
+            byS[fromId].pm = pOther;
+            byS[fromId].notePm = formatPmNoteForPosteJs(dIso, fromId, pOther);
+            byS[toId].pm = "CONSULTATION";
+            byS[toId].notePm = formatPmNoteForPosteJs(dIso, toId, "CONSULTATION");
+          };
+          for (let iterCs = 0; iterCs < 30; iterCs++) {
+            let swappedCs = false;
+            const sortedCsIids = allIidsJs.slice().sort((a, b) => {
+              const wa = countWeekCsJs(a), wb = countWeekCsJs(b);
+              const hiA = wa >= 2 ? 1 : 0, hiB = wb >= 2 ? 1 : 0;
+              if (hiA !== hiB) return hiB - hiA;
+              const ca = (totalCsCounts[a] || 0) + wa, cb = (totalCsCounts[b] || 0) + wb;
+              if (ca !== cb) return cb - ca;
+              const na = a === "noe" ? 1 : 0, nb = b === "noe" ? 1 : 0;
+              if (na !== nb) return nb - na;
+              if (wa !== wb) return wb - wa;
+              return ((totalLectureCounts[a] || 0) + countWeekLectureJs(a)) - ((totalLectureCounts[b] || 0) + countWeekLectureJs(b));
+            });
+            for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
+              for (const overId of sortedCsIids) {
+                const wOver = countWeekCsJs(overId);
+                if (wOver === 0) continue;
+                const cOver = (totalCsCounts[overId] || 0) + wOver;
+                for (let uIdx = sortedCsIids.length - 1; uIdx >= 0; uIdx--) {
+                  const underId = sortedCsIids[uIdx];
+                  if (underId === overId) continue;
+                  const wUnder = countWeekCsJs(underId);
+                  const cUnder = (totalCsCounts[underId] || 0) + wUnder;
+                  if (!(
+                    (wOver >= 2 && wUnder === 0) ||
+                    (cOver >= cUnder + 2 && wUnder === 0) ||
+                    (overId === "noe" && seniorIds.includes(underId) && cOver >= cUnder + 1 && cOver > 8 && wUnder === 0)
+                  )) continue;
+                  for (const dIso of activeIsos) {
+                    if (canSwapCsSlotJs(dIso, overId, underId, allowedList)) {
+                      execSwapCsSlotJs(dIso, overId, underId);
+                      swappedCs = true;
+                      break;
+                    }
+                  }
+                  if (swappedCs) break;
+                }
+                if (swappedCs) break;
+              }
+              if (swappedCs) break;
+            }
+            if (!swappedCs) break;
+          }
         }
 
         // Accumuler les compteurs inter-semaines sur baseSched (et non st.schedule)
         // afin qu'un congé posé sur une semaine X ne modifie jamais le planning d'une autre semaine Y != X.
         (st.internes || []).forEach(intObj => {
           const iid = intObj.id;
-          let bVacHalf = 0, bOffAm = 0, bOffPm = 0, bSauAm = 0, bSauPm = 0, bGestes = 0, bGestesAm = 0, bGestesPm = 0;
+          let bVacHalf = 0, bOffAm = 0, bOffPm = 0, bSauAm = 0, bSauPm = 0, bGestes = 0, bGestesAm = 0, bGestesPm = 0, bCs = 0, bLecture = 0;
           activeIsos.forEach(dChk => {
             const bSl = baseSched[dChk] && baseSched[dChk].byInterne && baseSched[dChk].byInterne[iid];
             if (!bSl) return;
@@ -3893,6 +3997,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (bSl.pm === "GESTES (C)" || bSl.pm === "ALLURA") bGestes++;
             if (bSl.am === "GESTES (C)") bGestesAm++;
             if (bSl.pm === "GESTES (C)") bGestesPm++;
+            if (bSl.am === "CONSULTATION" || bSl.pm === "CONSULTATION") bCs++;
+            if (bSl.am === "LECTURE" || bSl.pm === "LECTURE") bLecture++;
           });
           const bOffTotal = bOffAm + bOffPm;
           totalAmOffs[iid] = (totalAmOffs[iid] || 0) + bOffAm;
@@ -3905,6 +4011,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           totalGestesCounts[iid] = (totalGestesCounts[iid] || 0) + bGestes;
           totalGestesAmCounts[iid] = (totalGestesAmCounts[iid] || 0) + bGestesAm;
           totalGestesPmCounts[iid] = (totalGestesPmCounts[iid] || 0) + bGestesPm;
+          totalCsCounts[iid] = (totalCsCounts[iid] || 0) + bCs;
+          totalLectureCounts[iid] = (totalLectureCounts[iid] || 0) + bLecture;
         });
 
         // 2C. Mise à jour des notes de binôme de Noé (Phase Socle) — uniquement sur semaine non verrouillée
@@ -4026,7 +4134,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           casMardi: 0,
           biblioVendredi: 0,
           coursInternes: 0,
-          byModality: { TDM_SAU: 0, TDM_SAU_AM: 0, TDM_SAU_PM: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, RI_GESTES_AM: 0, RI_GESTES_PM: 0, CONSULTATION: 0, LECTURE: 0, LECTURE_CS: 0 }
+          byModality: { TDM_SAU: 0, TDM_SAU_AM: 0, TDM_SAU_PM: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, RI_GESTES_AM: 0, RI_GESTES_PM: 0, CONSULTATION: 0, CONSULTATION_TUE: 0, CONSULTATION_FRI: 0, LECTURE: 0, LECTURE_CS: 0 }
         };
       });
 
@@ -4045,6 +4153,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       Object.keys(STATE.schedule).forEach(iso => {
         const d = STATE.schedule[iso];
         if (!d || d.holiday || !d.byInterne) return;
+        const [yyS, mmS, ddS] = iso.split("-").map(Number);
+        const jsDayS = new Date(yyS, mmS - 1, ddS).getDay();
         Object.keys(d.byInterne).forEach(iid => {
           if (!stats[iid]) return;
           const isOver = Boolean(overrideSlot && overrideSlot.iso === iso && overrideSlot.iid === iid);
@@ -4087,6 +4197,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
               else if (up.includes("CONSULT") || up === "CS") {
                 stats[iid].byModality.CONSULTATION++;
+                if (jsDayS === 2) stats[iid].byModality.CONSULTATION_TUE++;
+                else if (jsDayS === 5) stats[iid].byModality.CONSULTATION_FRI++;
                 stats[iid].byModality.LECTURE_CS++;
               }
               else if (up.includes("LECTURE")) {
@@ -7493,7 +7605,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <div class="decompte-sub">${s.byModality.RI_GESTES_AM || 0}M · ${s.byModality.RI_GESTES_PM || 0}PM</div>
                 </div>
               </td>
-              <td><span class="decompte-mod-pill poste-cs">${s.byModality.CONSULTATION || 0}</span></td>
+              <td>
+                <div class="decompte-cell-stack">
+                  <span class="decompte-mod-pill poste-cs">${s.byModality.CONSULTATION || 0}</span>
+                  <div class="decompte-sub">${s.byModality.CONSULTATION_TUE || 0}Mar · ${s.byModality.CONSULTATION_FRI || 0}Ven</div>
+                </div>
+              </td>
               <td class="grp-end"><span class="decompte-mod-pill poste-lecture">${s.byModality.LECTURE || 0}</span></td>
               <td>
                 <div class="decompte-cell-stack">

@@ -1352,6 +1352,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
     total_ri_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     total_gestes_am_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     total_gestes_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    # Suivi cumulé des Consultations (CONSULTATION : Mardi PM / Vendredi PM) et des Lectures (LECTURE) sur le semestre
+    total_cs_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_cs_tue_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_cs_fri_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_lecture_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
 
     for w_idx, iso_list in sorted(weeks_map.items()):
         active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
@@ -3109,7 +3114,245 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if not swapped_g_ampm:
                 break
 
-        # Mettre à jour les compteurs cumulés d'IRM PM, de TDM SAU (AM/PM) et de Poste C (GESTES (C) / RI) du semestre
+        # H) ÉQUILIBRAGE DES CONSULTATIONS (ET LECTURES) ENTRE LES INTERNES :
+        #    1. Sur chaque semaine : maximum 1 Consultation par semaine par interne (jamais Mardi PM + Vendredi PM la même semaine)
+        #    2. Sur le cumul du semestre : équilibrer le nombre total de Consultations (8 à 9 par interne)
+        #    3. Équilibrer la répartition Mardi PM vs Vendredi PM des Consultations ainsi que le total de Lectures entre seniors
+        def count_week_cs(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "CONSULTATION"
+            )
+
+        def count_week_cs_wd(interne_id: str, wd_target: int) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if datetime.date.fromisoformat(d_chk).weekday() == wd_target
+                and schedule[d_chk]["byInterne"][interne_id]["pm"] == "CONSULTATION"
+            )
+
+        def count_week_lecture(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "LECTURE"
+            )
+
+        def format_pm_note_for_poste(d_slot: str, iid: str, p_code: str) -> str:
+            wd_s = datetime.date.fromisoformat(d_slot).weekday()
+            if p_code == "CONSULTATION":
+                return "Consultation Internes (Mardi PM)" if wd_s == 1 else "Consultation Internes (Vendredi PM)"
+            if p_code == "LECTURE":
+                if wd_s == 1:
+                    return "Relecture avec Pr Drapé" if iid == "noe" else "Relecture avec Pr Drapé (systématique)"
+                return "Lecture (Vendredi PM)"
+            if iid == "noe":
+                return f"Phase Socle ({p_code})"
+            return ""
+
+        def can_swap_cs_on_slot(
+            d_slot: str, from_id: str, to_id: str, allowed_other_postes: tuple[str, ...], strict_irm: bool = True
+        ) -> bool:
+            if d_slot == "2026-11-02":
+                return False
+            wd_s = datetime.date.fromisoformat(d_slot).weekday()
+            by_s = schedule[d_slot]["byInterne"]
+            if by_s[from_id]["pm"] != "CONSULTATION":
+                return False
+            p_other = by_s[to_id]["pm"]
+            if p_other not in allowed_other_postes:
+                return False
+            if wd_s == 1 and p_other == "LECTURE" and from_id == "noe":
+                return False
+            if is_same_poste_am_pm(by_s[from_id]["am"], p_other, avoid_irm_both=strict_irm):
+                return False
+            if is_same_poste_am_pm(by_s[to_id]["am"], "CONSULTATION", avoid_irm_both=strict_irm):
+                return False
+            return True
+
+        def execute_cs_swap(d_slot: str, from_id: str, to_id: str):
+            by_s = schedule[d_slot]["byInterne"]
+            p_other = by_s[to_id]["pm"]
+            by_s[from_id]["pm"] = p_other
+            by_s[from_id]["notePm"] = format_pm_note_for_poste(d_slot, from_id, p_other)
+            by_s[to_id]["pm"] = "CONSULTATION"
+            by_s[to_id]["notePm"] = format_pm_note_for_poste(d_slot, to_id, "CONSULTATION")
+
+        # H-1) Équilibrer le nombre hebdomadaire (max 1/semaine) et cumulé de CONSULTATION entre les 6 internes
+        for _ in range(45):
+            swapped_cs = False
+            sorted_cs_iids = sorted(
+                all_interne_ids,
+                key=lambda i: (
+                    1 if count_week_cs(i) >= 2 else 0,
+                    total_cs_counts[i] + count_week_cs(i),
+                    1 if i == "noe" else 0,
+                    count_week_cs(i),
+                    -(total_lecture_counts[i] + count_week_lecture(i)),
+                ),
+                reverse=True,
+            )
+            for strict_irm in (True, False):
+                for allowed_postes in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
+                    for over_id in sorted_cs_iids:
+                        w_over = count_week_cs(over_id)
+                        if w_over == 0:
+                            continue
+                        c_over = total_cs_counts[over_id] + w_over
+                        for under_id in reversed(sorted_cs_iids):
+                            if under_id == over_id:
+                                continue
+                            w_under = count_week_cs(under_id)
+                            c_under = total_cs_counts[under_id] + w_under
+                            if not (
+                                (w_over >= 2 and w_under == 0)
+                                or (c_over >= c_under + 2 and w_under == 0)
+                                or (
+                                    over_id == "noe"
+                                    and under_id in senior_interne_ids
+                                    and c_over >= c_under + 1
+                                    and c_over > 8
+                                    and w_under == 0
+                                )
+                            ):
+                                continue
+                            pref_days = sorted(
+                                active_isos,
+                                key=lambda d: (
+                                    total_cs_tue_counts[under_id] - total_cs_fri_counts[under_id]
+                                    if datetime.date.fromisoformat(d).weekday() == 1
+                                    else total_cs_fri_counts[under_id] - total_cs_tue_counts[under_id]
+                                ),
+                            )
+                            for d_iso in pref_days:
+                                if can_swap_cs_on_slot(d_iso, over_id, under_id, allowed_postes, strict_irm=strict_irm):
+                                    execute_cs_swap(d_iso, over_id, under_id)
+                                    swapped_cs = True
+                                    break
+                            if swapped_cs:
+                                break
+                            # Relais en 2 étapes via un interne intermédiaire mid_id (ayant 1 CS sur l'autre jour de CS de la semaine)
+                            for mid_id in all_interne_ids:
+                                if mid_id in (over_id, under_id) or count_week_cs(mid_id) != 1:
+                                    continue
+                                d1 = next(
+                                    (d for d in pref_days if can_swap_cs_on_slot(d, over_id, mid_id, allowed_postes, strict_irm=strict_irm)),
+                                    None,
+                                )
+                                if not d1:
+                                    continue
+                                d2 = next(
+                                    (
+                                        d
+                                        for d in pref_days
+                                        if d != d1 and can_swap_cs_on_slot(d, mid_id, under_id, allowed_postes, strict_irm=strict_irm)
+                                    ),
+                                    None,
+                                )
+                                if d2:
+                                    execute_cs_swap(d1, over_id, mid_id)
+                                    execute_cs_swap(d2, mid_id, under_id)
+                                    swapped_cs = True
+                                    break
+                            if swapped_cs:
+                                break
+                        if swapped_cs:
+                            break
+                    if swapped_cs:
+                        break
+                if swapped_cs:
+                    break
+            if not swapped_cs:
+                break
+
+        # H-2) Équilibrer la répartition Mardi PM vs Vendredi PM des Consultations (sans dégrader l'écart global)
+        allowed_tf_postes = ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")
+        for _ in range(20):
+            swapped_tf = False
+            for d_iso in active_isos:
+                wd_tf = datetime.date.fromisoformat(d_iso).weekday()
+                if wd_tf not in (1, 4):
+                    continue
+                from_id = next((i for i in all_interne_ids if schedule[d_iso]["byInterne"][i]["pm"] == "CONSULTATION"), None)
+                if not from_id:
+                    continue
+                w_from = count_week_cs(from_id)
+                c_from = total_cs_counts[from_id] + w_from
+                from_wd_cnt = (total_cs_tue_counts[from_id] if wd_tf == 1 else total_cs_fri_counts[from_id]) + 1
+                from_oth_cnt = total_cs_fri_counts[from_id] if wd_tf == 1 else total_cs_tue_counts[from_id]
+                for to_id in all_interne_ids:
+                    if to_id == from_id or count_week_cs(to_id) != 0:
+                        continue
+                    c_to = total_cs_counts[to_id]
+                    if c_from < c_to + 1:
+                        continue
+                    if to_id == "noe" and c_to >= 8:
+                        continue
+                    to_wd_cnt = total_cs_tue_counts[to_id] if wd_tf == 1 else total_cs_fri_counts[to_id]
+                    to_oth_cnt = total_cs_fri_counts[to_id] if wd_tf == 1 else total_cs_tue_counts[to_id]
+                    if (from_wd_cnt - from_oth_cnt) - (to_wd_cnt - to_oth_cnt) >= 2 and from_wd_cnt >= to_wd_cnt + 2:
+                        if can_swap_cs_on_slot(d_iso, from_id, to_id, allowed_tf_postes, strict_irm=True):
+                            execute_cs_swap(d_iso, from_id, to_id)
+                            swapped_tf = True
+                            break
+                if swapped_tf:
+                    break
+            if not swapped_tf:
+                break
+
+        # H-3) Équilibrer les vacations de LECTURE entre les 5 internes seniors (hors CONSULTATION / TDM SAU / GESTES C / IRM)
+        for _ in range(25):
+            swapped_lec = False
+            s_lec = sorted(
+                senior_interne_ids,
+                key=lambda s: (
+                    1 if count_week_lecture(s) >= 2 else 0,
+                    total_lecture_counts[s] + count_week_lecture(s),
+                    count_week_lecture(s),
+                ),
+                reverse=True,
+            )
+            for over_s in s_lec:
+                w_o = count_week_lecture(over_s)
+                if w_o == 0:
+                    continue
+                c_o = total_lecture_counts[over_s] + w_o
+                for under_s in reversed(s_lec):
+                    if under_s == over_s:
+                        continue
+                    w_u = count_week_lecture(under_s)
+                    c_u = total_lecture_counts[under_s] + w_u
+                    if not ((w_o >= 2 and w_u == 0) or (c_o >= c_u + 2 and w_u == 0)):
+                        continue
+                    for d_iso in active_isos:
+                        by_s = schedule[d_iso]["byInterne"]
+                        if by_s[over_s]["pm"] != "LECTURE":
+                            continue
+                        p_u = by_s[under_s]["pm"]
+                        if p_u not in ("ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"):
+                            continue
+                        if is_same_poste_am_pm(by_s[over_s]["am"], p_u, avoid_irm_both=True):
+                            continue
+                        if is_same_poste_am_pm(by_s[under_s]["am"], "LECTURE", avoid_irm_both=True):
+                            continue
+                        by_s[over_s]["pm"] = p_u
+                        by_s[over_s]["notePm"] = format_pm_note_for_poste(d_iso, over_s, p_u)
+                        by_s[under_s]["pm"] = "LECTURE"
+                        by_s[under_s]["notePm"] = format_pm_note_for_poste(d_iso, under_s, "LECTURE")
+                        swapped_lec = True
+                        break
+                    if swapped_lec:
+                        break
+                if swapped_lec:
+                    break
+            if not swapped_lec:
+                break
+
+        # Mettre à jour les compteurs cumulés d'IRM PM, de TDM SAU (AM/PM), de Poste C (GESTES (C) / RI) et de Consultations / Lectures du semestre
         for iid in all_interne_ids:
             total_irm_pm_counts[iid] += count_week_irm_pm(iid)
             total_sau_am_counts[iid] += count_week_sau_half(iid, "am")
@@ -3118,6 +3361,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             total_ri_counts[iid] += count_week_ri(iid)
             total_gestes_am_counts[iid] += count_week_gestes_half(iid, "am")
             total_gestes_pm_counts[iid] += count_week_gestes_half(iid, "pm")
+            total_cs_counts[iid] += count_week_cs(iid)
+            total_cs_tue_counts[iid] += count_week_cs_wd(iid, 1)
+            total_cs_fri_counts[iid] += count_week_cs_wd(iid, 4)
+            total_lecture_counts[iid] += count_week_lecture(iid)
 
         # 5C. Mise à jour des notes de binôme de Noé (Phase Socle) et des remplacements exceptionnels (TDM SAU / IRM PM)
         final_senior_sau = {s_id: count_week_sau(s_id) for s_id in senior_interne_ids}
