@@ -781,7 +781,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         font-size: 13.5px;
       }
       .brand-sub {
-        font-size: 10.5px;
+        display: none;
       }
       .summary-strip {
         padding: 8px 10px;
@@ -5129,6 +5129,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         updatedAt: new Date().toISOString(),
         absences: STATE.absences || [],
         customVacations: STATE.customVacations || {},
+        chefDecisions: STATE.chefDecisions || {},
         presentations: STATE.presentations || [],
         meetings: STATE.meetings || [],
         phoneDirectory: STATE.phoneDirectory || []
@@ -5232,10 +5233,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const remote = res.evalResult.cloudState;
           if (remote) {
             if (Array.isArray(remote.absences) && remote.absences.length >= (STATE.absences || []).length) {
-              STATE.absences = remote.absences;
+              STATE.absences = normalizeAbsencesList(remote.absences);
             }
             if (remote.customVacations) {
               STATE.customVacations = Object.assign({}, STATE.customVacations, remote.customVacations);
+            }
+            if (remote.chefDecisions) {
+              STATE.chefDecisions = Object.assign({}, STATE.chefDecisions || {}, remote.chefDecisions);
             }
             if (Array.isArray(remote.presentations) && remote.presentations.length > 0) {
               STATE.presentations = mergePresentationsList(INITIAL_DATA.presentations, remote.presentations);
@@ -5267,6 +5271,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     interneId: matched.id,
                     interneName: matched.fullName,
                     type: sa.type,
+                    status: "pending",
                     comment: "Google Sheet"
                   });
                 }
