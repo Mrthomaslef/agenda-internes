@@ -2443,9 +2443,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         "5_pm": []
       };
       const fixedOffHalfDays = {
-        marwane: "1_pm", // Lundi après-midi
-        gabriel: "3_am", // Mercredi matin
-        oussama: "4_pm"  // Jeudi après-midi
+        oussama: "1_am", // Lundi matin
+        gabriel: "2_am", // Mardi matin
+        marwane: "4_am"  // Jeudi matin
       };
       function isProtectedFixedOff(iid, dIso, halfKey) {
         if (!dIso || dIso < "2026-11-09") return false;
@@ -2635,7 +2635,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       // 2. Garantie hebdomadaire :
       //    - Couverture stricte du TDM SAU permanent et des 13 vacations obligatoires prioritaires
-      //    - Pose des 2 demi-offs en fonction (avec demi-journée fixe pour Marwane Lundi PM, Gabriel Mercredi AM, Oussama Jeudi PM)
+      //    - Pose des 2 demi-offs en fonction (avec demi-journée fixe pour Oussama Lundi AM, Gabriel Mardi AM, Marwane Jeudi AM)
       //    - Équilibrage automatique sur les semaines suivantes (carryOverOffs) si < 2 demi-offs possibles sur une semaine chargée
       const nonMandatoryPriority = [
         "ALLURA",

@@ -790,14 +790,14 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         # 1. Attribution initiale pour les 5 internes hors socle
         #    - Semaine 1 (week_idx == 0, semaine du 02/11/2026) : trame initiale calée sur le planning du Dr H. Monnier
         #    - À partir de la semaine 2 (week_idx >= 1, dès le lundi 09/11/2026) :
-        #      Les journées fixes des demandeurs sont des demi-journées fixes (+ 1 autre demi-journée off libre) :
-        #        * Marwane : demi-journée off fixe le LUNDI APRÈS-MIDI (0, 'pm')
-        #        * Gabriel : demi-journée off fixe le MERCREDI MATIN (2, 'am')
-        #        * Oussama : demi-journée off fixe le JEUDI APRÈS-MIDI (3, 'pm')
+        #      Les demi-journées fixes préférées des demandeurs (dans la mesure du possible) + 1 autre demi-journée off libre :
+        #        * Oussama : demi-journée off fixe le LUNDI MATIN (0, 'am')
+        #        * Gabriel : demi-journée off fixe le MARDI MATIN (1, 'am')
+        #        * Marwane : demi-journée off fixe le JEUDI MATIN (3, 'am')
         FIXED_OFF_HALFDAYS_FROM_W2 = {
-            "marwane": (0, "pm"),
-            "gabriel": (2, "am"),
-            "oussama": (3, "pm"),
+            "oussama": (0, "am"),
+            "gabriel": (1, "am"),
+            "marwane": (3, "am"),
         }
 
         if week_idx == 0:
@@ -821,41 +821,41 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         else:
             if week_idx % 2 == 1:
                 weekly_offs_by_interne = {
-                    "marwane": {(0, "pm"), (3, "am")},    # Lundi PM (fixe) + Jeudi AM
-                    "gabriel": {(2, "am"), (0, "am")},    # Mercredi AM (fixe) + Lundi AM
-                    "oussama": {(3, "pm"), (2, "am")},    # Jeudi PM (fixe) + Mercredi AM
+                    "oussama": {(0, "am"), (3, "pm")},    # Lundi AM (fixe) + Jeudi PM
+                    "gabriel": {(1, "am"), (2, "am")},    # Mardi AM (fixe) + Mercredi AM
+                    "marwane": {(3, "am"), (0, "pm")},    # Jeudi AM (fixe) + Lundi PM
                     "milan": {(0, "am"), (2, "pm")},      # Lundi AM + Mercredi PM
                     "nathanael": {(3, "pm"), (4, "am")},  # Jeudi PM + Vendredi AM
                 }
             else:
                 weekly_offs_by_interne = {
-                    "marwane": {(0, "pm"), (2, "pm")},    # Lundi PM (fixe) + Mercredi PM
-                    "gabriel": {(2, "am"), (3, "pm")},    # Mercredi AM (fixe) + Jeudi PM
-                    "oussama": {(3, "pm"), (0, "am")},    # Jeudi PM (fixe) + Lundi AM
-                    "milan": {(2, "am"), (3, "am")},      # Mercredi AM + Jeudi AM
+                    "oussama": {(0, "am"), (2, "am")},    # Lundi AM (fixe) + Mercredi AM
+                    "gabriel": {(1, "am"), (3, "pm")},    # Mardi AM (fixe) + Jeudi PM
+                    "marwane": {(3, "am"), (2, "pm")},    # Jeudi AM (fixe) + Mercredi PM
+                    "milan": {(2, "am"), (0, "pm")},      # Mercredi AM + Lundi PM
                     "nathanael": {(0, "am"), (4, "am")},  # Lundi AM + Vendredi AM
                 }
 
             am_pools_w2 = {
-                0: [  # Lundi AM (3 seniors actifs) — Obligatoires : TDM SAU, ECHO (+ GESTES C)
+                0: [  # Lundi AM (3 seniors actifs : 2 demi-offs dont Oussama fixe) — Obligatoires : TDM SAU, ECHO (+ GESTES C)
                     "TDM SAU",
                     "ECHO",
                     "GESTES (C)",
                 ],
-                1: [  # Mardi AM (5 seniors actifs, 0 off) — Obligatoires : TDM SAU, GESTES (C), IRM 3T (+ IRM 1,5T, ECHO, SCAN ACHARD)
+                1: [  # Mardi AM (4 seniors actifs : Gabriel demi-off fixe) — Obligatoires : TDM SAU, GESTES (C), IRM 3T (+ IRM 1,5T, ECHO, SCAN ACHARD)
                     "TDM SAU",
                     "GESTES (C)",
                     "IRM 3T",
                     "IRM 1,5T" if (week_idx < 3 or week_idx % 2 == 0) else "SCAN ACHARD",
                     "ECHO",
                 ],
-                2: [  # Mercredi AM (3 seniors actifs : 2 demi-offs dont Gabriel fixe) — Obligatoires : TDM SAU, IRM 3T, IRM 1,5T (+ GESTES C)
+                2: [  # Mercredi AM (3 seniors actifs : 2 demi-offs) — Obligatoires : TDM SAU, IRM 3T, IRM 1,5T (+ GESTES C)
                     "TDM SAU",
                     "IRM 3T",
                     "IRM 1,5T",
                     "GESTES (C)",
                 ],
-                3: [  # Jeudi AM (5 seniors actifs, 0 off) — Obligatoires : TDM SAU, ECHO, GESTES (C) (+ SCAN ACHARD)
+                3: [  # Jeudi AM (4 seniors actifs : Marwane demi-off fixe) — Obligatoires : TDM SAU, ECHO, GESTES (C) (+ SCAN ACHARD, TDM OLLIER DIAG)
                     "TDM SAU",
                     "ECHO",
                     "GESTES (C)",
@@ -870,7 +870,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 ],
             }
             pm_pools_w2 = {
-                0: [  # Lundi PM (4 seniors actifs : Marwane demi-off fixe) — Obligatoires : TDM SAU, IRM (+ ECHO, GESTES C)
+                0: [  # Lundi PM (4 seniors actifs : 1 demi-off) — Obligatoires : TDM SAU, IRM (+ ECHO, GESTES C)
                     "TDM SAU",
                     "IRM",
                     "ECHO",
@@ -889,13 +889,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "IRM",
                     "SCAN ACHARD",
                 ],
-                3: [  # Jeudi PM (3 seniors actifs : 2 demi-offs dont Oussama fixe) — Obligatoires : TDM SAU, IRM (+ SCAN ACHARD, ALLURA)
+                3: [  # Jeudi PM (3 ou 4 seniors actifs) — Obligatoires : TDM SAU, IRM (+ SCAN ACHARD, ALLURA)
                     "TDM SAU",
                     "IRM",
                     "SCAN ACHARD",
                     "ALLURA",
                 ],
-                4: [  # Vendredi PM (4 seniors actifs) — Obligatoire : TDM SAU (+ LECTURE/CS, SCAN ACHARD, IRM, GESTES C)
+                4: [  # Vendredi PM (5 seniors actifs, 0 off) — Obligatoire : TDM SAU (+ LECTURE/CS, SCAN ACHARD, IRM, GESTES C)
                     "TDM SAU",
                     "LECTURE/CS",
                     "SCAN ACHARD",
@@ -2845,7 +2845,7 @@ def build_full_dataset() -> dict:
                 "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
                 "Permanence Scanner SAU (toujours un interne matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
-                "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs (Lundi après-midi pour Marwane, Mercredi matin pour Gabriel, Jeudi après-midi pour Oussama) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
+                "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
                 "Noé GRANDVAL (Phase Socle) est systématiquement en binôme avec un co-interne pour le TDM SAU (Scanner des Urgences, ~50-55 % de ses vacations actives, jamais seul au SAU) tout en gardant un ratio équilibré sur les autres modalités (IRM, Écho, TDM Diag) et avec Dr Macil HAMADOUCHE (MH) le mardi matin les 3 premières semaines.",
