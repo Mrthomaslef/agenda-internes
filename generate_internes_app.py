@@ -2123,6 +2123,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const base = JSON.parse(JSON.stringify(INITIAL_DATA));
       base.deletedAbsenceIds = Array.isArray(base.deletedAbsenceIds) ? base.deletedAbsenceIds : [];
       base.deletedCustomKeys = Array.isArray(base.deletedCustomKeys) ? base.deletedCustomKeys : [];
+      base.deletedCustomAt = Object.assign({}, base.deletedCustomAt || {});
       base.absences = mergeAbsencesList(base.absences, [], base.deletedAbsenceIds);
       base.interneGardes = Object.assign({}, base.interneGardes || {});
       base.customVacations = Object.assign({}, base.customVacations || {});
@@ -2138,6 +2139,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             saved.deletedAbsenceIds.forEach(id => {
               if (id && !base.deletedAbsenceIds.includes(id)) base.deletedAbsenceIds.push(id);
             });
+          }
+          if (saved.deletedCustomAt && typeof saved.deletedCustomAt === "object") {
+            base.deletedCustomAt = Object.assign({}, base.deletedCustomAt || {}, saved.deletedCustomAt);
           }
           if (Array.isArray(saved.deletedCustomKeys)) {
             saved.deletedCustomKeys.forEach(k => {
@@ -2205,6 +2209,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           chefRevision: Number(STATE.chefRevision) || 0,
           deletedAbsenceIds: STATE.deletedAbsenceIds || [],
           deletedCustomKeys: STATE.deletedCustomKeys || [],
+          deletedCustomAt: STATE.deletedCustomAt || {},
           absences: STATE.absences,
           interneGardes: STATE.interneGardes || {},
           customVacations: STATE.customVacations || {},
@@ -2303,6 +2308,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (shortName === "TDM OLLIER 4 (SAU)") shortName = "TDM SAU";
       if (shortName === "TDM ACHARD 1") shortName = "ACHARD 1";
       if (shortName === "CONSULT / LECTURE") shortName = "CS / LECT.";
+      if (isChefPlanningMode) {
+        return `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
+      }
       const p = String(poste || "").toUpperCase();
       let h = "";
       if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
@@ -3683,10 +3691,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function rejectVacationModif(cKey) {
       requireChefUnlockThen(() => {
         if (STATE.customVacations && STATE.customVacations[cKey]) {
-          markChefValidationStamp();
+          const rejIso = markChefValidationStamp();
           delete STATE.customVacations[cKey];
-          if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
-          if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
+          tombstoneCustomKey(cKey, rejIso);
           saveStateLocal();
           renderAll();
           showToast("✕ Modification annulée — poste initial rétabli");
@@ -4077,13 +4084,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function undoLastChefMove() {
       if (!chefHistoryStack.length) return;
-      markChefValidationStamp();
+      const undoIso = markChefValidationStamp();
       const prevCustom = chefHistoryStack.pop() || {};
-      const curKeys = Object.keys(STATE.customVacations || {});
-      if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
-      curKeys.forEach(k => {
-        if (!prevCustom[k] && !STATE.deletedCustomKeys.includes(k)) {
-          STATE.deletedCustomKeys.push(k);
+      const curCustom = STATE.customVacations || {};
+      Object.keys(curCustom).forEach(k => {
+        if (!prevCustom[k]) tombstoneCustomKey(k, undoIso);
+      });
+      // Ré-horodater les versions restaurées pour qu'elles priment sur la version annulée lors de la fusion cloud
+      Object.keys(prevCustom).forEach(k => {
+        if (JSON.stringify(prevCustom[k]) !== JSON.stringify(curCustom[k])) {
+          prevCustom[k] = Object.assign({}, prevCustom[k], { updatedAt: undoIso });
+          if (prevCustom[k].validatedAt) prevCustom[k].validatedAt = undoIso;
+          if (Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = STATE.deletedCustomKeys.filter(x => x !== k);
         }
       });
       STATE.customVacations = prevCustom;
@@ -4105,7 +4117,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         STATE.internes.forEach(i => {
           const cKey = dIso + "__" + i.id;
           delete STATE.customVacations[cKey];
-          if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
+          tombstoneCustomKey(cKey, nowIso);
         });
       });
       if (STATE.lockedWeeks && STATE.lockedWeeks[monIso]) {
@@ -6548,10 +6560,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
       const cKey = iso + "__" + iid;
-      if (isChefPlanningMode) markChefValidationStamp();
+      const resetIso = isChefPlanningMode ? markChefValidationStamp() : new Date().toISOString();
       if (STATE.customVacations) delete STATE.customVacations[cKey];
-      if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
-      if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
+      tombstoneCustomKey(cKey, resetIso);
       saveStateLocal();
       closeModal("modalVacationEdit");
       renderAll();
@@ -6568,20 +6579,87 @@ HTML_TEMPLATE = """<!DOCTYPE html>
      * ========================================================================= */
     let cloudPushPromise = Promise.resolve();
     let isCloudPushInFlight = false;
+    const PENDING_PUSH_KEY = "cochin_internes_pending_push_v1";
+
+    // File d'attente PERSISTANTE (localStorage) des envois non confirmés par le cloud :
+    // une validation du Chef n'est jamais perdue (réseau hôpital instable, onglet fermé, etc.).
+    function readPendingPushes() {
+      try {
+        const v = JSON.parse(localStorage.getItem(PENDING_PUSH_KEY) || "[]");
+        return Array.isArray(v) ? v : [];
+      } catch (e) { return []; }
+    }
+    function writePendingPushes(list) {
+      try {
+        if (list && list.length) localStorage.setItem(PENDING_PUSH_KEY, JSON.stringify(list.slice(-40)));
+        else localStorage.removeItem(PENDING_PUSH_KEY);
+      } catch (e) {}
+    }
+    function hasPendingPushes() {
+      return readPendingPushes().length > 0;
+    }
+    function pushHasSheetOps(e) {
+      return Boolean(e && (e.syncAbsenceSheet || e.syncStaffSheet || Array.isArray(e.addedDates) || Array.isArray(e.removedDates)));
+    }
+
+    function tombstoneCustomKey(cKey, nowIso) {
+      if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
+      if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
+      if (!STATE.deletedCustomAt || typeof STATE.deletedCustomAt !== "object") STATE.deletedCustomAt = {};
+      STATE.deletedCustomAt[cKey] = nowIso || new Date().toISOString();
+    }
+
+    function updateSyncBadge(text) {
+      const statusEl = document.getElementById("syncStatusText");
+      if (statusEl) statusEl.textContent = text;
+    }
 
     function pushStateToCloud(opts = {}) {
+      const entry = Object.assign({}, opts, {
+        isChefValidation: Boolean(opts.isChefValidation || isChefPlanningMode),
+        _pid: Date.now() + "_" + Math.random().toString(36).slice(2, 8)
+      });
+      const list = readPendingPushes();
+      list.push(entry);
+      writePendingPushes(list);
+      return enqueuePush(entry);
+    }
+
+    function enqueuePush(entry) {
       cloudPushPromise = cloudPushPromise
         .catch(() => {})
-        .then(() => _executePushStateToCloud(opts));
+        .then(() => _executePushStateToCloud(entry));
       return cloudPushPromise;
     }
 
-    async function _executePushStateToCloud(opts = {}) {
-      const statusEl = document.getElementById("syncStatusText");
-      if (statusEl) statusEl.textContent = "Sync...";
+    // Rejoue les envois en attente (au démarrage, au retour du réseau, avant chaque synchronisation)
+    async function flushPendingPushes() {
+      let guard = 0;
+      while (hasPendingPushes() && guard < 40) {
+        guard++;
+        const first = readPendingPushes()[0];
+        const ok = await enqueuePush(first);
+        if (!ok) return false;
+      }
+      return !hasPendingPushes();
+    }
+
+    async function _executePushStateToCloud(entry = {}) {
+      const stillPending = readPendingPushes();
+      if (entry._pid && !stillPending.some(e => e._pid === entry._pid)) {
+        // Déjà couvert par un envoi complet plus récent
+        return true;
+      }
+      updateSyncBadge("Sync...");
       isCloudPushInFlight = true;
 
-      const isChefVal = Boolean(opts.isChefValidation || isChefPlanningMode);
+      // Un envoi transmet l'état COMPLET : il couvre toutes les modifications en attente sans opération Google Sheet
+      const coveredPids = stillPending
+        .filter(e => e._pid === entry._pid || !pushHasSheetOps(e))
+        .map(e => e._pid);
+      const isChefVal = Boolean(entry.isChefValidation || isChefPlanningMode ||
+        stillPending.some(e => coveredPids.includes(e._pid) && e.isChefValidation));
+
       const nowIso = new Date().toISOString();
       if (isChefVal && !STATE.chefValidatedAt) {
         STATE.chefValidatedAt = nowIso;
@@ -6593,6 +6671,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         chefRevision: Number(STATE.chefRevision) || 0,
         deletedAbsenceIds: STATE.deletedAbsenceIds || [],
         deletedCustomKeys: STATE.deletedCustomKeys || [],
+        deletedCustomAt: STATE.deletedCustomAt || {},
         absences: STATE.absences || [],
         interneGardes: STATE.interneGardes || {},
         customVacations: STATE.customVacations || {},
@@ -6603,9 +6682,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         phoneDirectory: STATE.phoneDirectory || []
       };
 
-      const syncPayload = Object.assign({}, opts, { isChefValidation: isChefVal });
+      const syncPayload = Object.assign({}, entry, { isChefValidation: isChefVal });
+      delete syncPayload._pid;
 
       const evalCode = `
+        var lock = LockService.getScriptLock();
+        var gotLock = false;
+        try { gotLock = lock.tryLock(25000); } catch (lockErr) { gotLock = false; }
+        if (!gotLock) return { status: 'busy' };
+        try {
         var props = PropertiesService.getScriptProperties();
         var rawExisting = props.getProperty('${CLOUD_PROP_KEY}');
         var existing = null;
@@ -6613,68 +6698,94 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         var incoming = ${JSON.stringify(compact)};
         var syncOpts = ${JSON.stringify(syncPayload)};
 
+        // Horodatage d'une entrée (validation chef, décision, demande) : la plus récente gagne
+        function stampOf(o) {
+          if (!o || typeof o !== 'object') return '';
+          var best = '';
+          ['validatedAt', 'decidedAt', 'resolvedAt', 'unlockedAt', 'updatedAt', 'createdAt'].forEach(function(f) {
+            var v = o[f] ? String(o[f]) : '';
+            if (v > best) best = v;
+          });
+          return best;
+        }
+        function mergeByStamp(exMap, inMap) {
+          var out = Object.assign({}, exMap || {});
+          Object.keys(inMap || {}).forEach(function(k) {
+            var inc = inMap[k];
+            if (!inc) return;
+            var ex = out[k];
+            if (ex && stampOf(ex) > stampOf(inc)) return;
+            out[k] = inc;
+          });
+          return out;
+        }
+
         if (existing && typeof existing === 'object') {
-          // 1. Fusionner deletedAbsenceIds et deletedCustomKeys
+          var isChef = Boolean(syncOpts.isChefValidation);
+
+          // 1. Suppressions d'absences (union)
           var delSet = {};
           (existing.deletedAbsenceIds || []).forEach(function(id) { if (id) delSet[id] = true; });
           (incoming.deletedAbsenceIds || []).forEach(function(id) { if (id) delSet[id] = true; });
           incoming.deletedAbsenceIds = Object.keys(delSet);
 
+          // 2. Postes modifiés (customVacations) : fusion entrée par entrée, la plus récente gagne.
+          //    Un appareil non à jour ne peut JAMAIS écraser une validation plus récente de l'autre chef.
+          var mergedCustom = Object.assign({}, existing.customVacations || {});
+          var inCustom = incoming.customVacations || {};
+          Object.keys(inCustom).forEach(function(k) {
+            var incV = inCustom[k];
+            var exV = mergedCustom[k];
+            if (!incV) return;
+            if (!exV) { mergedCustom[k] = incV; return; }
+            if (!isChef && exV.status === 'approved' && incV.status !== 'approved') return;
+            if (stampOf(exV) > stampOf(incV)) return;
+            mergedCustom[k] = incV;
+          });
+
+          // Tombstones horodatés : une suppression n'efface que les versions antérieures
+          var delAt = Object.assign({}, existing.deletedCustomAt || {});
+          Object.keys(incoming.deletedCustomAt || {}).forEach(function(k) {
+            var v = String(incoming.deletedCustomAt[k] || '');
+            if (!delAt[k] || v > String(delAt[k])) delAt[k] = v;
+          });
           var delCustomSet = {};
           (existing.deletedCustomKeys || []).forEach(function(k) { if (k) delCustomSet[k] = true; });
           (incoming.deletedCustomKeys || []).forEach(function(k) { if (k) delCustomSet[k] = true; });
-          Object.keys(incoming.customVacations || {}).forEach(function(k) {
-            if (incoming.customVacations[k]) delete delCustomSet[k];
+          Object.keys(delCustomSet).forEach(function(k) {
+            var entryV = mergedCustom[k];
+            if (!entryV) return;
+            var keep = delAt[k] ? (stampOf(entryV) > String(delAt[k])) : Boolean(inCustom[k]);
+            if (keep) {
+              delete delCustomSet[k];
+            } else {
+              delete mergedCustom[k];
+            }
           });
+          incoming.customVacations = mergedCustom;
           incoming.deletedCustomKeys = Object.keys(delCustomSet);
+          var keptDelAt = {};
+          incoming.deletedCustomKeys.forEach(function(k) { if (delAt[k]) keptDelAt[k] = delAt[k]; });
+          incoming.deletedCustomAt = keptDelAt;
 
-          // 2. Protéger les décisions et validations du Chef contre l'écrasement par un client non-Chef
-          if (!syncOpts.isChefValidation) {
-            var mergedCustom = Object.assign({}, existing.customVacations || {});
-            Object.keys(incoming.customVacations || {}).forEach(function(k) {
-              if (delCustomSet[k]) return;
-              var incV = incoming.customVacations[k];
-              var exV = mergedCustom[k];
-              if (!exV) {
-                mergedCustom[k] = incV;
-              } else if (exV.status === 'approved' && incV.status !== 'approved') {
-                // Ne jamais écraser un poste validé par le Chef par une demande non validée
-              } else if (exV.validatedAt && incV.validatedAt && exV.validatedAt > incV.validatedAt) {
-                // Conserver la validation Chef plus récente
-              } else {
-                mergedCustom[k] = incV;
-              }
-            });
-            Object.keys(delCustomSet).forEach(function(k) { delete mergedCustom[k]; });
-            incoming.customVacations = mergedCustom;
-
-            incoming.chefDecisions = Object.assign({}, existing.chefDecisions || {}, incoming.chefDecisions || {});
-            incoming.lockedWeeks = Object.assign({}, existing.lockedWeeks || {}, incoming.lockedWeeks || {});
-            if (existing.chefValidatedAt && (!incoming.chefValidatedAt || existing.chefValidatedAt > incoming.chefValidatedAt)) {
-              incoming.chefValidatedAt = existing.chefValidatedAt;
-            }
-            if ((Number(existing.chefRevision) || 0) > (Number(incoming.chefRevision) || 0)) {
-              incoming.chefRevision = Number(existing.chefRevision);
-            }
+          // 3. Décisions du Chef et semaines fixées : fusion par horodatage
+          if (isChef && syncOpts.replaceChefDecisions) {
+            incoming.chefDecisions = Object.assign({}, incoming.chefDecisions || {});
           } else {
-            // Action explicite du Chef : ses suppressions/modifications font foi
-            if (!syncOpts.replaceCustomVacations) {
-              var chefMergedCustom = Object.assign({}, existing.customVacations || {}, incoming.customVacations || {});
-              Object.keys(delCustomSet).forEach(function(k) {
-                if (!incoming.customVacations || !incoming.customVacations[k]) {
-                  delete chefMergedCustom[k];
-                }
-              });
-              incoming.customVacations = chefMergedCustom;
-            }
-            if (!syncOpts.replaceChefDecisions) {
-              incoming.chefDecisions = Object.assign({}, existing.chefDecisions || {}, incoming.chefDecisions || {});
-            }
-            incoming.lockedWeeks = Object.assign({}, existing.lockedWeeks || {}, incoming.lockedWeeks || {});
+            incoming.chefDecisions = mergeByStamp(existing.chefDecisions, isChef ? incoming.chefDecisions : {});
+          }
+          incoming.lockedWeeks = mergeByStamp(existing.lockedWeeks, isChef ? incoming.lockedWeeks : {});
+
+          if (existing.chefValidatedAt && (!incoming.chefValidatedAt || existing.chefValidatedAt > incoming.chefValidatedAt)) {
+            incoming.chefValidatedAt = existing.chefValidatedAt;
+          }
+          if (isChef) {
             incoming.chefRevision = Math.max((Number(existing.chefRevision) || 0) + 1, Number(incoming.chefRevision) || 1);
+          } else {
+            incoming.chefRevision = Math.max(Number(existing.chefRevision) || 0, Number(incoming.chefRevision) || 0);
           }
 
-          // 3. Fusionner les absences en préservant impérativement les statuts "approved" / "rejected" du Chef
+          // 4. Absences : une décision du Chef (approved / rejected) n'est jamais remplacée par une version plus ancienne
           var absByKey = {};
           (existing.absences || []).forEach(function(a) {
             if (!a || !a.date || !a.interneId || delSet[a.id]) return;
@@ -6684,21 +6795,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!a || !a.date || !a.interneId || delSet[a.id]) return;
             var k = a.date + '__' + a.interneId;
             var ex = absByKey[k];
-            if (!ex) {
-              absByKey[k] = a;
-            } else {
-              var exDecided = (ex.status === 'approved' || ex.status === 'rejected');
-              var inDecided = (a.status === 'approved' || a.status === 'rejected');
-              if (syncOpts.isChefValidation) {
-                absByKey[k] = Object.assign({}, ex, a);
-              } else if (exDecided && !inDecided) {
-                // Conserver la décision du Chef
-              } else if (exDecided && inDecided && ex.validatedAt && a.validatedAt && ex.validatedAt > a.validatedAt) {
-                // Conserver la décision plus récente
-              } else {
-                absByKey[k] = Object.assign({}, ex, a);
-              }
-            }
+            if (!ex) { absByKey[k] = a; return; }
+            var exDecided = (ex.status === 'approved' || ex.status === 'rejected');
+            var inDecided = (a.status === 'approved' || a.status === 'rejected');
+            if (exDecided && !inDecided) return;
+            if (stampOf(ex) > stampOf(a)) return;
+            absByKey[k] = Object.assign({}, ex, a);
           });
           incoming.absences = Object.keys(absByKey).sort().map(function(k) { return absByKey[k]; });
         }
@@ -6765,37 +6867,69 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           chefRevision: incoming.chefRevision,
           chefValidatedAt: incoming.chefValidatedAt
         };
+        } finally {
+          try { lock.releaseLock(); } catch (relErr) {}
+        }
       `;
 
+      const bodyStr = JSON.stringify({ eval_code: evalCode });
       let pushedOk = false;
-      for (let attempt = 0; attempt < 2; attempt++) {
+      for (let attempt = 0; attempt < 3 && !pushedOk; attempt++) {
         try {
+          // ⚠️ Pas de keepalive au-delà de ~60 Ko : les navigateurs rejettent sinon la requête (limite 64 Ko)
           const resp = await fetch(WEBHOOK_URL, {
             method: "POST",
-            keepalive: true,
+            keepalive: bodyStr.length < 60000,
             headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify({ eval_code: evalCode })
+            body: bodyStr
           });
           if (resp.ok) {
             const resJson = await resp.json().catch(() => null);
-            if (!resJson || resJson.status === "ok") {
+            if (resJson && resJson.status === "ok" && resJson.evalResult && resJson.evalResult.status === "saved") {
               pushedOk = true;
               break;
             }
           }
-        } catch (err) {
-          if (attempt === 0) {
-            await new Promise(r => setTimeout(r, 600));
-          }
-        }
+        } catch (err) {}
+        if (attempt < 2) await new Promise(r => setTimeout(r, 1200 * (attempt + 1)));
       }
       isCloudPushInFlight = false;
-      if (statusEl) statusEl.textContent = pushedOk ? "Synchronisé" : "Local";
+      if (pushedOk) {
+        writePendingPushes(readPendingPushes().filter(e => !coveredPids.includes(e._pid)));
+        updateSyncBadge("Synchronisé ✓");
+      } else {
+        updateSyncBadge("⚠️ Non envoyé");
+        if (isChefVal) {
+          showToast("⚠️ Modification enregistrée sur cet appareil, pas encore sur le cloud — renvoi automatique");
+        }
+      }
+      return pushedOk;
     }
 
+    let isSyncRunning = false;
     async function syncWithCloud(manual = false) {
+      if (isSyncRunning) return;
+      isSyncRunning = true;
+      try {
+        await _syncWithCloudInner(manual);
+      } finally {
+        isSyncRunning = false;
+      }
+    }
+
+    async function _syncWithCloudInner(manual = false) {
       if (isCloudPushInFlight) {
         try { await cloudPushPromise; } catch (e) {}
+      }
+      // Sécurité Espace Chef : tant que des modifications locales n'ont pas été confirmées par le cloud,
+      // on les renvoie d'abord et on n'applique JAMAIS l'état distant par-dessus (pas de perte de validation).
+      if (hasPendingPushes()) {
+        const flushed = await flushPendingPushes();
+        if (!flushed) {
+          updateSyncBadge("⚠️ Non envoyé");
+          if (manual) showToast("⚠️ Cloud injoignable : vos modifications restent enregistrées sur cet appareil");
+          return;
+        }
       }
       const seqBeforeFetch = localMutationSeq;
       const statusEl = document.getElementById("syncStatusText");
@@ -6863,6 +6997,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               });
             }
             STATE.deletedCustomKeys = Array.from(delCustomSet);
+            STATE.deletedCustomAt = Object.assign({}, STATE.deletedCustomAt || {}, remote.deletedCustomAt || {});
 
             // 2. Synchroniser les absences en donnant priorité absolue aux décisions du Chef ("approved" / "rejected")
             if (Array.isArray(remote.absences)) {
@@ -6956,6 +7091,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               chefRevision: Number(STATE.chefRevision) || 0,
               deletedAbsenceIds: STATE.deletedAbsenceIds || [],
               deletedCustomKeys: STATE.deletedCustomKeys || [],
+              deletedCustomAt: STATE.deletedCustomAt || {},
               absences: STATE.absences,
               interneGardes: STATE.interneGardes || {},
               customVacations: STATE.customVacations || {},
@@ -6993,6 +7129,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       syncWithCloud(false);
     });
 
+    window.addEventListener("online", () => {
+      syncWithCloud(false);
+    });
+
+    // Avertir avant de fermer l'onglet si un envoi est en cours ou en attente
+    window.addEventListener("beforeunload", (ev) => {
+      if (isCloudPushInFlight) {
+        ev.preventDefault();
+        ev.returnValue = "";
+      }
+    });
+
     window.addEventListener("DOMContentLoaded", () => {
       renderAll();
       syncWithCloud(false);
@@ -7001,6 +7149,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           syncWithCloud(false);
         }
       }, 25000);
+      if (hasPendingPushes()) updateSyncBadge("⚠️ Non envoyé");
     });
   </script>
 </body>

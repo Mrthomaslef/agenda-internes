@@ -2897,6 +2897,9 @@ def sync_initial_state_to_cloud(dataset: dict):
     }
     safe_json = json.dumps(compact_state, ensure_ascii=False)
     eval_code = f"""
+    var lock = LockService.getScriptLock();
+    if (!lock.tryLock(30000)) return {{ status: 'busy' }};
+    try {{
     var props = PropertiesService.getScriptProperties();
     var existingRaw = props.getProperty('{CLOUD_PROP_KEY}');
     var incoming = {safe_json};
@@ -2967,6 +2970,9 @@ def sync_initial_state_to_cloud(dataset: dict):
       props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(cur));
     }}
     return {{ status: 'verified_cloud', presentations: incoming.presentations.length, absences: incoming.absences.length, gardes: Object.keys(incoming.interneGardes || {{}}).length }};
+    }} finally {{
+      try {{ lock.releaseLock(); }} catch (relErr) {{}}
+    }}
     """
     req = urllib.request.Request(
         WEBHOOK_URL,
