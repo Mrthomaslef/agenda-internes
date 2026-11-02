@@ -1047,22 +1047,22 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         else:
             rot_noe = (week_idx - 4) % 5
             if rot_noe == 0:
-                # SAU : Mar AM (solo MH), Lun PM, Ven AM (2 AM + 1 PM) • Offs : Mer AM, Jeu PM
+                # SAU : Mar AM (solo MH), Lun PM, Ven PM (1 AM + 2 PM) • Offs : Mer AM, Jeu PM
                 noe_week_plan = {
                     0: ("ECHO", "TDM SAU"),
                     1: ("TDM SAU", "CONSULTATION"),
                     2: ("1/2 journée libre", "TDM OLLIER DIAG"),
                     3: ("GESTES (C)", "1/2 journée libre"),
-                    4: ("TDM SAU", "CONSULTATION"),
+                    4: ("IRM 3T", "TDM SAU"),
                 }
             elif rot_noe == 1:
-                # SAU : Mar AM (solo MH), Jeu AM, Ven PM (2 AM + 1 PM) • Offs : Lun AM, Mer PM
+                # SAU : Mar AM (solo MH), Mer PM, Ven PM (1 AM + 2 PM) • Offs : Lun AM, Jeu PM
                 noe_week_plan = {
                     0: ("1/2 journée libre", "TDM OLLIER DIAG"),
                     1: ("TDM SAU", "ECHO"),
-                    2: ("IRM 3T", "1/2 journée libre"),
-                    3: ("TDM SAU", "IRM"),
-                    4: ("ECHO", "TDM SAU"),
+                    2: ("IRM 3T", "TDM SAU"),
+                    3: ("ECHO", "1/2 journée libre"),
+                    4: ("GESTES (C)", "TDM SAU"),
                 }
             elif rot_noe == 2:
                 # SAU : Mar AM (solo MH), Mer PM, Jeu PM (1 AM + 2 PM) • Offs : Lun PM, Jeu AM
