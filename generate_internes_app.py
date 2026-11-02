@@ -4154,10 +4154,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
           for (const allowedList of [["LECTURE"], ["LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG"]]) {
             for (const overTueId of allIidsGlobal) {
-              if (tueC[overTueId] - friC[overTueId] < 2) continue;
+              if (tueC[overTueId] < friC[overTueId]) continue;
               for (const overFriId of allIidsGlobal) {
                 if (overFriId === overTueId) continue;
-                if (friC[overFriId] - tueC[overFriId] < 2) continue;
+                if (friC[overFriId] < tueC[overFriId]) continue;
+                if ((tueC[overTueId] - friC[overTueId]) + (friC[overFriId] - tueC[overFriId]) < 4) continue;
                 if (Math.abs(totalC[overTueId] - totalC[overFriId]) > 1) continue;
                 for (const monTue of unlockedWeekMons) {
                   if (getWeekCsCountGlobal(monTue, overTueId) === 0 || getWeekCsCountGlobal(monTue, overFriId) > 0) continue;

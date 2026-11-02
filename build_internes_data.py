@@ -4711,10 +4711,12 @@ def build_full_dataset() -> dict:
         fri_c = {iid: _total_cs_wd_cnt(iid, 4) for iid in all_iids_global}
         for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
             for over_tue_id in all_iids_global:
-                if tue_c[over_tue_id] - fri_c[over_tue_id] < 2:
+                if tue_c[over_tue_id] < fri_c[over_tue_id]:
                     continue
                 for over_fri_id in all_iids_global:
-                    if over_fri_id == over_tue_id or fri_c[over_fri_id] - tue_c[over_fri_id] < 2:
+                    if over_fri_id == over_tue_id or fri_c[over_fri_id] < tue_c[over_fri_id]:
+                        continue
+                    if (tue_c[over_tue_id] - fri_c[over_tue_id]) + (fri_c[over_fri_id] - tue_c[over_fri_id]) < 4:
                         continue
                     if abs(tot_c[over_tue_id] - tot_c[over_fri_id]) > 1:
                         continue
