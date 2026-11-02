@@ -2800,6 +2800,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (planningScope === "chefs" || planningScope === "perso") {
         planningScope = "internes";
       }
+      selectedInterneId = "all";
+      localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
       planningMode = "week";
       document.querySelectorAll(".tab-btn").forEach(b => {
         b.classList.toggle("active", b.getAttribute("data-tab") === "planning");
