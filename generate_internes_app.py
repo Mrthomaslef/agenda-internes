@@ -1792,7 +1792,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let STATE = loadInitialState();
     let currentTab = "planning";
     let selectedInterneId = localStorage.getItem(SELECTED_INTERNE_KEY) || "gabriel";
-    let planningScope = "internes"; // 'internes' | 'perso' | 'chefs' | 'combined'
+    let planningScope = (selectedInterneId === "all") ? "internes" : (selectedInterneId === "all_chefs" ? "chefs" : "perso"); // 'internes' | 'perso' | 'chefs' | 'combined'
     let planningMode = "week";      // 'day' | 'week' | 'month'
     let currentDateIso = "2026-11-02";
     let presFilter = "all";
@@ -2098,6 +2098,57 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!freed) break;
           }
         });
+      });
+
+      // 2bis. Garantie stricte : Noé (Phase Socle) est TOUJOURS en poste en binôme avec un autre interne
+      //       (si son binôme initial part en congés/RG ou change de poste, Noé bascule sur un poste occupé par un autre interne)
+      const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
+      Object.keys(st.schedule).sort().forEach(iso => {
+        const dayObj = st.schedule[iso];
+        if (!dayObj || dayObj.holiday || !dayObj.byInterne || !dayObj.byInterne.noe) return;
+        const noeSlot = dayObj.byInterne.noe;
+        const [yy, mm, dd] = iso.split("-").map(Number);
+        const jsDay = new Date(yy, mm - 1, dd).getDay();
+        ["am", "pm"].forEach(h => {
+          if (iso === "2026-11-02" && h === "am") return;
+          const noeP = noeSlot[h];
+          if (!noeP || nonActivePostes.includes(noeP)) return;
+          const nk = h === "am" ? "noteAm" : "notePm";
+          const activeSeniorsByPoste = {};
+          seniorIds.forEach(sId => {
+            const sp = dayObj.byInterne[sId] ? dayObj.byInterne[sId][h] : null;
+            if (sp && !nonActivePostes.includes(sp)) {
+              if (!activeSeniorsByPoste[sp]) activeSeniorsByPoste[sp] = [];
+              activeSeniorsByPoste[sp].push(sId);
+            }
+          });
+          let finalNoeP = noeP;
+          if (!activeSeniorsByPoste[finalNoeP] && Object.keys(activeSeniorsByPoste).length > 0) {
+            const prefOrder = ["IRM 1,5T", "IRM 3T", "IRM"].includes(finalNoeP)
+              ? ["IRM 1,5T", "IRM 3T", "IRM", "ECHO", "TDM OLLIER DIAG", "TDM SAU", "LECTURE/CS", "GESTES (C)", "SCAN ACHARD", "ALLURA"]
+              : [finalNoeP, "TDM SAU", "ECHO", "TDM OLLIER DIAG", "IRM 1,5T", "IRM 3T", "IRM", "LECTURE/CS", "GESTES (C)", "SCAN ACHARD", "ALLURA"];
+            const chosen = prefOrder.find(p => activeSeniorsByPoste[p]) || Object.keys(activeSeniorsByPoste)[0];
+            noeSlot[h] = chosen;
+            finalNoeP = chosen;
+          }
+          const partners = (activeSeniorsByPoste[finalNoeP] || []).map(sId => {
+            const iObj = (st.internes || []).find(x => x.id === sId);
+            return iObj ? iObj.shortName : sId;
+          });
+          if (partners.length > 0 && !(iso === "2026-11-02" && h === "pm")) {
+            const pStr = partners.join(" & ");
+            if (h === "am" && (jsDay === 2 || jsDay === 4) && finalNoeP === "TDM SAU") {
+              noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • En binôme avec ${pStr}`;
+            } else if (finalNoeP === "TDM SAU") {
+              noeSlot[nk] = `Posté Socle Urgences • En binôme avec ${pStr}`;
+            } else {
+              noeSlot[nk] = `Phase Socle • En binôme avec ${pStr}`;
+            }
+          }
+        });
+        if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm)) {
+          noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
+        }
       });
 
       // 3. Reconstruire dayObj.am, dayObj.pm et dayObj.slots
@@ -2407,20 +2458,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const jsDay = new Date(yy, mm - 1, dd).getDay();
         const isFirstMonday = (iso === "2026-11-02");
 
-        // 1. Vérifier couverture obligatoire TDM SAU (Urgences) par au moins un interne posté (incluant Noé Phase Socle)
+        // 1. Vérifier couverture obligatoire TDM SAU (Urgences) par au moins un interne hors socle (Noé étant toujours en binôme)
         if (!isFirstMonday) {
           ["am", "pm"].forEach(periodKey => {
             const pLabel = periodKey === "am" ? "Matin (08h00–13h00)" : "Après-midi (13h00–18h30)";
-            const hasSau = allInterneIds.some(iid => dayObj.byInterne[iid] && dayObj.byInterne[iid][periodKey] === "TDM SAU");
+            const hasSau = seniorIds.some(iid => dayObj.byInterne[iid] && dayObj.byInterne[iid][periodKey] === "TDM SAU");
             if (!hasSau) {
-              const absentInternes = allInterneIds
+              const absentInternes = seniorIds
                 .filter(iid => dayObj.byInterne[iid] && (dayObj.byInterne[iid][periodKey] === "VACANCES" || dayObj.byInterne[iid][periodKey] === "RG"))
                 .map(iid => getInterneById(iid).shortName);
 
               // Candidats disponibles ce jour/période pour reprendre TDM SAU
               const candidates = [];
               donorPriority.forEach(candPoste => {
-                allInterneIds.forEach(iid => {
+                seniorIds.forEach(iid => {
                   const sl = dayObj.byInterne[iid];
                   if (!sl || sl[periodKey] !== candPoste) return;
                   if (jsDay === 2 && periodKey === "pm" && candPoste === "LECTURE/CS") return;
@@ -3238,12 +3289,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (!isChefId(selectedInterneId) && selectedInterneId !== "all_chefs") {
           selectedInterneId = "chef_tl";
         }
-        planningScope = "perso";
+        planningScope = (selectedInterneId === "all_chefs") ? "chefs" : "perso";
       } else {
         if (isChefId(selectedInterneId) || selectedInterneId === "all_chefs") {
           selectedInterneId = "gabriel";
         }
-        if (planningScope === "chefs") planningScope = "internes";
+        planningScope = (selectedInterneId === "all") ? "internes" : "perso";
       }
       localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
       renderAll();
@@ -3254,9 +3305,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (iid === "all_chefs") {
         planningScope = "chefs";
       } else if (isChefId(iid)) {
-        if (planningScope === "internes") planningScope = "perso";
+        planningScope = "perso";
       } else if (iid === "all") {
-        if (planningScope === "perso") planningScope = "internes";
+        planningScope = "internes";
+      } else {
+        planningScope = "perso";
       }
       localStorage.setItem(SELECTED_INTERNE_KEY, iid);
       renderAll();
@@ -3325,7 +3378,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="avatar-sm" style="background:#0284C7">6</div>
             <div>
               <div class="summary-title">Tous les internes & DJ (6)</div>
-              <div class="summary-sub">Oussama Docteur Junior (DJ) • Noé en Phase Socle (posté au TDM SAU ~50 %, avec Macil les 3 premiers mardis)</div>
+              <div class="summary-sub">Oussama Docteur Junior (DJ) • Noé en Phase Socle (toujours en binôme avec un autre interne, ~50 % TDM SAU)</div>
             </div>
           </div>
           <div class="summary-stats">
@@ -3569,7 +3622,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (sc === "perso") {
         if (selectedInterneId === "all") selectedInterneId = "gabriel";
         if (selectedInterneId === "all_chefs") selectedInterneId = "chef_tl";
+      } else if (sc === "internes") {
+        selectedInterneId = "all";
+      } else if (sc === "chefs") {
+        selectedInterneId = "all_chefs";
       }
+      localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
       renderAll();
     }
 
@@ -3728,7 +3786,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const intDay = (STATE.schedule && STATE.schedule[dIso]) ? (STATE.schedule[dIso][periodKey] || []) : [];
 
             const matchedChefs = chDay.filter(x => sec.chefMatch.some(m => String(x.poste || "").toUpperCase().includes(m)));
-            const matchedInts = intDay.filter(x => sec.intMatch.includes(x.poste));
+            const matchedInts = intDay.filter(x => {
+              if (!sec.intMatch.includes(x.poste)) return false;
+              if (!x.closed && selectedInterneId !== "all" && !isChefId(selectedInterneId) && selectedInterneId !== "all_chefs" && x.interneId !== selectedInterneId) {
+                return false;
+              }
+              return true;
+            });
 
             let cellHtml = "";
             if (matchedChefs.length > 0) {
@@ -3810,20 +3874,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const postesPm = ["GESTES (C)", "TDM OLLIER DIAG", "TDM SAU", "IRM", "ECHO", "ALLURA", "SCAN ACHARD", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
       const blocking = computeBlockingDays(STATE);
 
-      if (planningScope === "perso") {
+      const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
+      if (planningScope === "perso" || (isSingleInterneSelected && !isChefPlanningMode)) {
         const me = getInterneById(selectedInterneId === "all" ? "gabriel" : selectedInterneId);
         let cardsHtml = `
           <div class="card" style="padding:12px 10px 0; overflow:hidden;">
             <div class="card-header" style="padding:0 4px;">
               <div class="card-title">Semaine (Lun–Ven) — ${me.fullName}</div>
-              <span style="font-size:11px; color:var(--text-muted);">Touchez un jour pour modifier</span>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span style="font-size:11px; color:var(--text-muted);">Touchez un jour pour modifier</span>
+                <button class="btn btn-sm" onclick="selectInterne('all')">Voir tous les internes</button>
+              </div>
             </div>
             <div class="perso-week-grid" style="margin-bottom:10px;">
         `;
         days.forEach(dIso => {
           const dObj = STATE.schedule[dIso] || {};
           const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—", note: "" };
-          const presList = STATE.presentations.filter(p => p.date === dIso);
+          const presList = STATE.presentations.filter(p => p.date === dIso && (p.interneId === me.id || (p.interneName && p.interneName.toLowerCase().includes(me.shortName.toLowerCase()))));
           cardsHtml += `
             <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:#F8FAFC; cursor:pointer;" onclick="openVacationEditModal('${dIso}', '${me.id}')">
               <div style="font-weight:800; font-size:11.5px; margin-bottom:6px; color:var(--primary); display:flex; justify-content:space-between; align-items:center;">
@@ -3838,7 +3906,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <span class="poste-pill ${getPosteClass(slot.pm)}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.pm, "pm")}</span>
               </div>
               ${slot.note ? `<div style="font-size:9.5px; color:#0369A1; font-weight:700; margin-top:4px;">${slot.note}</div>` : ''}
-              ${presList.map(p => `<div style="font-size:9.5px; color:#6D28D9; margin-top:3px;">12h30: ${p.interneName}</div>`).join("")}
+              ${presList.map(p => `<div style="font-size:9.5px; color:#6D28D9; font-weight:700; margin-top:3px;">12h30: ${p.typeLabel || 'Cours'}</div>`).join("")}
             </div>
           `;
         });
@@ -3908,7 +3976,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 } else if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 5) {
                   binomeHtml = `<span class="tag-binome">Consult.</span>`;
                 } else if (m.note && m.note.includes("Macil")) {
-                  binomeHtml = `<span class="tag-binome">+Macil</span>`;
+                  binomeHtml = `<span class="tag-binome">${m.binome ? 'Binôme • +Macil' : '+Macil'}</span>`;
                 } else if (m.binome) {
                   binomeHtml = `<span class="tag-binome">Binôme</span>`;
                 }
@@ -3952,7 +4020,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const isCoursInt = p.type === "cours_internes";
           const presBlock = (blocking.byDate[dIso] || []).find(iss => iss.category === "pres_absent" && iss.presId === p.id);
           const bg = presBlock ? "#FEE2E2" : (isBone ? "#FEF2F2" : (isCra ? "#FEF3C7" : (isCoursInt ? "#DBEAFE" : "#F3E8FF")));
-          const fg = presBlock ? "#991B1B" : (isBone ? "#B91C1C" : (isCra ? "#B45309" : (isCoursInt ? "#1D4ED8" : "#6D28D9")));
+          const fg = presBlock ? "#991B1B" : (isBone ? "#B91C1C" : (isCra ? "#B45309" : (isCoursInt ? "#1D4ED8" : "#6D28D9"));
           const lbl = isBone
             ? `Bone Club`
             : (isCra
@@ -4035,10 +4103,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         `;
       }
       const chDay = (STATE.chefsPlanning && STATE.chefsPlanning[iso]) ? STATE.chefsPlanning[iso] : { am: [], pm: [] };
+      const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
 
       let rows = "";
       STATE.internes.forEach(i => {
-        if (planningScope === "perso" && !isChefId(selectedInterneId) && selectedInterneId !== "all" && i.id !== selectedInterneId) return;
+        if ((planningScope === "perso" || (isSingleInterneSelected && !isChefPlanningMode)) && isSingleInterneSelected && i.id !== selectedInterneId) return;
         const slot = (dObj.byInterne && dObj.byInterne[i.id]) ? dObj.byInterne[i.id] : null;
         if (!slot) return;
         const amEsc = String(slot.am || "").replace(/'/g, "\\'");
@@ -4097,13 +4166,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return `
         <div class="card">
           <div class="card-header">
-            <div class="card-title">${formatDateFr(iso, true)}</div>
-            ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">Garde : Dr ${gSenior.noms.join(", ")}</span>` : ''}
+            <div class="card-title">${formatDateFr(iso, true)}${isSingleInterneSelected ? ` — ${getInterneById(selectedInterneId).fullName}` : ''}</div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              ${isSingleInterneSelected ? `<button class="btn btn-sm" onclick="selectInterne('all')">Voir tous les internes</button>` : ''}
+              ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">Garde : Dr ${gSenior.noms.join(", ")}</span>` : ''}
+            </div>
           </div>
           ${dayBlockAlertHtml}
           <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px;">
             <div>
-              <div style="font-size:12px; font-weight:800; margin-bottom:6px;">${isChefPlanningMode ? "Internes & DJ (glissez-déposez un créneau sur un autre interne pour échanger)" : "Internes & DJ (cliquez pour modifier)"}</div>
+              <div style="font-size:12px; font-weight:800; margin-bottom:6px;">${isChefPlanningMode ? "Internes & DJ (glissez-déposez un créneau sur un autre interne pour échanger)" : (isSingleInterneSelected ? `Planning de ${getInterneById(selectedInterneId).shortName} (cliquez pour modifier)` : "Internes & DJ (cliquez pour modifier)")}</div>
               <div class="week-table-wrap">
                 <table class="planning-table" style="min-width:280px;">
                   <thead>
@@ -4118,6 +4190,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </table>
               </div>
             </div>
+            ${!isSingleInterneSelected ? `
             <div>
               <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Chefs & Seniors</div>
               <div class="card" style="margin:0; background:#F8FAFC;">
@@ -4133,6 +4206,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 }).join("") || '—'}
               </div>
             </div>
+            ` : ''}
           </div>
         </div>
       `;
@@ -4254,10 +4328,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function renderBalanceSummaryCard() {
+      const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
       if (!showStatsTable) {
         return `
           <div style="text-align:center; margin-top:8px;">
-            <button class="btn btn-sm" onclick="toggleStatsTable()">Afficher le décompte des postes par interne</button>
+            <button class="btn btn-sm" onclick="toggleStatsTable()">${isSingleInterneSelected ? `Afficher le décompte des postes (${getInterneById(selectedInterneId).shortName})` : 'Afficher le décompte des postes par interne'}</button>
           </div>
         `;
       }
@@ -4265,6 +4340,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const statsAll = computeStatsByInterne();
       let rows = "";
       STATE.internes.forEach(i => {
+        if (isSingleInterneSelected && !isChefPlanningMode && i.id !== selectedInterneId) return;
         const s = statsAll[i.id];
         const isDJ = Boolean(i.isDJ || i.id === "oussama");
         rows += `
