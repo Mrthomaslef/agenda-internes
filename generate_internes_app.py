@@ -3328,7 +3328,43 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    function mergePresentationsList(baseList, savedList) {\n      const rgSet = new Set(\n        ((INITIAL_DATA && INITIAL_DATA.absences) || [])\n          .filter(a => a && a.type === \"Repos de garde\")\n          .map(a => a.date + \"__\" + a.interneId)\n      );\n      const map = {};\n      (baseList || []).forEach(p => { if (p && p.id) map[p.id] = Object.assign({}, p); });\n      (savedList || []).forEach(p => {\n        if (!p || !p.id || !map[p.id]) return;\n        const baseP = map[p.id];\n        if (baseP.updatedAt && p.updatedAt && baseP.updatedAt > p.updatedAt) return;\n        if (baseP.type === \"cours_internes\") {\n          if (p.userEditedCours) {\n            if (p.chefIntervenant !== undefined) baseP.chefIntervenant = p.chefIntervenant;\n            if (p.coursChef !== undefined) baseP.coursChef = p.coursChef;\n            if (p.sujet !== undefined) baseP.sujet = p.sujet;\n            baseP.pasDeCours = (baseP.coursChef === \"Pas de cours\" || baseP.sujet === \"Pas de cours\");\n            baseP.userEditedCours = true;\n            if (p.updatedAt) baseP.updatedAt = p.updatedAt;\n          }\n          return;\n        }\n        if (p.sujet !== undefined && (p.sujet !== \"Dossier ostéo-articulaire inaugural (choix libre)\") && (p.sujet || p.userEditedPres || p.isUserSwap)) {\n          baseP.sujet = p.sujet;\n        }\n        const isExplicitSwap = Boolean(p.isUserSwap || p.updatedAt);\n        if (p.userEditedPres && (isExplicitSwap || !(p.interneId && rgSet.has(baseP.date + \"__\" + p.interneId) && !p.sujet))) {\n          if (p.interneId) baseP.interneId = p.interneId;\n          if (p.interneName) baseP.interneName = p.interneName;\n          baseP.userEditedPres = true;\n          if (p.isUserSwap) baseP.isUserSwap = true;\n          if (p.updatedAt) baseP.updatedAt = p.updatedAt;\n        }\n      });\n      return Object.values(map).sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));\n    }
+    function mergePresentationsList(baseList, savedList) {
+      const rgSet = new Set(
+        ((INITIAL_DATA && INITIAL_DATA.absences) || [])
+          .filter(a => a && a.type === "Repos de garde")
+          .map(a => a.date + "__" + a.interneId)
+      );
+      const map = {};
+      (baseList || []).forEach(p => { if (p && p.id) map[p.id] = Object.assign({}, p); });
+      (savedList || []).forEach(p => {
+        if (!p || !p.id || !map[p.id]) return;
+        const baseP = map[p.id];
+        if (baseP.updatedAt && p.updatedAt && baseP.updatedAt > p.updatedAt) return;
+        if (baseP.type === "cours_internes") {
+          if (p.userEditedCours) {
+            if (p.chefIntervenant !== undefined) baseP.chefIntervenant = p.chefIntervenant;
+            if (p.coursChef !== undefined) baseP.coursChef = p.coursChef;
+            if (p.sujet !== undefined) baseP.sujet = p.sujet;
+            baseP.pasDeCours = (baseP.coursChef === "Pas de cours" || baseP.sujet === "Pas de cours");
+            baseP.userEditedCours = true;
+            if (p.updatedAt) baseP.updatedAt = p.updatedAt;
+          }
+          return;
+        }
+        if (p.sujet !== undefined && (p.sujet !== "Dossier ostéo-articulaire inaugural (choix libre)") && (p.sujet || p.userEditedPres || p.isUserSwap)) {
+          baseP.sujet = p.sujet;
+        }
+        const isExplicitSwap = Boolean(p.isUserSwap || p.updatedAt);
+        if (p.userEditedPres && (isExplicitSwap || !(p.interneId && rgSet.has(baseP.date + "__" + p.interneId) && !p.sujet))) {
+          if (p.interneId) baseP.interneId = p.interneId;
+          if (p.interneName) baseP.interneName = p.interneName;
+          baseP.userEditedPres = true;
+          if (p.isUserSwap) baseP.isUserSwap = true;
+          if (p.updatedAt) baseP.updatedAt = p.updatedAt;
+        }
+      });
+      return Object.values(map).sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));
+    }
 
     function mergeMeetingsList(baseList, savedList) {
       const obsoleteTitles = new Set(["Bone Club — Novembre", "Bone Club — Janvier", "Confrontation Radio-Anatomo-Pathologique (Janvier)", "BONE CLUB Cochin — Session de Décembre"]);
@@ -7962,15 +7998,108 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* =========================================================================
-     * BOUTON UNIQUE "+ AJOUTER"
+     * BOUTON UNIQUE "+ AJOUTER" & ACTIONS INTERNE (CONGÉ / INSCRIPTION CAS-BIBLIO)
      * ========================================================================= */
     function openQuickAddModal() {
+      const mBtn = document.getElementById("quickAddMeetingBtn");
+      const pBtn = document.getElementById("quickAddPhoneBtn");
+      if (mBtn) mBtn.style.display = isChefPlanningMode ? "flex" : "none";
+      if (pBtn) pBtn.style.display = isChefPlanningMode ? "flex" : "none";
       document.getElementById("modalQuickAdd").classList.add("open");
     }
 
     function openNextPresentationModal() {
-      const upcoming = (STATE.presentations || []).find(p => p.date >= currentDateIso) || (STATE.presentations || [])[0];
-      if (upcoming) openPresentationModal(upcoming.id);
+      openInternePresSignupModal();
+    }
+
+    function openInternePresSignupModal(defaultInterneId, defaultType) {
+      const targetInterneId = defaultInterneId || ((!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") ? selectedInterneId : "gabriel");
+      const pType = (defaultType === "cas_mardi" || defaultType === "biblio_vendredi")
+        ? defaultType
+        : ((presFilter === "biblio_vendredi") ? "biblio_vendredi" : "cas_mardi");
+      const candidates = (STATE.presentations || [])
+        .filter(p => p.type === pType)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      if (!candidates.length) return;
+      const upcoming = candidates.find(p => p.date >= currentDateIso && p.interneId !== targetInterneId)
+        || candidates.find(p => p.date >= currentDateIso)
+        || candidates[0];
+      openPresentationModal(upcoming.id, targetInterneId);
+    }
+
+    function renderInternePersoActionsCard(me) {
+      if (!me || isChefId(me.id)) return "";
+      const myCas = (STATE.presentations || [])
+        .filter(p => p.type === "cas_mardi" && p.interneId === me.id)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const myBiblio = (STATE.presentations || [])
+        .filter(p => p.type === "biblio_vendredi" && p.interneId === me.id)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const myConges = (STATE.absences || [])
+        .filter(a => a && a.interneId === me.id && a.status !== "rejected" && !String(a.type || "").toLowerCase().includes("garde"))
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      const casChips = myCas.map(p =>
+        `<span class="poste-pill poste-irm" style="cursor:pointer;" title="Cliquer pour modifier le sujet ou échanger cette date" onclick="openPresentationModal('${p.id}', '${me.id}')">${formatDateFr(p.date)}${p.sujet ? ' • ' + p.sujet : ''}</span>`
+      ).join(" ");
+      const biblioChips = myBiblio.map(p =>
+        `<span class="poste-pill poste-echo" style="cursor:pointer;" title="Cliquer pour modifier le sujet ou échanger cette date" onclick="openPresentationModal('${p.id}', '${me.id}')">${formatDateFr(p.date)}${p.sujet ? ' • ' + p.sujet : ''}</span>`
+      ).join(" ");
+
+      const congesGroups = groupAbsenceRequests(myConges);
+      const congesChips = congesGroups.length
+        ? congesGroups.map(g => {
+            const label = g.startDate === g.endDate
+              ? `${formatDateFr(g.startDate)} (${g.type})`
+              : `${formatDateFr(g.startDate)} → ${formatDateFr(g.endDate)} (${g.dates.length}j ${g.type})`;
+            const stBadge = g.status === "approved" ? "✓ Validé" : "⏳ En attente";
+            const cls = g.status === "approved" ? "status-pill-approved" : "status-pill-pending";
+            return `<span class="${cls}" style="font-size:11px; padding:3px 8px;">${label} • ${stBadge}</span>`;
+          }).join(" ")
+        : `<span style="font-size:12px; color:var(--text-muted);">Aucun congé demandé pour le moment.</span>`;
+
+      return `
+        <div class="card" style="padding:14px 12px;">
+          <div class="card-header" style="margin-bottom:10px;">
+            <div>
+              <div class="card-title">Espace personnel — ${me.shortName}</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Demander un congé ou s'inscrire à une date de Cas / Biblio (échange automatique avec une de vos dates attribuées)</div>
+            </div>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${me.id}')">+ Demander un congé</button>
+              <button class="btn btn-sm" style="border-color:var(--primary); color:var(--primary); font-weight:700;" onclick="openInternePresSignupModal('${me.id}', 'cas_mardi')">🔄 S'inscrire Cas (Mardi)</button>
+              <button class="btn btn-sm" style="border-color:var(--primary); color:var(--primary); font-weight:700;" onclick="openInternePresSignupModal('${me.id}', 'biblio_vendredi')">🔄 S'inscrire Biblio (Vendredi)</button>
+            </div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px;">
+            <div style="padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--surface-hover);">
+              <div style="font-size:11.5px; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span>MES CAS DU MARDI (${myCas.length})</span>
+                <button class="btn btn-sm" style="padding:2px 7px; font-size:10.5px;" onclick="openInternePresSignupModal('${me.id}', 'cas_mardi')">Échanger une date</button>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">${casChips || '<span style="font-size:12px; color:var(--text-muted);">Aucune date</span>'}</div>
+            </div>
+            <div style="padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--surface-hover);">
+              <div style="font-size:11.5px; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span>MES BIBLIOS DU VENDREDI (${myBiblio.length})</span>
+                <button class="btn btn-sm" style="padding:2px 7px; font-size:10.5px;" onclick="openInternePresSignupModal('${me.id}', 'biblio_vendredi')">Échanger une date</button>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">${biblioChips || '<span style="font-size:12px; color:var(--text-muted);">Aucune date</span>'}</div>
+            </div>
+            <div style="padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--surface-hover);">
+              <div style="font-size:11.5px; font-weight:800; color:var(--text-muted); margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+                <span>MES CONGÉS DEMANDÉS (${myConges.length} j.)</span>
+                <button class="btn btn-sm" style="padding:2px 7px; font-size:10.5px;" onclick="openAbsenceModal('${me.id}')">+ Demander</button>
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">${congesChips}</div>
+            </div>
+          </div>
+        </div>
+      `;
     }
 
     function openQuickVacationPicker() {
@@ -8404,7 +8533,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <span style="width:10px; height:10px; border-radius:50%; background:${me.color}; display:inline-block;"></span>
                 ${me.fullName}
               </div>
-              <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${me.id}')">+ Demander un congé</button>
+                <button class="btn btn-sm" style="border-color:var(--primary); color:var(--primary); font-weight:700;" onclick="openInternePresSignupModal('${me.id}')">🔄 S'inscrire Cas / Biblio</button>
+                <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
+              </div>
             </div>
             <div class="perso-week-grid">
         `;
@@ -8456,7 +8589,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (isSunMe) badges.push(`<span class="perso-garde-pill">🌙 Garde Dimanche ${formatDateFr(sunIso)}</span>`);
           weGardeHtml = `<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">${badges.join("")}</div>`;
         }
-        cardsHtml += `</div>${weGardeHtml}</div>`;
+        cardsHtml += `</div>${weGardeHtml}</div>${renderInternePersoActionsCard(me)}`;
         return cardsHtml;
       }
 
@@ -8581,7 +8714,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const shortChef = (p.chefIntervenant || "").replace(/^(Dr|Pr)\s+/i, "");
             const cBg = isDarkMode ? "rgba(37, 99, 235, 0.25)" : "#DBEAFE";
             const cFg = isDarkMode ? "#93C5FD" : "#1D4ED8";
-            cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${cBg}; cursor:pointer; line-height:1.15;" onclick="openPresentationModal('${p.id}')">
+            const coursClickAttr = isChefPlanningMode ? `style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${cBg}; cursor:pointer; line-height:1.15;" onclick="openPresentationModal('${p.id}')"` : `style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${cBg}; line-height:1.15;"`;
+            cell += `<div ${coursClickAttr}>
               <strong style="color:${cFg}">Cours :</strong> ${shortChef ? shortChef + " — " : ""}${p.coursChef || p.sujet || ""}
             </div>`;
             return;
@@ -8590,7 +8724,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const bg = presBlock ? (isDarkMode ? "rgba(220, 38, 38, 0.25)" : "#FEE2E2") : (isDarkMode ? "rgba(124, 58, 237, 0.25)" : "#F3E8FF");
           const fg = presBlock ? (isDarkMode ? "#FCA5A5" : "#991B1B") : (isDarkMode ? "#DDD6FE" : "#6D28D9");
           const lbl = p.type === "cas_mardi" ? "Cas" : "Biblio";
-          cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${bg}; cursor:pointer; line-height:1.15; ${presBlock ? 'border:1px solid #EF4444;' : ''}" onclick="openPresentationModal('${p.id}')">
+          cell += `<div style="font-size:9.5px; margin-bottom:2px; padding:2px 4px; border-radius:4px; background:${bg}; cursor:pointer; line-height:1.15; ${presBlock ? 'border:1px solid #EF4444;' : ''}" title="Cliquer pour s'inscrire / échanger cette date" onclick="openPresentationModal('${p.id}')">
             <strong style="color:${fg}">${lbl} :</strong> ${p.interneName} ${presBlock ? '<span style="color:#EF4444; font-weight:800;">(Absent)</span>' : ''}
           </div>`;
         });
@@ -8678,10 +8812,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <span style="width:10px; height:10px; border-radius:50%; background:${targetInterne.color}; display:inline-block;"></span>
               ${targetInterne.fullName}
             </div>
-            <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${targetInterne.id}')">+ Demander un congé</button>
+              <button class="btn btn-sm" style="border-color:var(--primary); color:var(--primary); font-weight:700;" onclick="openInternePresSignupModal('${targetInterne.id}')">🔄 S'inscrire Cas / Biblio</button>
+              <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
+            </div>
           </div>
           <div class="month-grid">${cells}</div>
         </div>
+        ${renderInternePersoActionsCard(targetInterne)}
       `;
     }
 
@@ -9168,7 +9307,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         ((selectedInterneId === "all" || inChefSpace) || a.interneId === selectedInterneId)
       ).length;
 
-      const colSpanCount = inChefSpace ? 6 : 5;
+      const colSpanCount = inChefSpace ? 6 : 4;
 
       const interneCardsHtml = internesToShow.map(iObj => {
         const iConges = allConges.filter(a => a.interneId === iObj.id);
@@ -9189,7 +9328,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
         let rowsHtml = "";
         if (iConges.length === 0) {
-          rowsHtml = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:14px; color:var(--text-muted);">Aucun congé posé pour ${iObj.shortName}.</td></tr>`;
+          rowsHtml = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:14px; color:var(--text-muted);">Aucun congé demandé pour ${iObj.shortName}.</td></tr>`;
         } else {
           iConges.forEach(a => {
             const simCount = countByDate[a.date] || 1;
@@ -9212,13 +9351,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     : `<span class="poste-pill poste-vac">Quota OK (${simCount}/2)</span>`}
                 </td>
                 ${inChefSpace ? `<td>${statusHtml}</td>` : ""}
-                <td style="width:1%; white-space:nowrap;">
+                ${inChefSpace ? `<td style="width:1%; white-space:nowrap;">
                   <div style="display:flex; gap:4px; flex-wrap:wrap;">
-                    ${inChefSpace && st !== "approved" ? `<button class="btn-approve" onclick="setSingleAbsenceStatus('${a.id}', 'approved')">✓ Valider</button>` : ""}
-                    ${inChefSpace && st !== "rejected" ? `<button class="btn-reject" onclick="setSingleAbsenceStatus('${a.id}', 'rejected')">✕ Refuser</button>` : ""}
+                    ${st !== "approved" ? `<button class="btn-approve" onclick="setSingleAbsenceStatus('${a.id}', 'approved')">✓ Valider</button>` : ""}
+                    ${st !== "rejected" ? `<button class="btn-reject" onclick="setSingleAbsenceStatus('${a.id}', 'rejected')">✕ Refuser</button>` : ""}
                     <button class="btn btn-sm" onclick="deleteAbsence('${a.id}')" style="color:#64748B;">Suppr.</button>
                   </div>
-                </td>
+                </td>` : ""}
               </tr>
             `;
           });
@@ -9237,7 +9376,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span class="card-title" style="font-size:14.5px;">${iObj.fullName}</span>
                     ${roleBadge}
-                    <span class="offvac-pill conges-count">${activeDays} j. posé${activeDays > 1 ? 's' : ''}</span>
+                    <span class="offvac-pill conges-count">${activeDays} j. demandé${activeDays > 1 ? 's' : ''}</span>
                     ${approvedDays > 0 ? `<span class="status-pill-approved">${approvedDays} validé${approvedDays > 1 ? 's' : ''}</span>` : ""}
                     ${pendingDays > 0 ? `<span class="status-pill-pending">${pendingDays} en attente</span>` : ""}
                   </div>
@@ -9250,7 +9389,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                       `<button class="btn-approve" onclick="approveAbsenceGroup('${g.groupId}')">✓ Valider ${g.dates.length}j</button>`
                     ).join("")
                   : ""}
-                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${iObj.id}')">+ Poser un congé</button>
+                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${iObj.id}')">+ Demander un congé</button>
               </div>
             </div>
 
@@ -9263,7 +9402,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <th>Note</th>
                     <th style="width:150px;">Quota</th>
                     ${inChefSpace ? `<th style="width:110px;">Statut</th>` : ""}
-                    <th style="width:140px;">Action</th>
+                    ${inChefSpace ? `<th style="width:140px;">Action</th>` : ""}
                   </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -9278,10 +9417,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="card-header" style="margin-bottom:0;">
             <div>
               <div class="card-title">Congés des Internes — Organisé par interne</div>
-              <div style="font-size:12px; color:var(--text-muted);">Max 2 internes en congés simultanément • ${totalVisibleConges} jour${totalVisibleConges > 1 ? 's' : ''} de congés posé${totalVisibleConges > 1 ? 's' : ''} (hors repos de garde)</div>
+              <div style="font-size:12px; color:var(--text-muted);">Max 2 internes en congés simultanément • ${totalVisibleConges} jour${totalVisibleConges > 1 ? 's' : ''} de congés demandé${totalVisibleConges > 1 ? 's' : ''} (hors repos de garde)</div>
             </div>
             <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-              <button class="btn btn-sm btn-primary" onclick="openAbsenceModal()">+ Poser un congé</button>
+              <button class="btn btn-sm btn-primary" onclick="openAbsenceModal()">+ Demander un congé</button>
             </div>
           </div>
         </div>
@@ -9404,14 +9543,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       closeModal("modalAbsence");
       renderAll();
       if (lockedDatesCount > 0) {
-        showToast(`Congé enregistré (${addedDates.length} j.) — planning de la semaine validée inchangé`);
+        showToast(`Demande de congé enregistrée (${addedDates.length} j.) — planning de la semaine validée inchangé`);
       } else {
-        showToast(`Congé enregistré (${addedDates.length} j.)`);
+        showToast(`Demande de congé enregistrée (${addedDates.length} j.)`);
       }
       pushStateToCloud({ syncAbsenceSheet: true, addedDates, interneName: iObj.fullName, absType: type });
     }
 
     function deleteAbsence(absId) {
+      if (!isChefPlanningMode) {
+        requireChefUnlockThen(() => deleteAbsence(absId));
+        return;
+      }
       const target = (STATE.absences || []).find(x => x.id === absId);
       STATE.absences = (STATE.absences || []).filter(x => x.id !== absId);
       if (!Array.isArray(STATE.deletedAbsenceIds)) STATE.deletedAbsenceIds = [];
@@ -9473,9 +9616,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date)}</td>
               <td style="font-weight:600; color:var(--primary); white-space:nowrap;">${chefTxt}</td>
               <td>${coursTxt}</td>
-              <td style="width:1%; white-space:nowrap;">
+              ${isChefPlanningMode ? `<td style="width:1%; white-space:nowrap;">
                 <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
-              </td>
+              </td>` : ""}
             </tr>
           `;
         });
@@ -9493,7 +9636,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     <th>Date</th>
                     <th>Chef</th>
                     <th>Cours</th>
-                    <th></th>
+                    ${isChefPlanningMode ? `<th></th>` : ""}
                   </tr>
                 </thead>
                 <tbody>${rowsHtml}</tbody>
@@ -9503,29 +9646,31 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         `;
       }
 
-      const pageTitle = presFilter === "cas_mardi" ? "Cas des internes" : "Biblio";
+      const pageTitle = presFilter === "cas_mardi" ? "Cas des internes (Mardi)" : "Biblio (Vendredi)";
+      const defaultSignupInterneId = (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") ? selectedInterneId : "";
       let rowsHtml = "";
       list.forEach(p => {
         const iObj = getInterneById(p.interneId);
         const isMe = (selectedInterneId !== "all" && !isChefId(selectedInterneId) && p.interneId === selectedInterneId);
         const meBg = isMe ? (isDarkMode ? "background:rgba(56, 189, 248, 0.14);" : "background:#EFF6FF;") : "";
+        const btnLabel = isMe ? "Échanger / Sujet" : "S'inscrire (Échange)";
 
         rowsHtml += `
           <tr style="${meBg}">
             <td style="font-weight:700; white-space:nowrap;">${formatDateFr(p.date)}</td>
             <td style="white-space:nowrap;">
-              <span class="interne-badge ${isMe ? 'highlight-me' : ''}" onclick="openPresentationModal('${p.id}')">
+              <span class="interne-badge ${isMe ? 'highlight-me' : ''}" onclick="openPresentationModal('${p.id}', '${defaultSignupInterneId}')">
                 <span style="width:7px;height:7px;border-radius:50%;background:${iObj.color};display:inline-block;"></span>
                 ${p.interneName || iObj.shortName}
               </span>
             </td>
-            <td onclick="openPresentationModal('${p.id}')" style="cursor:pointer;">
+            <td onclick="openPresentationModal('${p.id}', '${defaultSignupInterneId}')" style="cursor:pointer;">
               ${p.sujet
                 ? `<strong>${p.sujet}</strong>`
                 : `<span style="color:var(--text-muted);">—</span>`}
             </td>
             <td style="width:1%; white-space:nowrap;">
-              <button class="btn btn-sm" onclick="openPresentationModal('${p.id}')">Modifier</button>
+              <button class="btn btn-sm" onclick="openPresentationModal('${p.id}', '${defaultSignupInterneId}')">${btnLabel}</button>
             </td>
           </tr>
         `;
@@ -9535,7 +9680,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         ${pageTabsHtml}
         <div class="card">
           <div class="card-header">
-            <div class="card-title">${pageTitle}</div>
+            <div>
+              <div class="card-title">${pageTitle}</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Toutes les dates étant déjà attribuées, s'inscrire à une date effectue automatiquement un échange avec l'une de vos dates.</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openInternePresSignupModal('${defaultSignupInterneId}', '${presFilter}')">🔄 S'inscrire à une date (Échange)</button>
           </div>
           <div class="week-table-wrap">
             <table class="planning-table">
@@ -9544,7 +9693,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <th>Date</th>
                   <th>Interne</th>
                   <th>Sujet</th>
-                  <th></th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>${rowsHtml}</tbody>
@@ -9559,49 +9708,199 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    function openPresentationModal(presId) {
+    let presModalPreferredInterneId = "";
+
+    function openPresentationModal(presId, preferredInterneId) {
       const allList = (STATE.presentations || []).slice().sort((a, b) => a.date.localeCompare(b.date));
       const p = allList.find(x => x.id === presId) || allList[0];
       if (!p) return;
 
-      const sameTypeList = allList.filter(x => x.type === p.type);
-      const dateSel = document.getElementById("presDateSelect");
-      dateSel.innerHTML = sameTypeList.map(item => {
-        const who = item.type === "cours_internes" ? (item.chefIntervenant || "—") : (item.interneName || "");
-        const lbl = `${formatDateFr(item.date)} — ${who}`;
-        return `<option value="${item.id}" ${item.id === p.id ? 'selected' : ''}>${lbl}</option>`;
-      }).join("");
+      if (p.type === "cours_internes" && !isChefPlanningMode) {
+        requireChefUnlockThen(() => openPresentationModal(presId, preferredInterneId));
+        return;
+      }
 
-      populatePresentationModalFields(p);
+      if (preferredInterneId && !isChefId(preferredInterneId) && preferredInterneId !== "all" && preferredInterneId !== "all_chefs") {
+        presModalPreferredInterneId = preferredInterneId;
+      } else if (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") {
+        presModalPreferredInterneId = selectedInterneId;
+      } else {
+        presModalPreferredInterneId = "";
+      }
+
+      populatePresentationModalFields(p, true);
       document.getElementById("modalPresentation").classList.add("open");
+    }
+
+    function switchPresModalType(newType) {
+      const allList = (STATE.presentations || [])
+        .filter(x => x.type === newType)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      if (!allList.length) return;
+      const selInterne = document.getElementById("presInterneSelect") ? document.getElementById("presInterneSelect").value : presModalPreferredInterneId;
+      if (selInterne) presModalPreferredInterneId = selInterne;
+      const upcoming = allList.find(x => x.date >= currentDateIso && (!selInterne || x.interneId !== selInterne))
+        || allList.find(x => x.date >= currentDateIso)
+        || allList[0];
+      populatePresentationModalFields(upcoming, false);
     }
 
     function onPresDateChange(presId) {
       const p = (STATE.presentations || []).find(x => x.id === presId);
-      if (p) populatePresentationModalFields(p);
+      if (!p) return;
+      const selInterne = document.getElementById("presInterneSelect") ? document.getElementById("presInterneSelect").value : "";
+      if (selInterne) presModalPreferredInterneId = selInterne;
+      populatePresentationModalFields(p, false);
     }
 
-    function populatePresentationModalFields(p) {
+    function onPresInterneChange() {
+      const pid = document.getElementById("presIdInput").value;
+      const p = (STATE.presentations || []).find(x => x.id === pid);
+      if (!p) return;
+      const selInterne = document.getElementById("presInterneSelect").value;
+      presModalPreferredInterneId = selInterne;
+      refreshPresSwapSelector(p, selInterne);
+    }
+
+    function populatePresentationModalFields(p, isInitialOpen) {
       const meta = getPresTypeMeta(p);
       document.getElementById("presIdInput").value = p.id;
-      document.getElementById("presModalTitle").textContent = `${meta.modalLabel} — ${formatDateFr(p.date)}`;
 
       const isCours = (p.type === "cours_internes");
+      const typeSwitchGroup = document.getElementById("presTypeSwitchGroup");
       const intGroup = document.getElementById("presInterneGroup");
+      const swapGroup = document.getElementById("presSwapGroup");
       const chefGroup = document.getElementById("presChefGroup");
       const sujetLabel = document.getElementById("presSujetLabel");
+      const dateLabel = document.getElementById("presDateLabel");
+      const saveBtn = document.getElementById("presSaveBtn");
 
+      if (typeSwitchGroup) typeSwitchGroup.style.display = isCours ? "none" : "block";
       if (intGroup) intGroup.style.display = isCours ? "none" : "block";
       if (chefGroup) chefGroup.style.display = isCours ? "block" : "none";
-      if (sujetLabel) sujetLabel.textContent = isCours ? "Cours" : "Sujet";
+      if (sujetLabel) sujetLabel.textContent = isCours ? "Cours" : "Sujet (optionnel)";
+      if (dateLabel) dateLabel.textContent = isCours ? "Date du cours" : "Date souhaitée";
+
+      const btnCas = document.getElementById("presTypeBtnCas");
+      const btnBib = document.getElementById("presTypeBtnBiblio");
+      if (btnCas) btnCas.classList.toggle("active", p.type === "cas_mardi");
+      if (btnBib) btnBib.classList.toggle("active", p.type === "biblio_vendredi");
+
+      const allSameType = (STATE.presentations || [])
+        .filter(x => x.type === p.type)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+      const dateSel = document.getElementById("presDateSelect");
+      if (dateSel) {
+        dateSel.innerHTML = allSameType.map(item => {
+          const who = item.type === "cours_internes"
+            ? (item.chefIntervenant || "—")
+            : `attribué à ${item.interneName || getInterneById(item.interneId).shortName}`;
+          const lbl = `${formatDateFr(item.date)} — ${who}`;
+          return `<option value="${item.id}" ${item.id === p.id ? 'selected' : ''}>${lbl}</option>`;
+        }).join("");
+      }
 
       if (isCours) {
+        document.getElementById("presModalTitle").textContent = `${meta.modalLabel} — ${formatDateFr(p.date)}`;
+        if (swapGroup) swapGroup.style.display = "none";
+        if (saveBtn) saveBtn.textContent = "Enregistrer";
         document.getElementById("presChefInput").value = p.chefIntervenant || "";
         document.getElementById("presSujetInput").value = p.coursChef || p.sujet || "";
+        return;
+      }
+
+      const activeInterneId = presModalPreferredInterneId || p.interneId || "gabriel";
+      const sel = document.getElementById("presInterneSelect");
+      if (sel) {
+        sel.innerHTML = STATE.internes.map(i => `<option value="${i.id}" ${i.id === activeInterneId ? 'selected' : ''}>${i.fullName}</option>`).join("");
+      }
+      if (isInitialOpen || activeInterneId === p.interneId) {
+        document.getElementById("presSujetInput").value = (activeInterneId === p.interneId) ? (p.sujet || "") : "";
+      }
+      refreshPresSwapSelector(p, activeInterneId);
+    }
+
+    function refreshPresSwapSelector(targetP, registeringInterneId) {
+      const swapGroup = document.getElementById("presSwapGroup");
+      const swapLabel = document.getElementById("presSwapLabel");
+      const swapSel = document.getElementById("presSwapSelect");
+      const saveBtn = document.getElementById("presSaveBtn");
+      const meta = getPresTypeMeta(targetP);
+      const regInterne = getInterneById(registeringInterneId);
+      const currentHolder = getInterneById(targetP.interneId);
+
+      document.getElementById("presModalTitle").textContent = `S'inscrire — ${meta.typeLabel} (${formatDateFr(targetP.date)})`;
+      if (!swapGroup || !swapSel) return;
+
+      const sameTypeAll = (STATE.presentations || [])
+        .filter(x => x.type === targetP.type)
+        .slice()
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      if (targetP.interneId === registeringInterneId) {
+        // L'interne est déjà inscrit sur cette date : il peut soit modifier le sujet, soit échanger cette date avec un co-interne
+        swapGroup.style.display = "block";
+        if (swapLabel) swapLabel.textContent = `Vous êtes déjà inscrit(e) le ${formatDateFr(targetP.date)} — échanger avec une autre date ?`;
+        const otherSlots = sameTypeAll.filter(x => x.id !== targetP.id && x.interneId !== registeringInterneId);
+        swapSel.innerHTML = `<option value="">Conserver cette date (modifier uniquement le sujet)</option>` +
+          otherSlots.map(item => {
+            const holder = getInterneById(item.interneId);
+            return `<option value="${item.id}">${formatDateFr(item.date)} — prendre la date de ${holder.shortName} (lui donner le ${formatDateFr(targetP.date)})</option>`;
+          }).join("");
       } else {
-        const sel = document.getElementById("presInterneSelect");
-        sel.innerHTML = STATE.internes.map(i => `<option value="${i.id}" ${i.id === p.interneId ? 'selected' : ''}>${i.shortName}</option>`).join("");
-        document.getElementById("presSujetInput").value = p.sujet || "";
+        // La date souhaitée appartient à un autre interne -> échange obligatoire avec une des dates de registeringInterneId
+        swapGroup.style.display = "block";
+        if (swapLabel) {
+          swapLabel.textContent = `Votre date de ${meta.typeLabel} à donner à ${currentHolder.shortName} en échange :`;
+        }
+        const myDates = sameTypeAll.filter(x => x.interneId === registeringInterneId && x.id !== targetP.id);
+        // Privilégier par défaut une date future (ou la plus proche)
+        const preferredMyDate = myDates.find(x => x.date >= currentDateIso) || myDates[0];
+        if (myDates.length > 0) {
+          swapSel.innerHTML = myDates.map(item => {
+            const isSel = preferredMyDate && item.id === preferredMyDate.id;
+            return `<option value="${item.id}" ${isSel ? 'selected' : ''}>${formatDateFr(item.date)} (actuellement à ${regInterne.shortName})</option>`;
+          }).join("");
+        } else {
+          swapSel.innerHTML = `<option value="">Aucune date à échanger (attribution directe)</option>`;
+        }
+      }
+      updatePresSwapPreview();
+    }
+
+    function updatePresSwapPreview() {
+      const pid = document.getElementById("presIdInput").value;
+      const targetP = (STATE.presentations || []).find(x => x.id === pid);
+      const previewBox = document.getElementById("presSwapPreviewBox");
+      const swapSel = document.getElementById("presSwapSelect");
+      const saveBtn = document.getElementById("presSaveBtn");
+      if (!targetP || !previewBox || !swapSel) return;
+
+      const regId = document.getElementById("presInterneSelect").value;
+      const regObj = getInterneById(regId);
+      const swapId = swapSel.value;
+      const swapP = swapId ? (STATE.presentations || []).find(x => x.id === swapId) : null;
+
+      if (targetP.interneId === regId) {
+        if (swapP) {
+          const otherObj = getInterneById(swapP.interneId);
+          previewBox.innerHTML = `🔄 <strong>Échange automatique :</strong> <strong>${regObj.shortName}</strong> s'inscrit le <strong>${formatDateFr(swapP.date)}</strong> et <strong>${otherObj.shortName}</strong> récupère le <strong>${formatDateFr(targetP.date)}</strong>.`;
+          if (saveBtn) saveBtn.textContent = "Confirmer l'échange";
+        } else {
+          previewBox.innerHTML = `✏️ <strong>${regObj.shortName}</strong> est déjà inscrit(e) sur cette date (${formatDateFr(targetP.date)}). Vous pouvez renseigner ou modifier le sujet.`;
+          if (saveBtn) saveBtn.textContent = "Enregistrer le sujet";
+        }
+      } else {
+        const holderObj = getInterneById(targetP.interneId);
+        if (swapP) {
+          previewBox.innerHTML = `🔄 <strong>Échange automatique :</strong> <strong>${regObj.shortName}</strong> prend le <strong>${formatDateFr(targetP.date)}</strong> (à la place de ${holderObj.shortName}) et <strong>${holderObj.shortName}</strong> prend le <strong>${formatDateFr(swapP.date)}</strong> en échange.`;
+          if (saveBtn) saveBtn.textContent = "Valider l'inscription & l'échange";
+        } else {
+          previewBox.innerHTML = `<strong>${regObj.shortName}</strong> sera inscrit(e) sur le créneau du <strong>${formatDateFr(targetP.date)}</strong>.`;
+          if (saveBtn) saveBtn.textContent = "Valider l'inscription";
+        }
       }
     }
 
@@ -9611,27 +9910,94 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!p) return;
 
       const sujet = document.getElementById("presSujetInput").value.trim();
+      const nowIso = new Date().toISOString();
 
       if (p.type === "cours_internes") {
+        if (!isChefPlanningMode) {
+          requireChefUnlockThen(() => savePresentationForm());
+          return;
+        }
         const chefRaw = document.getElementById("presChefInput").value.trim();
         p.chefIntervenant = chefRaw;
         p.coursChef = sujet;
         p.sujet = sujet;
         p.pasDeCours = (sujet.toLowerCase() === "pas de cours");
         p.userEditedCours = true;
+        p.updatedAt = nowIso;
+        saveStateLocal();
+        closeModal("modalPresentation");
+        renderAll();
+        showToast("Cours enregistré");
+        pushStateToCloud({ syncStaffSheet: true });
+        return;
+      }
+
+      const iid = document.getElementById("presInterneSelect").value;
+      const iObj = getInterneById(iid);
+      const swapSel = document.getElementById("presSwapSelect");
+      const swapId = swapSel ? swapSel.value : "";
+      const swapP = swapId ? (STATE.presentations || []).find(x => x.id === swapId) : null;
+
+      let toastMsg = "Inscription enregistrée";
+
+      if (p.interneId === iid) {
+        if (swapP && swapP.id !== p.id) {
+          // L'interne échange sa date actuelle p avec une autre date swapP (appartenant à otherObj)
+          const otherObj = getInterneById(swapP.interneId);
+          const oldPSubject = p.sujet || "";
+          p.interneId = otherObj.id;
+          p.interneName = otherObj.shortName;
+          p.sujet = swapP.sujet || "";
+          p.userEditedPres = true;
+          p.isUserSwap = true;
+          p.updatedAt = nowIso;
+
+          swapP.interneId = iObj.id;
+          swapP.interneName = iObj.shortName;
+          swapP.sujet = sujet || oldPSubject;
+          swapP.userEditedPres = true;
+          swapP.isUserSwap = true;
+          swapP.updatedAt = nowIso;
+          toastMsg = `Échange effectué : ${iObj.shortName} (${formatDateFr(swapP.date)}) ↔ ${otherObj.shortName} (${formatDateFr(p.date)})`;
+        } else {
+          p.sujet = sujet;
+          p.userEditedPres = true;
+          p.updatedAt = nowIso;
+          toastMsg = "Sujet enregistré";
+        }
       } else {
-        const iid = document.getElementById("presInterneSelect").value;
-        const iObj = getInterneById(iid);
-        p.interneId = iid;
-        p.interneName = iObj.shortName;
-        p.sujet = sujet;
-        p.userEditedPres = true;
+        const previousHolder = getInterneById(p.interneId);
+        if (swapP && swapP.id !== p.id) {
+          // Échange automatique : previousHolder récupère swapP, et iObj s'inscrit sur p
+          swapP.interneId = previousHolder.id;
+          swapP.interneName = previousHolder.shortName;
+          swapP.sujet = p.sujet || "";
+          swapP.userEditedPres = true;
+          swapP.isUserSwap = true;
+          swapP.updatedAt = nowIso;
+
+          p.interneId = iObj.id;
+          p.interneName = iObj.shortName;
+          p.sujet = sujet;
+          p.userEditedPres = true;
+          p.isUserSwap = true;
+          p.updatedAt = nowIso;
+          toastMsg = `Échange effectué : ${iObj.shortName} (${formatDateFr(p.date)}) ↔ ${previousHolder.shortName} (${formatDateFr(swapP.date)})`;
+        } else {
+          p.interneId = iObj.id;
+          p.interneName = iObj.shortName;
+          p.sujet = sujet;
+          p.userEditedPres = true;
+          p.isUserSwap = true;
+          p.updatedAt = nowIso;
+          toastMsg = `Inscription enregistrée (${iObj.shortName} — ${formatDateFr(p.date)})`;
+        }
       }
 
       saveStateLocal();
       closeModal("modalPresentation");
       renderAll();
-      showToast("Enregistré");
+      showToast(toastMsg);
       pushStateToCloud({ syncStaffSheet: true });
     }
 
@@ -9766,7 +10132,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <div class="card-title">Bone Club Cochin</div>
               <div style="font-size:11.5px; color:var(--text-muted);">Mercredi 18h00 – 20h00 • Amphithéâtre Luton (RDC UFR Médecine Site Cochin)</div>
             </div>
-            <button class="btn btn-sm btn-primary" onclick="openMeetingModal('Bone Club')">+ Réunion</button>
+            ${isChefPlanningMode ? `<button class="btn btn-sm btn-primary" onclick="openMeetingModal('Bone Club')">+ Réunion</button>` : ""}
           </div>
           <div class="week-table-wrap">
             <table class="planning-table">
@@ -9790,7 +10156,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <div class="card-title">CRA — Confrontations Radio-Anatomo-Pathologiques</div>
               <div style="font-size:11.5px; color:var(--text-muted);">Vendredi 14h00 / 14h15 – 16h00 • Salle de Staff Radio B (Pavillon Albarran -1)</div>
             </div>
-            <button class="btn btn-sm" onclick="openMeetingModal('CRA')">+ CRA</button>
+            ${isChefPlanningMode ? `<button class="btn btn-sm" onclick="openMeetingModal('CRA')">+ CRA</button>` : ""}
           </div>
           <div class="week-table-wrap">
             <table class="planning-table">
@@ -9828,6 +10194,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function openMeetingModal(defaultCat) {
+      if (!isChefPlanningMode) {
+        requireChefUnlockThen(() => openMeetingModal(defaultCat));
+        return;
+      }
       const cat = defaultCat || "Bone Club";
       const catEl = document.getElementById("meetCategory");
       if (catEl) catEl.value = cat;
@@ -9958,7 +10328,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <button class="seg-btn ${annuaireCategory === 'Radiologie B — Équipe Médicale (Chefs & Seniors)' ? 'active' : ''}" onclick="setAnnuaireCategory('Radiologie B — Équipe Médicale (Chefs & Seniors)')">Médecins</button>
               <button class="seg-btn ${annuaireCategory === 'Services Partenaires (Ortho, Rhumato, Anesth, Anapath)' ? 'active' : ''}" onclick="setAnnuaireCategory('Services Partenaires (Ortho, Rhumato, Anesth, Anapath)')">Services</button>
             </div>
-            <button class="btn btn-sm btn-primary" onclick="openPhoneContactModal()">+ Numéro</button>
+            ${isChefPlanningMode ? `<button class="btn btn-sm btn-primary" onclick="openPhoneContactModal()">+ Numéro</button>` : ""}
           </div>
         </div>
         ${groupsHtml}
@@ -9982,6 +10352,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function openPhoneContactModal() {
+      if (!isChefPlanningMode) {
+        requireChefUnlockThen(() => openPhoneContactModal());
+        return;
+      }
       document.getElementById("phoneNameInput").value = "";
       document.getElementById("phoneRoleInput").value = "";
       document.getElementById("phonePosteInput").value = "";
@@ -10492,6 +10866,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             absByKey[k] = Object.assign({}, ex, a);
           });
           incoming.absences = Object.keys(absByKey).sort().map(function(k) { return absByKey[k]; });
+
+          // 5. Présentations (Cas / Biblio / Cours) : conserver les échanges et sujets les plus récents
+          var presById = {};
+          (existing.presentations || []).forEach(function(p) {
+            if (p && p.id) presById[p.id] = p;
+          });
+          (incoming.presentations || []).forEach(function(p) {
+            if (!p || !p.id) return;
+            var exP = presById[p.id];
+            if (!exP) { presById[p.id] = p; return; }
+            var exSt = stampOf(exP);
+            var inSt = stampOf(p);
+            if (exSt && (!inSt || exSt > inSt)) return;
+            if ((exP.userEditedPres || exP.isUserSwap) && !p.userEditedPres && !p.isUserSwap) return;
+            presById[p.id] = Object.assign({}, exP, p);
+          });
+          incoming.presentations = Object.keys(presById).map(function(k) { return presById[k]; }).sort(function(a, b) {
+            return String(a.date || '').localeCompare(String(b.date || '')) || String(a.type || '').localeCompare(String(b.type || ''));
+          });
         }
 
         props.setProperty('${CLOUD_PROP_KEY}', JSON.stringify(incoming));
