@@ -1,6 +1,6 @@
 {
   "version": "1.8.0",
-  "updatedAt": "2026-11-02T15:01:55.898022+00:00",
+  "updatedAt": "2026-11-02T15:24:10.735276+00:00",
   "chefValidatedAt": null,
   "chefRevision": 0,
   "deletedAbsenceIds": [],
@@ -20,8 +20,8 @@
     },
     "rules": [
       "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
-      "Permanence Scanner SAU (toujours un interne matin et après-midi) + 13 vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
-      "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des 13 vacations obligatoires).",
+      "Permanence Scanner SAU (toujours un interne matin et après-midi) + 14 vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, IRM 3T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
+      "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des 14 vacations obligatoires).",
       "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs (Lundi après-midi pour Marwane, Mercredi matin pour Gabriel, Jeudi après-midi pour Oussama) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
       "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
       "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
@@ -3174,7 +3174,7 @@
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
           "poste": "1/2 journée libre",
@@ -3201,12 +3201,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "TDM SAU",
@@ -3273,8 +3273,8 @@
         "gabriel": {
           "am": "1/2 journée libre",
           "pm": "SCAN ACHARD",
-          "note": "Vacation obligatoire (SCAN ACHARD)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Vacation obligatoire (SCAN ACHARD)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "1/2 journée libre"
@@ -3298,10 +3298,10 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "GESTES (C)"
@@ -3329,8 +3329,8 @@
         "gabriel": {
           "am": "1/2 journée libre",
           "pm": "SCAN ACHARD",
-          "note": "Vacation obligatoire (SCAN ACHARD)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Vacation obligatoire (SCAN ACHARD)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "1/2 journée libre"
@@ -3354,10 +3354,10 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "GESTES (C)"
@@ -3716,12 +3716,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE/CS",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Vendredi PM)"
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -3764,10 +3764,10 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "LECTURE/CS",
+          "pm": "1/2 journée libre",
           "note": "Consultation Internes (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "preRgAm": "TDM SAU",
           "preRgPm": "LECTURE/CS"
         },
@@ -3820,10 +3820,10 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "LECTURE/CS",
+          "pm": "1/2 journée libre",
           "note": "Consultation Internes (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "preRgAm": "TDM SAU",
           "preRgPm": "LECTURE/CS"
         },
@@ -5320,12 +5320,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -5417,12 +5417,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -5473,12 +5473,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -9880,12 +9880,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -9977,12 +9977,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -10033,12 +10033,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -10633,7 +10633,7 @@
           "note": "Remplacement TDM SAU (congés/RG)",
           "noteAm": "Remplacement TDM SAU (congés/RG)",
           "notePm": "",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "1/2 journée libre",
           "preRgPm": "IRM"
         },
         "oussama": {
@@ -10689,7 +10689,7 @@
           "note": "Remplacement TDM SAU (congés/RG)",
           "noteAm": "Remplacement TDM SAU (congés/RG)",
           "notePm": "",
-          "preRgAm": "GESTES (C)",
+          "preRgAm": "1/2 journée libre",
           "preRgPm": "IRM"
         },
         "oussama": {
@@ -10965,12 +10965,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "1/2 journée libre",
@@ -11062,12 +11062,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
-          "preRgAm": "1/2 journée libre",
+          "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
         },
         "oussama": {
@@ -11118,12 +11118,12 @@
           "preRgPm": "1/2 journée libre"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
-          "preRgAm": "1/2 journée libre",
+          "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
         },
         "oussama": {
@@ -11174,7 +11174,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -11182,12 +11182,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Vacation obligatoire (ECHO)"
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
           "poste": "TDM SAU",
@@ -11270,7 +11270,7 @@
           "preRgPm": "TDM SAU"
         },
         "milan": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "",
           "noteAm": "",
@@ -11279,10 +11279,10 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "Vacation obligatoire (ECHO)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire",
           "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
@@ -11326,7 +11326,7 @@
           "preRgPm": "TDM SAU"
         },
         "milan": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "",
           "noteAm": "",
@@ -11335,10 +11335,10 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "Vacation obligatoire (ECHO)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire",
           "preRgAm": "ECHO",
           "preRgPm": "1/2 journée libre"
@@ -13944,12 +13944,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -14041,12 +14041,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -14097,12 +14097,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -18316,12 +18316,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -18413,12 +18413,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -18469,12 +18469,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -19184,12 +19184,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
         },
         {
           "poste": "ECHO",
@@ -19281,10 +19281,10 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "1/2 journée libre",
           "pm": "ECHO",
-          "note": "",
-          "noteAm": "",
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": "",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "ECHO"
@@ -19337,10 +19337,10 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "1/2 journée libre",
           "pm": "ECHO",
-          "note": "",
-          "noteAm": "",
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": "",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "ECHO"
@@ -19401,12 +19401,12 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "1/2 journée libre",
@@ -19498,10 +19498,10 @@
           "preRgPm": "1/2 journée libre"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
@@ -19554,10 +19554,10 @@
           "preRgPm": "1/2 journée libre"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
@@ -22688,12 +22688,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -22785,12 +22785,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -22841,12 +22841,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -26914,12 +26914,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -27011,12 +27011,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -27067,12 +27067,12 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
-          "preRgAm": "IRM 1,5T",
+          "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         },
         "oussama": {
@@ -27999,12 +27999,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "1/2 journée libre",
@@ -28096,10 +28096,10 @@
           "preRgPm": "1/2 journée libre"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
@@ -28152,10 +28152,10 @@
           "preRgPm": "1/2 journée libre"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": "",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
@@ -28184,7 +28184,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "SCAN ACHARD",
+          "poste": "TDM SAU",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -28197,7 +28197,7 @@
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël"
+          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
         },
         {
           "poste": "RG",
@@ -28216,12 +28216,12 @@
           "note": "Vacation obligatoire (GESTES (C))"
         },
         {
-          "poste": "TDM SAU",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
           "poste": "ECHO",
@@ -28286,7 +28286,7 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "SCAN ACHARD",
+          "am": "TDM SAU",
           "pm": "TDM SAU",
           "note": "Remplacement TDM SAU (congés/RG)",
           "noteAm": "",
@@ -28313,10 +28313,10 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "TDM SAU",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire",
           "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
@@ -28333,8 +28333,8 @@
         "noe": {
           "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
           "notePm": "",
           "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
@@ -28342,7 +28342,7 @@
       },
       "slots": {
         "gabriel": {
-          "am": "SCAN ACHARD",
+          "am": "TDM SAU",
           "pm": "TDM SAU",
           "note": "Remplacement TDM SAU (congés/RG)",
           "noteAm": "",
@@ -28369,10 +28369,10 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "TDM SAU",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire",
           "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
@@ -28389,8 +28389,8 @@
         "noe": {
           "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
           "notePm": "",
           "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
@@ -29108,12 +29108,12 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "IRM 3T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         }
       ],
       "pm": [
@@ -29206,10 +29206,10 @@
           "preRgPm": "IRM"
         },
         "oussama": {
-          "am": "GESTES (C)",
+          "am": "IRM 3T",
           "pm": "SCAN ACHARD",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "SCAN ACHARD"
@@ -29262,10 +29262,10 @@
           "preRgPm": "IRM"
         },
         "oussama": {
-          "am": "GESTES (C)",
+          "am": "IRM 3T",
           "pm": "SCAN ACHARD",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "SCAN ACHARD"
@@ -31245,7 +31245,7 @@
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
           "poste": "1/2 journée libre",
@@ -31272,12 +31272,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "TDM SAU",
@@ -31344,8 +31344,8 @@
         "gabriel": {
           "am": "1/2 journée libre",
           "pm": "SCAN ACHARD",
-          "note": "Vacation obligatoire (SCAN ACHARD)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Vacation obligatoire (SCAN ACHARD)"
         },
         "marwane": {
@@ -31363,10 +31363,10 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -31388,8 +31388,8 @@
         "gabriel": {
           "am": "1/2 journée libre",
           "pm": "SCAN ACHARD",
-          "note": "Vacation obligatoire (SCAN ACHARD)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Vacation obligatoire (SCAN ACHARD)"
         },
         "marwane": {
@@ -31407,10 +31407,10 @@
           "notePm": "Remplacement TDM SAU (congés/RG)"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -31739,12 +31739,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE/CS",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Vendredi PM)"
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -31781,10 +31781,10 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "LECTURE/CS",
+          "pm": "1/2 journée libre",
           "note": "Consultation Internes (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)"
+          "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)"
         },
         "oussama": {
           "am": "IRM 1,5T",
@@ -31825,10 +31825,10 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "LECTURE/CS",
+          "pm": "1/2 journée libre",
           "note": "Consultation Internes (Vendredi PM)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)"
+          "notePm": "Demi-off hebdomadaire (hors vacations obligatoires)"
         },
         "oussama": {
           "am": "IRM 1,5T",
@@ -33175,12 +33175,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -33266,10 +33266,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -33310,10 +33310,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -37255,12 +37255,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -37346,10 +37346,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -37390,10 +37390,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -38220,12 +38220,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "1/2 journée libre",
@@ -38311,10 +38311,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -38355,10 +38355,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -38405,7 +38405,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -38413,12 +38413,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Vacation obligatoire (ECHO)"
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
           "poste": "TDM SAU",
@@ -38497,17 +38497,17 @@
           "notePm": ""
         },
         "milan": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "",
           "noteAm": "",
           "notePm": ""
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "Vacation obligatoire (ECHO)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire"
         },
         "oussama": {
@@ -38541,17 +38541,17 @@
           "notePm": ""
         },
         "milan": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "",
           "noteAm": "",
           "notePm": ""
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "Vacation obligatoire (ECHO)",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire"
         },
         "oussama": {
@@ -40887,12 +40887,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -40978,10 +40978,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -41022,10 +41022,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -44779,12 +44779,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -44870,10 +44870,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -44914,10 +44914,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -45551,12 +45551,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
         },
         {
           "poste": "ECHO",
@@ -45642,10 +45642,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "1/2 journée libre",
           "pm": "ECHO",
-          "note": "",
-          "noteAm": "",
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": ""
         },
         "oussama": {
@@ -45686,10 +45686,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "1/2 journée libre",
           "pm": "ECHO",
-          "note": "",
-          "noteAm": "",
+          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "notePm": ""
         },
         "oussama": {
@@ -45744,12 +45744,12 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "1/2 journée libre",
@@ -45835,10 +45835,10 @@
           "notePm": "Repos de garde"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -45879,10 +45879,10 @@
           "notePm": "Repos de garde"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -48671,12 +48671,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -48762,10 +48762,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -48806,10 +48806,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -52441,12 +52441,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -52532,10 +52532,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -52576,10 +52576,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "oussama": {
@@ -53406,12 +53406,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)"
+          "note": ""
         },
         {
           "poste": "1/2 journée libre",
@@ -53497,10 +53497,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -53541,10 +53541,10 @@
           "notePm": "Demi-off hebdomadaire"
         },
         "nathanael": {
-          "am": "1/2 journée libre",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
-          "noteAm": "Demi-off hebdomadaire (hors vacations obligatoires)",
+          "note": "",
+          "noteAm": "",
           "notePm": ""
         },
         "oussama": {
@@ -53567,7 +53567,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "SCAN ACHARD",
+          "poste": "TDM SAU",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -53580,7 +53580,7 @@
           "interne": "Noé",
           "isSocle": true,
           "binome": true,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël"
+          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel"
         },
         {
           "poste": "RG",
@@ -53599,12 +53599,12 @@
           "note": "Vacation obligatoire (GESTES (C))"
         },
         {
-          "poste": "TDM SAU",
+          "poste": "1/2 journée libre",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
           "poste": "ECHO",
@@ -53669,7 +53669,7 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "SCAN ACHARD",
+          "am": "TDM SAU",
           "pm": "TDM SAU",
           "note": "Remplacement TDM SAU (congés/RG)",
           "noteAm": "",
@@ -53690,10 +53690,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "TDM SAU",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire"
         },
         "oussama": {
@@ -53706,14 +53706,14 @@
         "noe": {
           "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
           "notePm": ""
         }
       },
       "slots": {
         "gabriel": {
-          "am": "SCAN ACHARD",
+          "am": "TDM SAU",
           "pm": "TDM SAU",
           "note": "Remplacement TDM SAU (congés/RG)",
           "noteAm": "",
@@ -53734,10 +53734,10 @@
           "notePm": ""
         },
         "nathanael": {
-          "am": "TDM SAU",
+          "am": "1/2 journée libre",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
-          "noteAm": "",
+          "noteAm": "Demi-off hebdomadaire (équilibré)",
           "notePm": "Demi-off hebdomadaire"
         },
         "oussama": {
@@ -53750,8 +53750,8 @@
         "noe": {
           "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Nathanaël",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
+          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec Gabriel",
           "notePm": ""
         }
       }
@@ -54395,12 +54395,12 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "IRM 3T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (IRM 3T)"
         }
       ],
       "pm": [
@@ -54485,10 +54485,10 @@
           "notePm": "Repos de garde"
         },
         "oussama": {
-          "am": "GESTES (C)",
+          "am": "IRM 3T",
           "pm": "SCAN ACHARD",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "noe": {
@@ -54529,10 +54529,10 @@
           "notePm": "Repos de garde"
         },
         "oussama": {
-          "am": "GESTES (C)",
+          "am": "IRM 3T",
           "pm": "SCAN ACHARD",
-          "note": "",
-          "noteAm": "",
+          "note": "Vacation obligatoire (IRM 3T)",
+          "noteAm": "Vacation obligatoire (IRM 3T)",
           "notePm": ""
         },
         "noe": {

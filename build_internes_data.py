@@ -503,7 +503,7 @@ MANDATORY_WEEKLY_POSTES = {
     (0, "pm"): {"IRM"},
     (1, "am"): {"GESTES (C)", "IRM 3T"},
     (1, "pm"): {"LECTURE/CS"},
-    (2, "am"): set(),
+    (2, "am"): {"IRM 3T"},
     (2, "pm"): {"GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"},
     (3, "am"): {"ECHO", "GESTES (C)"},
     (3, "pm"): {"IRM"},
@@ -524,13 +524,13 @@ def is_ph_doc(doc_str: str) -> bool:
 
 def get_ph_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None = None, day_iso: str = "") -> set[str]:
     """
-    Retourne l'ensemble des postes d'internes obligatoires (les 13 vacations prioritaires)
+    Retourne l'ensemble des postes d'internes obligatoires (les 14 vacations prioritaires)
     réellement OUVERTS sur la demi-journée donnée :
     - Lundi matin : ECHO
     - Lundi après-midi : IRM
     - Mardi matin : GESTES (C), IRM (IRM 3T)
     - Mardi après-midi : LECTURE/CS (Relecture Pr Drapé)
-    - Mercredi matin : (uniquement TDM SAU géré séparément)
+    - Mercredi matin : IRM 3T
     - Mercredi après-midi : GESTES (C), IRM, SCAN ACHARD, ECHO
     - Jeudi matin : ECHO, GESTES (C)
     - Jeudi après-midi : IRM
@@ -2845,8 +2845,8 @@ def build_full_dataset() -> dict:
             },
             "rules": [
                 "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
-                "Permanence Scanner SAU (toujours un interne matin et après-midi) + 13 vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
-                "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des 13 vacations obligatoires).",
+                "Permanence Scanner SAU (toujours un interne matin et après-midi) + 14 vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, IRM 3T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
+                "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des 14 vacations obligatoires).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs (Lundi après-midi pour Marwane, Mercredi matin pour Gabriel, Jeudi après-midi pour Oussama) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
