@@ -5635,48 +5635,67 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
       if (planningScope === "perso" || (isSingleInterneSelected && !isChefPlanningMode)) {
         const me = getInterneById(selectedInterneId === "all" ? "gabriel" : selectedInterneId);
+        const dFullNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
         let cardsHtml = `
-          <div class="card" style="padding:12px 10px 0; overflow:hidden;">
-            <div class="card-header" style="padding:0 4px;">
-              <div class="card-title">Semaine (Lun–Ven) — ${me.fullName}</div>
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span style="font-size:11px; color:var(--text-muted);">Touchez un jour pour modifier</span>
-                <button class="btn btn-sm" onclick="selectInterne('all')">Voir tous les internes</button>
+          <div class="card" style="padding:14px 12px; overflow:hidden;">
+            <div class="card-header" style="padding:0 2px; margin-bottom:12px;">
+              <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                <span style="width:10px; height:10px; border-radius:50%; background:${me.color}; display:inline-block;"></span>
+                ${me.fullName}
               </div>
+              <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
             </div>
-            <div class="perso-week-grid" style="margin-bottom:10px;">
+            <div class="perso-week-grid">
         `;
         days.forEach((dIso, offset) => {
           const dObj = STATE.schedule[dIso] || {};
           const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—", note: "" };
-          const isAmMand = isMandatoryVacationSlot(dIso, "am", slot.am);
-          const isPmMand = isMandatoryVacationSlot(dIso, "pm", slot.pm);
-          const presList = STATE.presentations.filter(p => p.date === dIso && (p.interneId === me.id || (p.interneName && p.interneName.toLowerCase().includes(me.shortName.toLowerCase()))));
+          const [yy, mm, dd] = dIso.split("-").map(Number);
           const gInt = getInterneGardeInfo(dIso);
           const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
           const isActDay = (dIso === currentDateIso);
           cardsHtml += `
-            <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:${isMeOnGarde ? '#FEF2F2' : (isActDay ? '#F0F9FF' : '#F8FAFC')}; border-color:${isActDay ? 'var(--primary)' : (isMeOnGarde ? '#FCA5A5' : 'var(--border)')}; cursor:pointer;" onclick="openVacationEditModal('${dIso}', '${me.id}')">
-              ${renderWeekDayPillHtml(dIso, offset, {
-                stopProp: true,
-                extraStyle: "margin-bottom:6px; width:100%;",
-                customSubHtml: isMeOnGarde ? `<div class="dp-sub" style="color:#B91C1C; font-weight:800;">🌙 Garde ce soir</div>` : ``
-              })}
-              <div style="margin-bottom:5px; ${isAmMand ? 'background:#FFF5F5; border-left:2.5px solid #FCA5A5; padding:2px 4px; border-radius:5px;' : ''}">
-                <div style="font-size:8.5px; color:${isAmMand ? '#9F1239' : 'var(--text-muted)'}; font-weight:700; display:flex; align-items:center; gap:3px;">MATIN ${isAmMand ? '<span class="mandatory-dot" title="Vacation obligatoire"></span>' : ''}</div>
-                <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.am, "am")}</span>
+            <div class="perso-day-card ${isActDay ? 'active-day' : ''} ${isMeOnGarde ? 'garde-day' : ''}" onclick="openVacationEditModal('${dIso}', '${me.id}')">
+              <div class="perso-day-header">
+                <div class="perso-day-title">
+                  <span class="perso-day-dow">${dFullNames[offset]}</span>
+                  <span class="perso-day-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
+                </div>
+                ${isMeOnGarde ? `<span class="perso-garde-pill">🌙 Garde</span>` : ``}
               </div>
-              <div style="${isPmMand ? 'background:#FFF5F5; border-left:2.5px solid #FCA5A5; padding:2px 4px; border-radius:5px;' : ''}">
-                <div style="font-size:8.5px; color:${isPmMand ? '#9F1239' : 'var(--text-muted)'}; font-weight:700; display:flex; align-items:center; gap:3px;">APRÈS-MIDI ${isPmMand ? '<span class="mandatory-dot" title="Vacation obligatoire"></span>' : ''}</div>
-                <span class="poste-pill ${getPosteClass(slot.pm)} ${isPmMand ? 'poste-mandatory-slot' : ''}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.pm, "pm")}</span>
+              <div class="perso-day-slots">
+                ${dObj.holiday ? `
+                  <div class="perso-slot-block" style="grid-column: 1 / -1;">
+                    <span class="poste-pill poste-rg perso-vac-pill">Férié</span>
+                  </div>
+                ` : `
+                  <div class="perso-slot-block">
+                    <span class="perso-slot-label">Matin</span>
+                    <span class="poste-pill ${getPosteClass(slot.am)} perso-vac-pill">${getPosteCleanLabel(slot.am, "am")}</span>
+                  </div>
+                  <div class="perso-slot-block">
+                    <span class="perso-slot-label">Après-midi</span>
+                    <span class="poste-pill ${getPosteClass(slot.pm)} perso-vac-pill">${getPosteCleanLabel(slot.pm, "pm")}</span>
+                  </div>
+                `}
               </div>
-              ${slot.note ? `<div style="font-size:9.5px; color:#0369A1; font-weight:700; margin-top:4px;">${slot.note}</div>` : ''}
-              ${isMeOnGarde ? `<div style="font-size:9.5px; color:#991B1B; font-weight:800; margin-top:4px;">🌙 Garde Radio (RG demain)</div>` : ''}
-              ${presList.map(p => `<div style="font-size:9.5px; color:#6D28D9; font-weight:700; margin-top:3px;">12h30: ${p.typeLabel || 'Cours'}</div>`).join("")}
             </div>
           `;
         });
-        cardsHtml += `</div>${renderWeekendGardesCompactBar(monIso)}</div>`;
+        const satIso = addDaysIso(monIso, 5);
+        const sunIso = addDaysIso(monIso, 6);
+        const gSat = getInterneGardeInfo(satIso);
+        const gSun = getInterneGardeInfo(sunIso);
+        const isSatMe = Boolean(gSat && gSat.interneId === me.id);
+        const isSunMe = Boolean(gSun && gSun.interneId === me.id);
+        let weGardeHtml = "";
+        if (isSatMe || isSunMe) {
+          const badges = [];
+          if (isSatMe) badges.push(`<span class="perso-garde-pill">🌙 Garde Samedi ${formatDateFr(satIso)}</span>`);
+          if (isSunMe) badges.push(`<span class="perso-garde-pill">🌙 Garde Dimanche ${formatDateFr(sunIso)}</span>`);
+          weGardeHtml = `<div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">${badges.join("")}</div>`;
+        }
+        cardsHtml += `</div>${weGardeHtml}</div>`;
         return cardsHtml;
       }
 
@@ -5866,6 +5885,50 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const dObj = STATE.schedule[iso];
       const gSenior = STATE.chefsGardes ? STATE.chefsGardes[iso] : null;
       const gInt = getInterneGardeInfo(iso);
+      const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
+      const isPersoDay = !isChefPlanningMode && (planningScope === "perso" || isSingleInterneSelected);
+
+      if (isPersoDay) {
+        const me = getInterneById(selectedInterneId === "all" ? "gabriel" : selectedInterneId);
+        const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
+        if (!dObj) {
+          return `
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">${formatDateFr(iso, true)} — ${me.fullName}</div>
+                <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
+              </div>
+              <div style="padding:12px 0; text-align:center;">
+                ${isMeOnGarde ? `<span class="perso-garde-pill" style="font-size:13px; padding:6px 14px;">🌙 Garde</span>` : `<span class="poste-pill poste-off" style="font-size:13px; padding:6px 14px;">Repos (Week-end)</span>`}
+              </div>
+            </div>
+          `;
+        }
+        const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—" };
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+                <span style="width:10px; height:10px; border-radius:50%; background:${me.color}; display:inline-block;"></span>
+                ${formatDateFr(iso, true)} — ${me.fullName}
+                ${isMeOnGarde ? `<span class="perso-garde-pill">🌙 Garde</span>` : ``}
+              </div>
+              <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; cursor:pointer;" onclick="openVacationEditModal('${iso}', '${me.id}')">
+              <div class="perso-slot-block" style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:12px;">
+                <span class="perso-slot-label">Matin</span>
+                <span class="poste-pill ${getPosteClass(slot.am)} perso-vac-pill" style="margin-top:4px;">${getPosteCleanLabel(slot.am, "am")}</span>
+              </div>
+              <div class="perso-slot-block" style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:12px;">
+                <span class="perso-slot-label">Après-midi</span>
+                <span class="poste-pill ${getPosteClass(slot.pm)} perso-vac-pill" style="margin-top:4px;">${getPosteCleanLabel(slot.pm, "pm")}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       const gIntBadge = gInt
         ? (gInt.isRadioB && gInt.interneId
           ? `<span class="poste-pill poste-rg">🌙 Garde Interne : ${getInterneById(gInt.interneId).fullName}</span>`
@@ -5891,11 +5954,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         `;
       }
       const chDay = (STATE.chefsPlanning && STATE.chefsPlanning[iso]) ? STATE.chefsPlanning[iso] : { am: [], pm: [] };
-      const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
 
       let rows = "";
       STATE.internes.forEach(i => {
-        if ((planningScope === "perso" || (isSingleInterneSelected && !isChefPlanningMode)) && isSingleInterneSelected && i.id !== selectedInterneId) return;
         const slot = (dObj.byInterne && dObj.byInterne[i.id]) ? dObj.byInterne[i.id] : null;
         if (!slot) return;
         const amEsc = String(slot.am || "").replace(/'/g, "\\'");
@@ -5947,16 +6008,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return `
         <div class="card">
           <div class="card-header">
-            <div class="card-title">${formatDateFr(iso, true)}${isSingleInterneSelected ? ` — ${getInterneById(selectedInterneId).fullName}` : ''}</div>
+            <div class="card-title">${formatDateFr(iso, true)}</div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              ${isSingleInterneSelected ? `<button class="btn btn-sm" onclick="selectInterne('all')">Voir tous les internes</button>` : ''}
               ${gIntBadge}
               ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">Garde Senior : Dr ${gSenior.noms.join(", ")}</span>` : ''}
             </div>
           </div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px;">
             <div>
-              <div style="font-size:12px; font-weight:800; margin-bottom:6px;">${isChefPlanningMode ? "Internes & DJ (glissez-déposez un créneau sur un autre interne pour échanger)" : (isSingleInterneSelected ? `Planning de ${getInterneById(selectedInterneId).shortName} (cliquez pour modifier)` : "Internes & DJ (cliquez pour modifier)")}</div>
+              <div style="font-size:12px; font-weight:800; margin-bottom:6px;">${isChefPlanningMode ? "Internes & DJ (glissez-déposez un créneau sur un autre interne pour échanger)" : "Internes & DJ (cliquez pour modifier)"}</div>
               <div class="week-table-wrap">
                 <table class="planning-table" style="min-width:280px;">
                   <thead>
@@ -5971,7 +6031,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </table>
               </div>
             </div>
-            ${!isSingleInterneSelected ? `
             <div>
               <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Chefs & Seniors</div>
               <div class="card" style="margin:0; background:#F8FAFC;">
@@ -5993,7 +6052,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 }).join("") || '—'}
               </div>
             </div>
-            ` : ''}
           </div>
         </div>
       `;
@@ -6012,19 +6070,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       daysInMonth.forEach(dIso => {
         const dObj = STATE.schedule[dIso];
         const slot = (dObj.byInterne && dObj.byInterne[targetId]) ? dObj.byInterne[targetId] : null;
-        const isAmMand = slot ? isMandatoryVacationSlot(dIso, "am", slot.am) : false;
-        const isPmMand = slot ? isMandatoryVacationSlot(dIso, "pm", slot.pm) : false;
         const gInt = getInterneGardeInfo(dIso);
         const isMeOnGarde = Boolean(gInt && gInt.interneId === targetId);
         cells += `
-          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${isMeOnGarde ? 'background:#FEF2F2; border-color:#FCA5A5;' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
+          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${isMeOnGarde ? 'background:#FFFDFD; border-color:#FCA5A5;' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
             <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:12px;">
               <span>${formatDateFr(dIso)}</span>
-              ${isMeOnGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 4px;">🌙 Garde</span>` : ""}
+              ${isMeOnGarde ? `<span class="perso-garde-pill" style="font-size:9px; padding:1px 5px;">🌙 Garde</span>` : ""}
             </div>
-            ${dObj.holiday ? `<span class="poste-pill poste-rg">Férié</span>` : (slot ? `
-              <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''}" style="font-size:10.5px; padding:2px 6px;">${isAmMand ? '<span class="mandatory-dot"></span> ' : ''}M: ${getPosteWithTimeLabel(slot.am, "am")}</span>
-              <span class="poste-pill ${getPosteClass(slot.pm)} ${isPmMand ? 'poste-mandatory-slot' : ''}" style="font-size:10.5px; padding:2px 6px;">${isPmMand ? '<span class="mandatory-dot"></span> ' : ''}PM: ${getPosteWithTimeLabel(slot.pm, "pm")}</span>
+            ${dObj.holiday ? `<span class="poste-pill poste-rg" style="justify-content:center;">Férié</span>` : (slot ? `
+              <span class="poste-pill ${getPosteClass(slot.am)}" style="font-size:11px; padding:4px 6px; justify-content:center;">${getPosteCleanLabel(slot.am, "am")}</span>
+              <span class="poste-pill ${getPosteClass(slot.pm)}" style="font-size:11px; padding:4px 6px; justify-content:center;">${getPosteCleanLabel(slot.pm, "pm")}</span>
             ` : `—`)}
           </div>
         `;
@@ -6033,7 +6089,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return `
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Mois — ${targetInterne.fullName}</div>
+            <div class="card-title" style="display:flex; align-items:center; gap:8px;">
+              <span style="width:10px; height:10px; border-radius:50%; background:${targetInterne.color}; display:inline-block;"></span>
+              ${targetInterne.fullName}
+            </div>
+            <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
           </div>
           <div class="month-grid">${cells}</div>
         </div>
