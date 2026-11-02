@@ -1657,6 +1657,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       background: #FEF3C7;
     }
 
+    .btn-export-pdf {
+      background: #0284C7;
+      border: 1px solid #0369A1;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 11.5px;
+      padding: 4px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+    .btn-export-pdf:hover {
+      background: #0369A1;
+      border-color: #075985;
+      color: #FFFFFF;
+    }
+
     /* Résumé Off & Vacations en Mode Chef */
     .chef-offvac-section {
       margin-top: 9px;
@@ -2796,12 +2816,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
 
           // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
-          // (hors matinée d'accueil et formation obligatoire du 02/11/2026)
+          // (sauf le Mardi matin où Noé assure le TDM SAU en solo sans doublure avec Dr Macil HAMADOUCHE, sauf absence/RG de Noé)
           // en prélevant d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
           const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM", "CONSULTATION", "LECTURE"];
           ["am", "pm"].forEach(hSau => {
             if (iso === "2026-11-02" && hSau === "am") return;
-            const hasSauSenior = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
+            if (jsDay === 2 && hSau === "am" && dayObj.byInterne.noe && !["RG", "VACANCES"].includes(dayObj.byInterne.noe.am)) {
+              const cKeyNoe = iso + "__noe";
+              if (!(custom[cKeyNoe] && custom[cKeyNoe].am)) {
+                dayObj.byInterne.noe.am = "TDM SAU";
+                dayObj.byInterne.noe.noteAm = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)";
+                if (!dayObj.byInterne.noe.note) dayObj.byInterne.noe.note = dayObj.byInterne.noe.noteAm;
+              }
+            }
+            const noeSoloTueAm = (jsDay === 2 && hSau === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
+            const hasSauSenior = noeSoloTueAm || seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
             if (!hasSauSenior) {
               const nkSau = hSau === "am" ? "noteAm" : "notePm";
               const phSauSet = getPhInternePostesForHalfDay(iso, hSau, jsDay);
@@ -2933,7 +2962,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (iso === "2026-11-02" && h === "am") return;
             const nk = h === "am" ? "noteAm" : "notePm";
             const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
-            const hasSeniorSau = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
+            const noeSoloTueAm2A = (jsDay === 2 && h === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
+            const hasSeniorSau = noeSoloTueAm2A || seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
             if (!hasSeniorSau) {
               const finalSauDonors = [
                 ...nonMandatoryPriority.filter(d => !phSet.has(d)),
@@ -2971,7 +3001,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
                 if (isCovered) return;
                 let reassignedPh = false;
-                const candIids = phPoste !== "TDM SAU" ? [...seniorIds, "noe"] : [...seniorIds];
+                const candIids = (phPoste !== "TDM SAU" && !(jsDay === 2 && h === "am")) ? [...seniorIds, "noe"] : [...seniorIds];
                 // A) Prélever sur une vacation non obligatoire
                 for (const donorP of nonMandatoryPriority) {
                   if (phSet.has(donorP)) continue;
@@ -2996,7 +3026,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     dayObj.byInterne[donorSid][h] = phPoste;
                     dayObj.byInterne[donorSid][nk] = `Vacation obligatoire (${phPoste})`;
                     reassignedPh = true;
-                  } else if (sauSeniors.length >= 1 && dayObj.byInterne.noe && dayObj.byInterne.noe[h] === "TDM SAU") {
+                  } else if (!(jsDay === 2 && h === "am") && sauSeniors.length >= 1 && dayObj.byInterne.noe && dayObj.byInterne.noe[h] === "TDM SAU") {
                     if (["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG"].includes(phPoste)) {
                       dayObj.byInterne.noe[h] = phPoste;
                       dayObj.byInterne.noe[nk] = `Vacation obligatoire (${phPoste})`;
@@ -3074,6 +3104,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
                 for (const h of ["pm", "am"]) {
                   if (h === "pm" && jsDay === 2) continue;
+                  if (iid === "noe" && jsDay === 2 && h === "am") continue;
                   const slChk = st.schedule[dIso].byInterne[iid];
                   if (!slChk || nonActivePostes.includes(slChk[h])) continue;
                   rawCands.push([dIso, h, jsDay]);
@@ -3405,6 +3436,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 } else {
                   noeSlot[nk] = `Posté Socle Urgences • Binôme SAU avec ${pStr}`;
                 }
+              } else if (jsDay === 2 && h === "am") {
+                noeSlot[nk] = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)";
               }
             }
           });
@@ -3883,11 +3916,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const jsDay = new Date(yy, mm - 1, dd).getDay();
         const isFirstMonday = (iso === "2026-11-02");
 
-        // 1. Vérifier couverture obligatoire TDM SAU (Urgences) par au moins un interne hors socle (Noé étant toujours en binôme)
+        // 1. Vérifier couverture obligatoire TDM SAU (Urgences) par au moins un interne hors socle (sauf le Mardi matin assuré en solo par Noé avec Dr Macil HAMADOUCHE)
         if (!isFirstMonday) {
           ["am", "pm"].forEach(periodKey => {
             const pLabel = periodKey === "am" ? "Matin (08h00–13h00)" : "Après-midi (13h00–18h30)";
-            const hasSau = seniorIds.some(iid => dayObj.byInterne[iid] && dayObj.byInterne[iid][periodKey] === "TDM SAU");
+            const noeSoloTueAm = (jsDay === 2 && periodKey === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
+            const hasSau = noeSoloTueAm || seniorIds.some(iid => dayObj.byInterne[iid] && dayObj.byInterne[iid][periodKey] === "TDM SAU");
             if (!hasSau) {
               const absentInternes = seniorIds
                 .filter(iid => dayObj.byInterne[iid] && (dayObj.byInterne[iid][periodKey] === "VACANCES" || dayObj.byInterne[iid][periodKey] === "RG"))
@@ -4485,8 +4519,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const weekBtnHtml = weekLock
         ? `<span class="status-pill-approved">📌 Semaine fixée</span>
+           <button class="btn-export-pdf" onclick="exportWeekPlanningPdf('${monIso}')" title="Exporter le planning validé de la semaine en PDF">📄 Exporter PDF</button>
            <button class="btn-unfix-week" onclick="unfixWeekPlanning('${monIso}')">Débloquer</button>`
-        : `<button class="btn-fix-week" onclick="validateAndFixWeekPlanning('${monIso}')">📌 Fixer la semaine (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</button>`;
+        : `<button class="btn-fix-week" onclick="validateAndFixWeekPlanning('${monIso}')">📌 Fixer la semaine (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</button>
+           <button class="btn-export-pdf" onclick="validateAndFixWeekPlanning('${monIso}', true)" title="Valider et fixer la semaine puis exporter le PDF">📄 Valider & Exporter PDF</button>`;
 
       const subHintHtml = selectedForMove
         ? `<span class="poste-pill poste-tdm">Sélectionné : ${getInterneById(selectedForMove.interneId).shortName} (${formatShortDayHeader(selectedForMove.dIso)} ${selectedForMove.periodKey === 'am' ? 'Matin' : 'PM'})</span>
@@ -4529,7 +4565,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         : null;
     }
 
-    function validateAndFixWeekPlanning(monIso) {
+    function validateAndFixWeekPlanning(monIso, alsoExportPdf = false) {
       requireChefUnlockThen(() => {
         const targetMon = monIso || getMondayOfWeek(currentDateIso);
         const days = [0, 1, 2, 3, 4].map(off => addDaysIso(targetMon, off));
@@ -4595,9 +4631,627 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         saveStateLocal();
         renderAll();
         const friIso = addDaysIso(targetMon, 4);
-        showToast(`📌 Semaine du ${formatDateFr(targetMon)} au ${formatDateFr(friIso)} fixée`);
+        if (alsoExportPdf) {
+          exportWeekPlanningPdf(targetMon);
+          showToast(`📌 Semaine du ${formatDateFr(targetMon)} au ${formatDateFr(friIso)} fixée & PDF exporté`);
+        } else {
+          showToast(`📌 Semaine du ${formatDateFr(targetMon)} au ${formatDateFr(friIso)} fixée — PDF disponible`);
+        }
         pushStateToCloud({ isChefValidation: true, syncAbsenceSheet: approvedAbs > 0 });
       });
+    }
+
+    function exportWeekPlanningPdf(monIso) {
+      const targetMon = monIso || getMondayOfWeek(currentDateIso);
+      const friIso = addDaysIso(targetMon, 4);
+      const days = [0, 1, 2, 3, 4].map(off => addDaysIso(targetMon, off));
+      recomputeScheduleInPlace(STATE);
+
+      const PAGE_W = 841.89;
+      const PAGE_H = 595.28;
+      const MARGIN_X = 16;
+      const MARGIN_Y = 14;
+      const CONTENT_W = PAGE_W - MARGIN_X * 2;
+      const ops = [];
+
+      function hexToRgb01(hex) {
+        const clean = String(hex || "#000000").replace("#", "").trim();
+        const full = clean.length === 3
+          ? clean.split("").map(c => c + c).join("")
+          : clean.padEnd(6, "0").slice(0, 6);
+        const r = (parseInt(full.slice(0, 2), 16) || 0) / 255;
+        const g = (parseInt(full.slice(2, 4), 16) || 0) / 255;
+        const b = (parseInt(full.slice(4, 6), 16) || 0) / 255;
+        return `${r.toFixed(3)} ${g.toFixed(3)} ${b.toFixed(3)}`;
+      }
+
+      const WINANSI_SPECIAL = {
+        0x20AC: 0x80, 0x201A: 0x82, 0x0192: 0x83, 0x201E: 0x84, 0x2026: 0x85,
+        0x2020: 0x86, 0x2021: 0x87, 0x02C6: 0x88, 0x2030: 0x89, 0x0160: 0x8A,
+        0x2039: 0x8B, 0x0152: 0x8C, 0x017D: 0x8E, 0x2018: 0x91, 0x2019: 0x92,
+        0x201C: 0x93, 0x201D: 0x94, 0x2022: 0x95, 0x2013: 0x96, 0x2014: 0x97,
+        0x02DC: 0x98, 0x2122: 0x99, 0x0161: 0x9A, 0x203A: 0x9B, 0x0153: 0x9C,
+        0x017E: 0x9E, 0x0178: 0x9F
+      };
+
+      function sanitizeForPdf(raw) {
+        const chars = Array.from(String(raw || ""));
+        let res = "";
+        for (let i = 0; i < chars.length; i++) {
+          const cp = chars[i].codePointAt(0);
+          if (cp === 0x2713 || cp === 0x2714) { res += "v"; continue; }
+          if (cp === 0x2192) { res += "->"; continue; }
+          if ((cp >= 0x2600 && cp <= 0x27BF) || cp >= 0x1F000 || cp === 0xFE0F) continue;
+          if (cp === 9 || cp === 10 || cp === 13) { res += " "; continue; }
+          res += chars[i];
+        }
+        return res.replace(/ +/g, " ").trim();
+      }
+
+      const BS = String.fromCharCode(92);
+      const NL = String.fromCharCode(10);
+
+      function pdfEscapeWinAnsi(str) {
+        const s = sanitizeForPdf(str);
+        let out = "";
+        for (let i = 0; i < s.length; i++) {
+          const code = s.charCodeAt(i);
+          let byte = 0x20;
+          if (code >= 0x20 && code <= 0x7E) {
+            byte = code;
+          } else if (code >= 0xA0 && code <= 0xFF) {
+            byte = code;
+          } else if (WINANSI_SPECIAL[code] !== undefined) {
+            byte = WINANSI_SPECIAL[code];
+          } else {
+            continue;
+          }
+          if (byte === 0x28) out += BS + "(";
+          else if (byte === 0x29) out += BS + ")";
+          else if (byte === 0x5C) out += BS + BS;
+          else if (byte < 0x20 || byte > 0x7E) {
+            out += BS + byte.toString(8).padStart(3, "0");
+          } else {
+            out += String.fromCharCode(byte);
+          }
+        }
+        return out;
+      }
+
+      function measureText(str, fontSize, isBold) {
+        const s = sanitizeForPdf(str);
+        let w = 0;
+        const factor = isBold ? 1.06 : 1.0;
+        for (let i = 0; i < s.length; i++) {
+          const ch = s[i];
+          if ("ilI.,:;!|' ".includes(ch)) w += 0.28;
+          else if ("ftrj()[]/-".includes(ch)) w += 0.35;
+          else if ("mwMWGDOQ@%&".includes(ch)) w += 0.78;
+          else if (ch >= "A" && ch <= "Z") w += 0.66;
+          else w += 0.53;
+        }
+        return w * fontSize * factor;
+      }
+
+      function truncateTextToWidth(str, fontSize, isBold, maxW) {
+        const s = sanitizeForPdf(str);
+        if (!maxW || measureText(s, fontSize, isBold) <= maxW) return s;
+        let cur = s;
+        while (cur.length > 1 && measureText(cur + "...", fontSize, isBold) > maxW) {
+          cur = cur.slice(0, -1);
+        }
+        return cur.trim() + "...";
+      }
+
+      function drawRect(x, yTop, w, h, fillHex, strokeHex, lineW = 0.6) {
+        const yPdf = PAGE_H - yTop - h;
+        ops.push("q");
+        if (fillHex) ops.push(`${hexToRgb01(fillHex)} rg`);
+        if (strokeHex) ops.push(`${hexToRgb01(strokeHex)} RG ${lineW.toFixed(2)} w`);
+        const cmd = (fillHex && strokeHex) ? "B" : (fillHex ? "f" : "S");
+        ops.push(`${x.toFixed(2)} ${yPdf.toFixed(2)} ${w.toFixed(2)} ${h.toFixed(2)} re ${cmd}`);
+        ops.push("Q");
+      }
+
+      function drawRoundedRect(x, yTop, w, h, r, fillHex, strokeHex, lineW = 0.6) {
+        const rad = Math.min(r, w / 2, h / 2);
+        const y = PAGE_H - yTop - h;
+        const k = 0.55228475 * rad;
+        ops.push("q");
+        if (fillHex) ops.push(`${hexToRgb01(fillHex)} rg`);
+        if (strokeHex) ops.push(`${hexToRgb01(strokeHex)} RG ${lineW.toFixed(2)} w`);
+        ops.push(`${(x + rad).toFixed(2)} ${y.toFixed(2)} m`);
+        ops.push(`${(x + w - rad).toFixed(2)} ${y.toFixed(2)} l`);
+        ops.push(`${(x + w - rad + k).toFixed(2)} ${y.toFixed(2)} ${(x + w).toFixed(2)} ${(y + rad - k).toFixed(2)} ${(x + w).toFixed(2)} ${(y + rad).toFixed(2)} c`);
+        ops.push(`${(x + w).toFixed(2)} ${(y + h - rad).toFixed(2)} l`);
+        ops.push(`${(x + w).toFixed(2)} ${(y + h - rad + k).toFixed(2)} ${(x + w - rad + k).toFixed(2)} ${(y + h).toFixed(2)} ${(x + w - rad).toFixed(2)} ${(y + h).toFixed(2)} c`);
+        ops.push(`${(x + rad).toFixed(2)} ${(y + h).toFixed(2)} l`);
+        ops.push(`${(x + rad - k).toFixed(2)} ${(y + h).toFixed(2)} ${x.toFixed(2)} ${(y + h - rad + k).toFixed(2)} ${x.toFixed(2)} ${(y + h - rad).toFixed(2)} c`);
+        ops.push(`${x.toFixed(2)} ${(y + rad).toFixed(2)} l`);
+        ops.push(`${x.toFixed(2)} ${(y + rad - k).toFixed(2)} ${(x + rad - k).toFixed(2)} ${y.toFixed(2)} ${(x + rad).toFixed(2)} ${y.toFixed(2)} c`);
+        const cmd = (fillHex && strokeHex) ? "B" : (fillHex ? "f" : "S");
+        ops.push(cmd);
+        ops.push("Q");
+      }
+
+      function drawCircle(cx, cyTop, r, fillHex) {
+        const cy = PAGE_H - cyTop;
+        const k = 0.55228475 * r;
+        ops.push("q");
+        ops.push(`${hexToRgb01(fillHex)} rg`);
+        ops.push(`${(cx + r).toFixed(2)} ${cy.toFixed(2)} m`);
+        ops.push(`${(cx + r).toFixed(2)} ${(cy + k).toFixed(2)} ${(cx + k).toFixed(2)} ${(cy + r).toFixed(2)} ${cx.toFixed(2)} ${(cy + r).toFixed(2)} c`);
+        ops.push(`${(cx - k).toFixed(2)} ${(cy + r).toFixed(2)} ${(cx - r).toFixed(2)} ${(cy + k).toFixed(2)} ${(cx - r).toFixed(2)} ${cy.toFixed(2)} c`);
+        ops.push(`${(cx - r).toFixed(2)} ${(cy - k).toFixed(2)} ${(cx - k).toFixed(2)} ${(cy - r).toFixed(2)} ${cx.toFixed(2)} ${(cy - r).toFixed(2)} c`);
+        ops.push(`${(cx + k).toFixed(2)} ${(cy - r).toFixed(2)} ${(cx + r).toFixed(2)} ${(cy - k).toFixed(2)} ${(cx + r).toFixed(2)} ${cy.toFixed(2)} c`);
+        ops.push("f Q");
+      }
+
+      function drawLine(x1, y1Top, x2, y2Top, strokeHex, lineW = 0.5) {
+        const y1 = PAGE_H - y1Top;
+        const y2 = PAGE_H - y2Top;
+        ops.push(`q ${hexToRgb01(strokeHex)} RG ${lineW.toFixed(2)} w ${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S Q`);
+      }
+
+      function drawText(str, x, yBaselineTop, fontSize, colorHex = "#0F172A", isBold = false, maxW = 0) {
+        const finalStr = maxW > 0 ? truncateTextToWidth(str, fontSize, isBold, maxW) : sanitizeForPdf(str);
+        if (!finalStr) return;
+        const yPdf = PAGE_H - yBaselineTop;
+        const fontRef = isBold ? "/F2" : "/F1";
+        ops.push(`BT ${fontRef} ${fontSize.toFixed(2)} Tf ${hexToRgb01(colorHex)} rg ${x.toFixed(2)} ${yPdf.toFixed(2)} Td (${pdfEscapeWinAnsi(finalStr)}) Tj ET`);
+      }
+
+      function getPostePalette(poste) {
+        const cls = getPosteClass(poste);
+        const palettes = {
+          "poste-tdm": { bg: "#FEF3C7", fg: "#B45309", bd: "#FCD34D" },
+          "poste-tdm-sau": { bg: "#FEF3C7", fg: "#B45309", bd: "#FCD34D" },
+          "poste-achard": { bg: "#FFEDD5", fg: "#C2410C", bd: "#FDBA74" },
+          "poste-tdm-ollier": { bg: "#E0F2FE", fg: "#0369A1", bd: "#7DD3FC" },
+          "poste-irm": { bg: "#F3E8FF", fg: "#6D28D9", bd: "#D8B4FE" },
+          "poste-echo": { bg: "#CCFBF1", fg: "#0F766E", bd: "#5EEAD4" },
+          "poste-gestes": { bg: "#FFE4E6", fg: "#BE123C", bd: "#FDA4AF" },
+          "poste-cs": { bg: "#DBEAFE", fg: "#1D4ED8", bd: "#93C5FD" },
+          "poste-lecture": { bg: "#E0E7FF", fg: "#4338CA", bd: "#A5B4FC" },
+          "poste-off": { bg: "#F1F5F9", fg: "#475569", bd: "#CBD5E1" },
+          "poste-vac": { bg: "#DCFCE7", fg: "#15803D", bd: "#86EFAC" },
+          "poste-rg": { bg: "#FEE2E2", fg: "#B91C1C", bd: "#FCA5A5" },
+          "poste-closed": { bg: "#FEF2F2", fg: "#B91C1C", bd: "#EF4444" }
+        };
+        return palettes[cls] || palettes["poste-tdm"];
+      }
+
+      function getPdfPosteLabel(poste, periodKey) {
+        let shortName = poste === "1/2 journée libre" ? "Demi-off" : poste;
+        if (shortName === "FORMATION / ACCUEIL") shortName = "ACCUEIL / FORM.";
+        if (shortName === "TDM OLLIER DIAG" || shortName === "TDM OLLIER" || shortName === "TDM OLLIER 3") shortName = "SCAN OLLIER";
+        if (shortName === "TDM OLLIER 4 (SAU)") shortName = "TDM SAU";
+        if (shortName === "TDM ACHARD 1") shortName = "SCAN ACHARD";
+        if (shortName === "LECTURE/CS") shortName = "LECTURE";
+        if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
+        return shortName;
+      }
+
+      function getPdfPosteHoraire(poste, periodKey) {
+        const p = String(poste || "").toUpperCase();
+        if (p.includes("FORMATION") || p.includes("ACCUEIL")) return "08h15-12h00";
+        if (p.includes("IRM")) return periodKey === "am" ? "07h45" : "13h30-18h30";
+        if (p.includes("ECHO") || p.includes("ÉCHO") || p.includes("GESTES")) return periodKey === "am" ? "09h00" : "13h30-18h00";
+        if (p.includes("SAU") || p.includes("OLLIER 4")) return periodKey === "am" ? "08h00-18h30" : "fin 18h30";
+        if (p.includes("CONSULT")) return periodKey === "pm" ? "13h30-18h00" : "";
+        if (p.includes("LECTURE")) return periodKey === "pm" ? "13h30-18h00" : "";
+        return "";
+      }
+
+      // 1. Fond général blanc + En-tête
+      drawRect(0, 0, PAGE_W, PAGE_H, "#FFFFFF", null);
+
+      const HEADER_H = 38;
+      drawRoundedRect(MARGIN_X, MARGIN_Y, CONTENT_W, HEADER_H, 6, "#F8FAFC", "#CBD5E1", 0.8);
+      drawRoundedRect(MARGIN_X, MARGIN_Y, 4, HEADER_H, 2, "#0284C7", null);
+
+      const [my, mm, md] = targetMon.split("-").map(Number);
+      const [fy, fm, fd] = friIso.split("-").map(Number);
+      const weekRangeStr = `Lundi ${String(md).padStart(2, "0")}/${String(mm).padStart(2, "0")}/${my} au Vendredi ${String(fd).padStart(2, "0")}/${String(fm).padStart(2, "0")}/${fy}`;
+
+      drawText("RADIOLOGIE B — HÔPITAL COCHIN", MARGIN_X + 12, MARGIN_Y + 13, 11.5, "#0F172A", true);
+      drawText(`Planning Hebdomadaire des Internes • Semaine du ${weekRangeStr}`, MARGIN_X + 12, MARGIN_Y + 24.5, 8.8, "#0284C7", true);
+      drawText("Horaires : IRM 07h45 • TDM SAU 08h00–18h30 • Écho & Poste C 09h00 • Consultations & Relecture 13h30–18h00", MARGIN_X + 12, MARGIN_Y + 34, 7.2, "#475569", false);
+
+      const weekLock = getWeekLockInfo(targetMon);
+      const badgeW = 205;
+      const badgeX = MARGIN_X + CONTENT_W - badgeW - 8;
+      if (weekLock) {
+        drawRoundedRect(badgeX, MARGIN_Y + 5, badgeW, 28, 5, "#DCFCE7", "#86EFAC", 0.8);
+        drawText("PLANNING VALIDÉ & FIXÉ PAR LE CHEF", badgeX + 8, MARGIN_Y + 16, 7.8, "#166534", true, badgeW - 14);
+        let stampLabel = weekLock.validatedBy || "Chef de clinique";
+        if (weekLock.validatedAt) {
+          const dt = new Date(weekLock.validatedAt);
+          if (!isNaN(dt.getTime())) {
+            const dStr = `${String(dt.getDate()).padStart(2, "0")}/${String(dt.getMonth() + 1).padStart(2, "0")}/${dt.getFullYear()} à ${String(dt.getHours()).padStart(2, "0")}h${String(dt.getMinutes()).padStart(2, "0")}`;
+            stampLabel += ` • ${dStr}`;
+          }
+        }
+        drawText(stampLabel, badgeX + 8, MARGIN_Y + 27, 6.8, "#15803D", false, badgeW - 14);
+      } else {
+        drawRoundedRect(badgeX, MARGIN_Y + 5, badgeW, 28, 5, "#FEF3C7", "#FCD34D", 0.8);
+        drawText("PLANNING HEBDOMADAIRE (NON FIXÉ)", badgeX + 8, MARGIN_Y + 16, 7.8, "#92400E", true, badgeW - 14);
+        const now = new Date();
+        const nowStr = `Exporté le ${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()} à ${String(now.getHours()).padStart(2, "0")}h${String(now.getMinutes()).padStart(2, "0")}`;
+        drawText(nowStr, badgeX + 8, MARGIN_Y + 27, 6.8, "#B45309", false, badgeW - 14);
+      }
+
+      // 2. Construction des lignes de la table
+      const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "CONSULTATION", "LECTURE", "1/2 journée libre", "RG", "VACANCES"];
+      const postesPm = ["GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "ECHO", "ALLURA", "CONSULTATION", "LECTURE", "1/2 journée libre", "RG", "VACANCES"];
+
+      function filterActivePostes(list, periodKey) {
+        return list.filter(posteName => {
+          const hasAny = days.some(dIso => {
+            const dObj = STATE.schedule[dIso];
+            return dObj && Array.isArray(dObj[periodKey]) && dObj[periodKey].some(x => x.poste === posteName);
+          });
+          if (!hasAny && posteName === "FORMATION / ACCUEIL") return false;
+          if (periodKey === "am" && (posteName === "CONSULTATION" || posteName === "LECTURE") && !hasAny) return false;
+          if (!hasAny && (posteName === "RG" || posteName === "VACANCES")) return false;
+          return true;
+        });
+      }
+
+      const activeAm = filterActivePostes(postesAm, "am");
+      const activePm = filterActivePostes(postesPm, "pm");
+
+      const tableRows = [];
+      tableRows.push({ kind: "divider", title: "MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00" });
+      activeAm.forEach(p => tableRows.push({ kind: "poste", periodKey: "am", posteName: p }));
+      tableRows.push({ kind: "divider", title: "COURS & RÉUNIONS (12h30)" });
+      tableRows.push({ kind: "staff" });
+      tableRows.push({ kind: "divider", title: "APRÈS-MIDI — TDM SAU fin 18h30 • Consultations & Relecture 13h30–18h00" });
+      activePm.forEach(p => tableRows.push({ kind: "poste", periodKey: "pm", posteName: p }));
+      tableRows.push({ kind: "divider", title: "GARDES (LUNDI – VENDREDI)" });
+      tableRows.push({ kind: "garde_interne" });
+      tableRows.push({ kind: "garde_senior" });
+
+      // Calcul des poids de hauteur pour que tout tienne sur 1 page A4 Paysage
+      const FOOTER_H = 38;
+      const TABLE_TOP = MARGIN_Y + HEADER_H + 5;
+      const TABLE_BOTTOM = PAGE_H - MARGIN_Y - FOOTER_H - 5;
+      const TABLE_TOTAL_H = TABLE_BOTTOM - TABLE_TOP;
+      const COL_POSTE_W = 108;
+      const COL_DAY_W = (CONTENT_W - COL_POSTE_W) / 5;
+      const TH_H = 24;
+
+      tableRows.forEach(r => {
+        if (r.kind === "divider") {
+          r.weight = 0.58;
+        } else if (r.kind === "staff") {
+          let maxItems = 1;
+          days.forEach(dIso => {
+            const pCount = (STATE.presentations || []).filter(p => p.date === dIso && !(p.type === "cours_internes" && p.pasDeCours)).length;
+            const mCount = (STATE.meetings || []).filter(m => m.date === dIso).length;
+            maxItems = Math.max(maxItems, pCount + mCount);
+          });
+          r.weight = maxItems >= 2 ? 1.35 : 1.05;
+        } else if (r.kind === "poste") {
+          let maxBadges = 1;
+          days.forEach(dIso => {
+            const dObj = STATE.schedule[dIso];
+            const matches = (dObj && dObj[r.periodKey]) ? dObj[r.periodKey].filter(x => x.poste === r.posteName) : [];
+            maxBadges = Math.max(maxBadges, matches.length);
+          });
+          r.weight = maxBadges >= 3 ? 1.35 : (maxBadges === 2 ? 1.12 : 0.96);
+        } else {
+          r.weight = 0.95;
+        }
+      });
+
+      const totalWeight = tableRows.reduce((acc, r) => acc + r.weight, 0);
+      const availRowsH = TABLE_TOTAL_H - TH_H;
+
+      // En-tête des colonnes
+      drawRect(MARGIN_X, TABLE_TOP, CONTENT_W, TH_H, "#F1F5F9", "#CBD5E1", 0.7);
+      drawText("POSTE", MARGIN_X + 8, TABLE_TOP + 15, 8, "#334155", true);
+
+      const dFullNames = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"];
+      days.forEach((dIso, idx) => {
+        const cx = MARGIN_X + COL_POSTE_W + idx * COL_DAY_W;
+        drawLine(cx, TABLE_TOP, cx, TABLE_TOP + TH_H, "#CBD5E1", 0.6);
+        const [yy, mm, dd] = dIso.split("-").map(Number);
+        const dayTitle = `${dFullNames[idx]} ${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}`;
+        drawText(dayTitle, cx + 6, TABLE_TOP + 10.5, 8.2, "#0F172A", true, COL_DAY_W - 10);
+
+        const gSen = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
+          ? `Dr ${STATE.chefsGardes[dIso].noms.join("/")}`
+          : "";
+        const gInt = getInterneGardeInfo(dIso);
+        const gIntTxt = (gInt && gInt.isRadioB && gInt.interneId)
+          ? `Int: ${getInterneById(gInt.interneId).shortName}`
+          : (gInt && gInt.rawLabel ? `Int: ${gInt.rawLabel.split(" ")[0]}` : "");
+        const subHeader = [gSen, gIntTxt].filter(Boolean).join(" • ");
+        if (subHeader) {
+          drawText(subHeader, cx + 6, TABLE_TOP + 20, 6.6, "#64748B", false, COL_DAY_W - 10);
+        }
+      });
+
+      // Rendu des lignes
+      let curY = TABLE_TOP + TH_H;
+      tableRows.forEach(r => {
+        const rowH = (r.weight / totalWeight) * availRowsH;
+
+        if (r.kind === "divider") {
+          drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#E2E8F0", "#CBD5E1", 0.5);
+          drawText(r.title, MARGIN_X + 8, curY + rowH * 0.72, 6.8, "#1E293B", true);
+          curY += rowH;
+          return;
+        }
+
+        drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#FFFFFF", "#E2E8F0", 0.45);
+
+        // Colonne 0 : Nom du poste
+        if (r.kind === "poste") {
+          const pal = getPostePalette(r.posteName);
+          const lbl = getPdfPosteLabel(r.posteName, r.periodKey);
+          const hor = getPdfPosteHoraire(r.posteName, r.periodKey);
+          const pillW = Math.min(COL_POSTE_W - 10, measureText(lbl, 7.1, true) + 10);
+          const pillH = Math.min(11.5, rowH - 2);
+          const pillY = hor && rowH >= 16 ? curY + 2 : curY + (rowH - pillH) / 2;
+          drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
+          drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.9, pal.fg, true, pillW - 6);
+          if (hor && rowH >= 15.5) {
+            drawText(hor, MARGIN_X + 6, pillY + pillH + 6.2, 5.8, "#64748B", false, COL_POSTE_W - 10);
+          }
+        } else if (r.kind === "staff") {
+          const pal = getPostePalette("IRM");
+          const pillH = Math.min(11.5, rowH - 3);
+          const pillY = curY + (rowH - pillH) / 2;
+          drawRoundedRect(MARGIN_X + 5, pillY, 64, pillH, 3, pal.bg, pal.bd, 0.5);
+          drawText("COURS 12h30", MARGIN_X + 10, pillY + pillH * 0.74, 6.8, pal.fg, true);
+        } else if (r.kind === "garde_interne") {
+          const pal = getPostePalette("RG");
+          const pillH = Math.min(11.5, rowH - 3);
+          const pillY = curY + (rowH - pillH) / 2;
+          drawRoundedRect(MARGIN_X + 5, pillY, 78, pillH, 3, pal.bg, pal.bd, 0.5);
+          drawText("GARDE INTERNE", MARGIN_X + 10, pillY + pillH * 0.74, 6.7, pal.fg, true);
+        } else if (r.kind === "garde_senior") {
+          const pal = getPostePalette("RG");
+          const pillH = Math.min(11.5, rowH - 3);
+          const pillY = curY + (rowH - pillH) / 2;
+          drawRoundedRect(MARGIN_X + 5, pillY, 74, pillH, 3, pal.bg, pal.bd, 0.5);
+          drawText("GARDE SENIOR", MARGIN_X + 10, pillY + pillH * 0.74, 6.7, pal.fg, true);
+        }
+
+        // Colonnes 1..5 : Jours
+        days.forEach((dIso, idx) => {
+          const cx = MARGIN_X + COL_POSTE_W + idx * COL_DAY_W;
+          const dObj = STATE.schedule[dIso];
+
+          if (r.kind === "poste") {
+            const isMand = isMandatoryVacationSlot(dIso, r.periodKey, r.posteName);
+            const chefNoIntDocs = getChefWithoutInterneDocsForPoste(dIso, r.periodKey, r.posteName);
+            const matches = (dObj && dObj[r.periodKey]) ? dObj[r.periodKey].filter(x => x.poste === r.posteName) : [];
+
+            if (dObj && dObj.holiday) {
+              drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+              drawText("Férié", cx + 6, curY + rowH * 0.65, 6.8, "#B91C1C", true);
+              return;
+            }
+
+            if (matches.length === 0 && chefNoIntDocs.length > 0) {
+              drawRect(cx, curY, COL_DAY_W, rowH, "#FEF3C7", "#E2E8F0", 0.45);
+              drawText(`Chef : ${chefNoIntDocs.join(", ")}`, cx + 5, curY + rowH * 0.65, 6.3, "#92400E", true, COL_DAY_W - 10);
+              return;
+            }
+
+            if (isMand) {
+              drawRect(cx, curY, COL_DAY_W, rowH, "#FFF8F8", "#E2E8F0", 0.45);
+              drawRect(cx, curY, 2.2, rowH, "#FCA5A5", null);
+            } else {
+              drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+            }
+
+            if (matches.length === 0) {
+              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
+              return;
+            }
+
+            const [yy, mm, dd] = dIso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+
+            // Disposition des badges d'internes dans la cellule
+            let bx = cx + 4;
+            let by = curY + 2;
+            const badgeH = Math.min(11.5, Math.max(8.8, rowH - 3.5));
+
+            matches.forEach(m => {
+              if (m.closed) {
+                const clTxt = m.reason === "MAINTENANCE" ? "Maint." : "Fermé";
+                const bw = Math.min(COL_DAY_W - 8, measureText(clTxt, 6.5, true) + 9);
+                drawRoundedRect(bx, curY + (rowH - badgeH) / 2, bw, badgeH, 2.5, "#FEF2F2", "#EF4444", 0.5);
+                drawText(clTxt, bx + 4, curY + (rowH - badgeH) / 2 + badgeH * 0.73, 6.4, "#B91C1C", true);
+                bx += bw + 3;
+                return;
+              }
+              const iObj = getInterneById(m.interneId);
+              let extraTag = "";
+              if (r.posteName === "LECTURE" && r.periodKey === "pm" && jsDay === 2) extraTag = "Pr Drapé";
+              else if (r.posteName === "CONSULTATION" && r.periodKey === "pm" && (jsDay === 2 || jsDay === 5)) extraTag = "Consult.";
+              else if (m.note && m.note.includes("Macil")) extraTag = m.binome ? "Binôme +MH" : "+MH";
+              else if (m.binome) extraTag = "Binôme";
+              else if (iObj.isSocle) extraTag = "Socle";
+              else if (iObj.isDJ || iObj.id === "oussama") extraTag = "DJ";
+
+              const nameStr = iObj.shortName;
+              const nameW = measureText(nameStr, 6.8, true);
+              const tagW = extraTag ? measureText(extraTag, 5.6, true) + 6 : 0;
+              const bw = Math.min(COL_DAY_W - 7, 11 + nameW + (tagW ? tagW + 3 : 0));
+
+              if (bx + bw > cx + COL_DAY_W - 2 && bx > cx + 4) {
+                bx = cx + 4;
+                by += badgeH + 1.5;
+              }
+              const actualY = matches.length === 1 ? curY + (rowH - badgeH) / 2 : by;
+              drawRoundedRect(bx, actualY, bw, badgeH, 3, "#FFFFFF", "#CBD5E1", 0.5);
+              drawCircle(bx + 5, actualY + badgeH / 2, 2.2, iObj.color || "#0284C7");
+              drawText(nameStr, bx + 9.2, actualY + badgeH * 0.73, 6.7, "#0F172A", true);
+
+              if (extraTag && bw >= 11 + nameW + tagW) {
+                const tagX = bx + 9.8 + nameW;
+                const tagBg = extraTag === "Socle" ? "#EDE9FE" : (extraTag === "DJ" ? "#DCFCE7" : "#E0F2FE");
+                const tagFg = extraTag === "Socle" ? "#6D28D9" : (extraTag === "DJ" ? "#15803D" : "#0369A1");
+                drawRoundedRect(tagX, actualY + 1.6, tagW, badgeH - 3.2, 2, tagBg, null);
+                drawText(extraTag, tagX + 2.5, actualY + badgeH * 0.71, 5.4, tagFg, true);
+              }
+
+              bx += bw + 2.5;
+            });
+          } else if (r.kind === "staff") {
+            drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+            const pres = (STATE.presentations || []).filter(p => p.date === dIso && !(p.type === "cours_internes" && p.pasDeCours));
+            const meets = (STATE.meetings || []).filter(m => m.date === dIso);
+            const items = [];
+            pres.forEach(p => {
+              if (p.type === "cours_internes") {
+                const shortChef = (p.chefIntervenant || "").replace(/^(Dr|Pr)\s+/i, "");
+                items.push({ text: `Cours : ${shortChef ? shortChef + " - " : ""}${p.coursChef || p.sujet || ""}`, bg: "#DBEAFE", fg: "#1D4ED8" });
+              } else {
+                const lbl = p.type === "cas_mardi" ? "Cas" : "Biblio";
+                items.push({ text: `${lbl} : ${p.interneName}`, bg: "#F3E8FF", fg: "#6D28D9" });
+              }
+            });
+            meets.forEach(m => {
+              items.push({ text: `${m.horaire} : ${m.title}`, bg: "#DCFCE7", fg: "#15803D" });
+            });
+            if (items.length === 0) {
+              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
+            } else {
+              const itemH = Math.min(10.5, (rowH - 2) / items.length);
+              items.forEach((it, iIdx) => {
+                const iy = curY + 1 + iIdx * itemH;
+                drawRoundedRect(cx + 3, iy, COL_DAY_W - 6, itemH - 0.8, 2, it.bg, null);
+                drawText(it.text, cx + 6, iy + (itemH - 0.8) * 0.75, 6.1, it.fg, true, COL_DAY_W - 12);
+              });
+            }
+          } else if (r.kind === "garde_interne") {
+            drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+            const g = getInterneGardeInfo(dIso);
+            if (!g || !g.nom) {
+              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
+            } else if (g.isRadioB && g.interneId) {
+              const iObj = getInterneById(g.interneId);
+              const badgeH = Math.min(11.5, rowH - 2.5);
+              const by = curY + (rowH - badgeH) / 2;
+              const txt = `${iObj.shortName}${g.rgIsWorkingDay ? " (RG J+1)" : ""}`;
+              const bw = Math.min(COL_DAY_W - 8, 12 + measureText(txt, 6.6, true));
+              drawRoundedRect(cx + 4, by, bw, badgeH, 3, "#FFF1F2", "#FCA5A5", 0.5);
+              drawCircle(cx + 9, by + badgeH / 2, 2.2, iObj.color || "#B91C1C");
+              drawText(txt, cx + 13.5, by + badgeH * 0.73, 6.5, "#991B1B", true, bw - 12);
+            } else {
+              drawText(g.nom, cx + 6, curY + rowH * 0.65, 6.4, "#475569", true, COL_DAY_W - 10);
+            }
+          } else if (r.kind === "garde_senior") {
+            drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+            const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
+            if (g && Array.isArray(g.noms) && g.noms.length > 0) {
+              drawText(`Dr ${g.noms.join(", ")}`, cx + 6, curY + rowH * 0.65, 6.7, "#B91C1C", true, COL_DAY_W - 10);
+            } else {
+              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
+            }
+          }
+        });
+
+        curY += rowH;
+      });
+
+      // Contour extérieur de la table
+      drawRect(MARGIN_X, TABLE_TOP, CONTENT_W, TABLE_TOTAL_H, null, "#94A3B8", 0.8);
+
+      // 3. Pied de page : Gardes du week-end + Récapitulatif hebdomadaire par interne
+      const FOOT_Y = PAGE_H - MARGIN_Y - FOOTER_H;
+      const WE_BOX_W = 248;
+      drawRoundedRect(MARGIN_X, FOOT_Y, WE_BOX_W, FOOTER_H, 5, "#FFF1F2", "#FECDD3", 0.7);
+      drawText("GARDES DU WEEK-END", MARGIN_X + 8, FOOT_Y + 10.5, 7.2, "#9F1239", true);
+
+      const satIso = addDaysIso(targetMon, 5);
+      const sunIso = addDaysIso(targetMon, 6);
+      [
+        { iso: satIso, label: "Sam.", yOff: 21 },
+        { iso: sunIso, label: "Dim.", yOff: 31.5 }
+      ].forEach(we => {
+        const [wy, wm, wd] = we.iso.split("-").map(Number);
+        const gSen = (STATE.chefsGardes && STATE.chefsGardes[we.iso] && STATE.chefsGardes[we.iso].noms)
+          ? `Dr ${STATE.chefsGardes[we.iso].noms.join(", ")}`
+          : "—";
+        const gInt = getInterneGardeInfo(we.iso);
+        const intLbl = gInt
+          ? (gInt.isRadioB && gInt.interneId ? `Int: ${getInterneById(gInt.interneId).shortName}` : `Int: ${gInt.rawLabel || gInt.nom || ""}`)
+          : "";
+        const lineStr = `${we.label} ${String(wd).padStart(2, "0")}/${String(wm).padStart(2, "0")} : ${gSen}${intLbl ? " • " + intLbl : ""}`;
+        drawText(lineStr, MARGIN_X + 8, FOOT_Y + we.yOff, 6.6, "#881337", true, WE_BOX_W - 14);
+      });
+
+      const RECAP_X = MARGIN_X + WE_BOX_W + 6;
+      const RECAP_W = CONTENT_W - WE_BOX_W - 6;
+      drawRoundedRect(RECAP_X, FOOT_Y, RECAP_W, FOOTER_H, 5, "#F8FAFC", "#CBD5E1", 0.7);
+      drawText("ÉQUILIBRE HEBDOMADAIRE DES INTERNES (VACATIONS • DEMI-OFF • SAU)", RECAP_X + 8, FOOT_Y + 10, 6.8, "#334155", true);
+
+      const weekStats = computeWeekStatsByInterne(targetMon);
+      const intList = STATE.internes || [];
+      const cardW = (RECAP_W - 12) / Math.max(1, intList.length);
+      intList.forEach((iObj, idx) => {
+        const ix = RECAP_X + 6 + idx * cardW;
+        const iy = FOOT_Y + 13;
+        const ih = FOOTER_H - 16;
+        const w = weekStats[iObj.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, sauTarget: 2, weekCongesHalf: 0, weekRgHalf: 0 };
+        drawRoundedRect(ix + 1, iy, cardW - 2, ih, 3.5, "#FFFFFF", "#E2E8F0", 0.5);
+        drawCircle(ix + 6, iy + 6.5, 2.2, iObj.color || "#0284C7");
+        drawText(iObj.shortName, ix + 10, iy + 8.8, 6.5, "#0F172A", true, cardW - 34);
+        drawText(`${w.weekVac}v • ${w.weekOff}/2 Off`, ix + cardW - 38, iy + 8.8, 5.8, "#0369A1", true);
+
+        const subParts = [];
+        if (w.weekOffSlots.length > 0) subParts.push(`Off: ${w.weekOffSlots.join(", ")}`);
+        if (w.weekCongesHalf > 0) subParts.push(`${w.weekCongesHalf / 2}j Congé`);
+        if (w.weekRgHalf > 0) subParts.push(`${w.weekRgHalf / 2}j RG`);
+        subParts.push(`SAU: ${w.weekSau}/${w.sauTarget}`);
+        drawText(subParts.join(" • "), ix + 4, iy + 18, 5.4, "#64748B", false, cardW - 8);
+      });
+
+      // 4. Assemblage du fichier PDF 1.4
+      const contentStream = ops.join(NL);
+      const objects = [
+        `1 0 obj${NL}<< /Type /Catalog /Pages 2 0 R >>${NL}endobj${NL}`,
+        `2 0 obj${NL}<< /Type /Pages /Kids [3 0 R] /Count 1 >>${NL}endobj${NL}`,
+        `3 0 obj${NL}<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_W.toFixed(2)} ${PAGE_H.toFixed(2)}] /Resources << /Font << /F1 4 0 R /F2 5 0 R >> >> /Contents 6 0 R >>${NL}endobj${NL}`,
+        `4 0 obj${NL}<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>${NL}endobj${NL}`,
+        `5 0 obj${NL}<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>${NL}endobj${NL}`,
+        `6 0 obj${NL}<< /Length ${contentStream.length} >>${NL}stream${NL}${contentStream}${NL}endstream${NL}endobj${NL}`
+      ];
+
+      let pdf = "%PDF-1.4" + NL;
+      const offsets = [0];
+      objects.forEach(obj => {
+        offsets.push(pdf.length);
+        pdf += obj;
+      });
+      const xrefOffset = pdf.length;
+      pdf += `xref${NL}0 ${objects.length + 1}${NL}`;
+      pdf += "0000000000 65535 f " + NL;
+      for (let i = 1; i <= objects.length; i++) {
+        pdf += String(offsets[i]).padStart(10, "0") + " 00000 n " + NL;
+      }
+      pdf += `trailer${NL}<< /Size ${objects.length + 1} /Root 1 0 R >>${NL}startxref${NL}${xrefOffset}${NL}%%EOF`;
+
+      const blob = new Blob([pdf], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Planning_RadioB_Semaine_${targetMon}_au_${friIso}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 400);
+      showToast(`📄 PDF de la semaine (${formatShortDayHeader(targetMon)}–${formatShortDayHeader(friIso)}) téléchargé`);
     }
 
     function unfixWeekPlanning(monIso) {
@@ -5311,7 +5965,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div>
               <strong>📌 Planning de la semaine (${formatDateFr(monIso)} – ${formatDateFr(friIso)}) validé & fixé</strong>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;">
+            <div style="display:flex; gap:8px; align-items:center;">
+              <button class="btn-export-pdf" onclick="exportWeekPlanningPdf('${monIso}')">📄 Exporter PDF</button>
               <span class="status-pill-approved">✓ Semaine fixée</span>
             </div>
           </div>
@@ -5785,7 +6440,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   } else if (posteName === "CONSULTATION" && periodKey === "pm" && (jsDay === 2 || jsDay === 5)) {
                     binomeHtml = `<span class="tag-binome">Consult.</span>`;
                   } else if (m.note && m.note.includes("Macil")) {
-                    binomeHtml = `<span class="tag-binome">${m.binome ? 'Binôme • +Macil' : '+Macil'}</span>`;
+                    binomeHtml = `<span class="tag-binome">${m.binome ? 'Binôme • +Macil' : 'Solo • +Macil'}</span>`;
                   } else if (m.binome) {
                     binomeHtml = `<span class="tag-binome">Binôme</span>`;
                   }
