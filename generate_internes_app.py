@@ -6052,6 +6052,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   }
                 });
               }
+              SpreadsheetApp.flush();
             }
           } catch (sheetErr) {}
         }
@@ -6073,8 +6074,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             body: JSON.stringify({ eval_code: evalCode })
           });
           if (resp.ok) {
-            pushedOk = true;
-            break;
+            const resJson = await resp.json().catch(() => null);
+            if (!resJson || resJson.status === "ok") {
+              pushedOk = true;
+              break;
+            }
           }
         } catch (err) {
           if (attempt === 0) {
