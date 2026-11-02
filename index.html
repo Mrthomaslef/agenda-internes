@@ -4632,12 +4632,17 @@
       };
 
       function sanitizeForPdf(raw) {
-        return String(raw || "")
-          .replace(/[✓✔]/g, "v")
-          .replace(/→/g, "->")
-          .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
-          .replace(/[ \t\r\n]+/g, " ")
-          .trim();
+        const chars = Array.from(String(raw || ""));
+        let res = "";
+        for (let i = 0; i < chars.length; i++) {
+          const cp = chars[i].codePointAt(0);
+          if (cp === 0x2713 || cp === 0x2714) { res += "v"; continue; }
+          if (cp === 0x2192) { res += "->"; continue; }
+          if ((cp >= 0x2600 && cp <= 0x27BF) || cp >= 0x1F000 || cp === 0xFE0F) continue;
+          if (cp === 9 || cp === 10 || cp === 13) { res += " "; continue; }
+          res += chars[i];
+        }
+        return res.replace(/ +/g, " ").trim();
       }
 
       const BS = String.fromCharCode(92);
