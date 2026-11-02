@@ -2451,6 +2451,7 @@ def build_full_dataset() -> dict:
     chef_decisions = {}
     locked_weeks = {}
     deleted_absence_ids = []
+    deleted_custom_keys = []
     chef_validated_at = None
     chef_revision = 0
 
@@ -2472,6 +2473,10 @@ def build_full_dataset() -> dict:
             for did in src["deletedAbsenceIds"]:
                 if did and did not in deleted_absence_ids:
                     deleted_absence_ids.append(did)
+        if isinstance(src.get("deletedCustomKeys"), list):
+            for dck in src["deletedCustomKeys"]:
+                if dck and dck not in deleted_custom_keys:
+                    deleted_custom_keys.append(dck)
         if isinstance(src.get("absences"), list):
             for a in src["absences"]:
                 if isinstance(a, dict) and a.get("id"):
@@ -2480,6 +2485,10 @@ def build_full_dataset() -> dict:
                         a["status"] = "pending"
                     prev = abs_map.get(aid)
                     if prev and prev.get("isOfficialGardeRg"):
+                        if a.get("status") == "rejected":
+                            prev["status"] = "rejected"
+                            prev["validatedBy"] = a.get("validatedBy", "Chef")
+                            prev["validatedAt"] = a.get("validatedAt")
                         continue
                     if prev and prev.get("status") in ("approved", "rejected") and a.get("status") == "pending":
                         continue
@@ -2498,6 +2507,9 @@ def build_full_dataset() -> dict:
             except Exception:
                 pass
 
+    for dck in list(deleted_custom_keys):
+        if dck not in custom_vacations:
+            custom_vacations.pop(dck, None)
     for did in deleted_absence_ids:
         abs_map.pop(did, None)
     absences = sorted(abs_map.values(), key=lambda x: (x.get("date", ""), x.get("interneId", "")))
@@ -2546,6 +2558,7 @@ def build_full_dataset() -> dict:
         "chefValidatedAt": chef_validated_at,
         "chefRevision": chef_revision,
         "deletedAbsenceIds": deleted_absence_ids,
+        "deletedCustomKeys": deleted_custom_keys,
         "semester": {
             "title": "Semestre d'Hiver 2026–2027",
             "hospital": "Hôpital Cochin (AP-HP) — Service de Radiologie B (Pr A. Feydy)",
@@ -2603,6 +2616,7 @@ def sync_initial_state_to_cloud(dataset: dict):
         "chefValidatedAt": dataset.get("chefValidatedAt"),
         "chefRevision": dataset.get("chefRevision", 0),
         "deletedAbsenceIds": dataset.get("deletedAbsenceIds", []),
+        "deletedCustomKeys": dataset.get("deletedCustomKeys", []),
         "absences": dataset["absences"],
         "customVacations": dataset["customVacations"],
         "chefDecisions": dataset.get("chefDecisions", {}),
@@ -2647,7 +2661,11 @@ def sync_initial_state_to_cloud(dataset: dict):
       cur.meetings = incoming.meetings;
       cur.phoneDirectory = incoming.phoneDirectory;
       cur.interneGardes = incoming.interneGardes;
+      cur.deletedCustomKeys = Array.isArray(cur.deletedCustomKeys) ? cur.deletedCustomKeys : (incoming.deletedCustomKeys || []);
+      var delCustomSet = {{}};
+      cur.deletedCustomKeys.forEach(function(k) {{ if (k) delCustomSet[k] = true; }});
       cur.customVacations = Object.assign({{}}, incoming.customVacations || {{}}, cur.customVacations || {{}});
+      Object.keys(delCustomSet).forEach(function(k) {{ delete cur.customVacations[k]; }});
       cur.lockedWeeks = Object.assign({{}}, incoming.lockedWeeks || {{}}, cur.lockedWeeks || {{}});
       cur.chefDecisions = Object.assign({{}}, incoming.chefDecisions || {{}}, cur.chefDecisions || {{}});
       cur.deletedAbsenceIds = Array.isArray(cur.deletedAbsenceIds) ? cur.deletedAbsenceIds : (incoming.deletedAbsenceIds || []);
@@ -2662,7 +2680,14 @@ def sync_initial_state_to_cloud(dataset: dict):
       }});
       (cur.absences || []).forEach(function(a) {{
         if (a && a.id && !delSet[a.id]) {{
-          if (absMap[a.id] && absMap[a.id].isOfficialGardeRg) return;
+          if (absMap[a.id] && absMap[a.id].isOfficialGardeRg) {{
+            if (a.status === 'rejected') {{
+              absMap[a.id].status = 'rejected';
+              absMap[a.id].validatedBy = a.validatedBy || 'Chef';
+              absMap[a.id].validatedAt = a.validatedAt;
+            }}
+            return;
+          }}
           if (!a.status) a.status = (absMap[a.id] && absMap[a.id].status) ? absMap[a.id].status : 'pending';
           absMap[a.id] = a;
         }}

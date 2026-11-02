@@ -2957,18 +2957,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const groups = groupAbsenceRequests(STATE.absences || []);
         const g = groups.find(x => x.groupId === groupId);
         if (!g) return;
+        const nowIso = markChefValidationStamp();
         const idSet = new Set(g.ids);
         (STATE.absences || []).forEach(a => {
           if (idSet.has(a.id)) {
             a.status = "approved";
             a.validatedBy = "Chef";
-            a.validatedAt = new Date().toISOString();
+            a.validatedAt = nowIso;
           }
         });
         saveStateLocal();
         renderAll();
         showToast(`✓ Congés validés pour ${g.interneName} (${g.dates.length} j.)`);
-        pushStateToCloud({});
+        pushStateToCloud({
+          isChefValidation: true,
+          syncAbsenceSheet: true,
+          addedDates: g.dates,
+          interneName: g.interneName,
+          absType: g.type
+        });
       });
     }
 
@@ -2977,18 +2984,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const groups = groupAbsenceRequests(STATE.absences || []);
         const g = groups.find(x => x.groupId === groupId);
         if (!g) return;
+        const nowIso = markChefValidationStamp();
         const idSet = new Set(g.ids);
         (STATE.absences || []).forEach(a => {
           if (idSet.has(a.id)) {
             a.status = "rejected";
             a.validatedBy = "Chef";
-            a.validatedAt = new Date().toISOString();
+            a.validatedAt = nowIso;
           }
         });
         saveStateLocal();
         renderAll();
         showToast(`✕ Congés refusés pour ${g.interneName} — planning restauré`);
-        pushStateToCloud({});
+        pushStateToCloud({
+          isChefValidation: true,
+          syncAbsenceSheet: true,
+          removedDates: g.dates,
+          interneName: g.interneName
+        });
       });
     }
 
@@ -2996,13 +3009,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       requireChefUnlockThen(() => {
         const target = (STATE.absences || []).find(a => a.id === absId);
         if (!target) return;
+        const nowIso = markChefValidationStamp();
         target.status = newStatus;
         target.validatedBy = "Chef";
-        target.validatedAt = new Date().toISOString();
+        target.validatedAt = nowIso;
         saveStateLocal();
         renderAll();
         showToast(newStatus === "approved" ? "✓ Journée de congé validée par le chef" : "✕ Journée de congé refusée (poste restauré)");
-        pushStateToCloud({});
+        pushStateToCloud({
+          isChefValidation: true,
+          syncAbsenceSheet: true,
+          addedDates: newStatus === "approved" ? [target.date] : [],
+          removedDates: newStatus === "rejected" ? [target.date] : [],
+          interneName: target.interneName,
+          absType: target.type
+        });
       });
     }
 
@@ -3036,12 +3057,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function approveVacationModif(cKey) {
       requireChefUnlockThen(() => {
         if (STATE.customVacations && STATE.customVacations[cKey]) {
+          const nowIso = markChefValidationStamp();
           STATE.customVacations[cKey].status = "approved";
-          STATE.customVacations[cKey].validatedAt = new Date().toISOString();
+          STATE.customVacations[cKey].validatedBy = "Chef";
+          STATE.customVacations[cKey].validatedAt = nowIso;
+          if (Array.isArray(STATE.deletedCustomKeys)) {
+            STATE.deletedCustomKeys = STATE.deletedCustomKeys.filter(k => k !== cKey);
+          }
           saveStateLocal();
           renderAll();
           showToast("✓ Modification de poste validée");
-          pushStateToCloud({});
+          pushStateToCloud({ isChefValidation: true });
         }
       });
     }
@@ -3049,44 +3075,52 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function rejectVacationModif(cKey) {
       requireChefUnlockThen(() => {
         if (STATE.customVacations && STATE.customVacations[cKey]) {
+          markChefValidationStamp();
           delete STATE.customVacations[cKey];
+          if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
+          if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
           saveStateLocal();
           renderAll();
           showToast("✕ Modification annulée — poste initial rétabli");
-          pushStateToCloud({});
+          pushStateToCloud({ isChefValidation: true });
         }
       });
     }
 
     function approveAllPendingAbsences() {
       requireChefUnlockThen(() => {
+        const nowIso = markChefValidationStamp();
         let count = 0;
+        let absApprovedCount = 0;
         (STATE.absences || []).forEach(a => {
           if ((a.status || "pending") === "pending") {
             a.status = "approved";
             a.validatedBy = "Chef";
-            a.validatedAt = new Date().toISOString();
+            a.validatedAt = nowIso;
             count++;
+            absApprovedCount++;
           }
         });
         Object.keys(STATE.customVacations || {}).forEach(cKey => {
           const entry = STATE.customVacations[cKey];
           if (entry && entry.status === "pending") {
             entry.status = "approved";
-            entry.validatedAt = new Date().toISOString();
+            entry.validatedBy = "Chef";
+            entry.validatedAt = nowIso;
             count++;
           }
         });
         saveStateLocal();
         renderAll();
         showToast(`✓ ${count} modification(s) validée(s)`);
-        pushStateToCloud({});
+        pushStateToCloud({ isChefValidation: true, syncAbsenceSheet: absApprovedCount > 0 });
       });
     }
 
     function applyChefBlockingDecision(issueId, dIso, periodKey, candidateInterneId, targetPoste, presId) {
       requireChefUnlockThen(() => {
         pushChefHistorySnapshot();
+        const nowIso = markChefValidationStamp();
         if (presId) {
           const pr = (STATE.presentations || []).find(p => p.id === presId);
           const iObj = getInterneById(candidateInterneId);
@@ -3094,44 +3128,58 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             pr.interneId = iObj.id;
             pr.interneName = iObj.shortName;
           }
+          if (!STATE.chefDecisions) STATE.chefDecisions = {};
+          STATE.chefDecisions[issueId] = {
+            resolved: true,
+            note: `Séance reprise par ${iObj ? iObj.shortName : candidateInterneId}`,
+            decidedAt: nowIso
+          };
           saveStateLocal();
           renderAll();
           showToast(`✓ ${iObj.shortName} reprend la séance du ${formatDateFr(dIso)}`);
-          pushStateToCloud({ syncStaffSheet: true });
+          pushStateToCloud({ isChefValidation: true, syncStaffSheet: true });
           return;
         }
         const iObj = getInterneById(candidateInterneId);
         applyInterneSlotChange(dIso, periodKey, candidateInterneId, targetPoste, `Remplacement ${targetPoste}`);
+        if (!STATE.chefDecisions) STATE.chefDecisions = {};
+        STATE.chefDecisions[issueId] = {
+          resolved: true,
+          note: `${iObj.shortName} affecté sur ${targetPoste}`,
+          decidedAt: nowIso
+        };
         currentDateIso = dIso;
         saveStateLocal();
         renderAll();
         showToast(`✓ ${iObj.shortName} affecté sur ${targetPoste} (${formatDateFr(dIso)} ${periodKey === "am" ? "Matin" : "PM"})`);
-        pushStateToCloud({});
+        pushStateToCloud({ isChefValidation: true });
       });
     }
 
     function acknowledgeBlockingIssue(issueId, noteText) {
       requireChefUnlockThen(() => {
+        const nowIso = markChefValidationStamp();
         if (!STATE.chefDecisions) STATE.chefDecisions = {};
         STATE.chefDecisions[issueId] = {
           resolved: true,
           note: noteText || "Validé en l'état par le chef",
-          decidedAt: new Date().toISOString()
+          decidedAt: nowIso
         };
         saveStateLocal();
         renderAll();
         showToast("✓ Conflit marqué comme géré");
-        pushStateToCloud({});
+        pushStateToCloud({ isChefValidation: true });
       });
     }
 
     function resetAllChefDecisions() {
       requireChefUnlockThen(() => {
+        markChefValidationStamp();
         STATE.chefDecisions = {};
         saveStateLocal();
         renderAll();
         showToast("Alertes réinitialisées");
-        pushStateToCloud({});
+        pushStateToCloud({ isChefValidation: true, replaceChefDecisions: true });
       });
     }
 
@@ -3326,8 +3374,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const targetMon = monIso || getMondayOfWeek(currentDateIso);
         const days = [0, 1, 2, 3, 4].map(off => addDaysIso(targetMon, off));
         pushChefHistorySnapshot();
+        const nowIso = markChefValidationStamp();
 
-        recomputeScheduleInPlace();
+        recomputeScheduleInPlace(STATE);
         if (!STATE.customVacations) STATE.customVacations = {};
 
         days.forEach(dIso => {
@@ -3336,12 +3385,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           STATE.internes.forEach(i => {
             const curSlot = dObj.byInterne[i.id];
             if (!curSlot) return;
-            STATE.customVacations[dIso + "__" + i.id] = {
+            const cKey = dIso + "__" + i.id;
+            STATE.customVacations[cKey] = {
               am: curSlot.am,
               pm: curSlot.pm,
               note: curSlot.note || "",
-              status: "approved"
+              status: "approved",
+              validatedBy: "Chef",
+              validatedAt: nowIso
             };
+            if (Array.isArray(STATE.deletedCustomKeys)) {
+              STATE.deletedCustomKeys = STATE.deletedCustomKeys.filter(k => k !== cKey);
+            }
           });
         });
 
@@ -3349,7 +3404,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         (STATE.absences || []).forEach(a => {
           if (a && days.includes(a.date) && a.status === "pending") {
             a.status = "approved";
-            a.validatedAt = new Date().toISOString();
+            a.validatedBy = "Chef";
+            a.validatedAt = nowIso;
             approvedAbs++;
           }
         });
@@ -3360,7 +3416,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (days.includes(iss.date)) {
             STATE.chefDecisions[iss.id] = {
               resolved: true,
-              resolvedAt: new Date().toISOString(),
+              resolvedAt: nowIso,
+              decidedAt: nowIso,
               status: "validated_week",
               note: "Planning de la semaine validé et fixé par le Chef"
             };
@@ -3370,7 +3427,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (!STATE.lockedWeeks) STATE.lockedWeeks = {};
         STATE.lockedWeeks[targetMon] = {
           locked: true,
-          validatedAt: new Date().toISOString(),
+          validatedAt: nowIso,
           validatedBy: isChefId(selectedInterneId) ? getChefById(selectedInterneId).fullName : "Chef de clinique"
         };
 
@@ -3379,20 +3436,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         renderAll();
         const friIso = addDaysIso(targetMon, 4);
         showToast(`📌 Semaine du ${formatDateFr(targetMon)} au ${formatDateFr(friIso)} fixée`);
-        pushStateToCloud({ syncAbsenceSheet: approvedAbs > 0 });
+        pushStateToCloud({ isChefValidation: true, syncAbsenceSheet: approvedAbs > 0 });
       });
     }
 
     function unfixWeekPlanning(monIso) {
       requireChefUnlockThen(() => {
         const targetMon = monIso || getMondayOfWeek(currentDateIso);
-        if (STATE.lockedWeeks && STATE.lockedWeeks[targetMon]) {
-          delete STATE.lockedWeeks[targetMon];
-        }
+        const nowIso = markChefValidationStamp();
+        if (!STATE.lockedWeeks) STATE.lockedWeeks = {};
+        STATE.lockedWeeks[targetMon] = {
+          locked: false,
+          unlockedAt: nowIso
+        };
         saveStateLocal();
         renderAll();
         showToast(`🔓 Semaine du ${formatDateFr(targetMon)} débloquée`);
-        pushStateToCloud({});
+        pushStateToCloud({ isChefValidation: true });
       });
     }
 
@@ -3408,12 +3468,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function undoLastChefMove() {
       if (!chefHistoryStack.length) return;
-      STATE.customVacations = chefHistoryStack.pop();
+      markChefValidationStamp();
+      const prevCustom = chefHistoryStack.pop() || {};
+      const curKeys = Object.keys(STATE.customVacations || {});
+      if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
+      curKeys.forEach(k => {
+        if (!prevCustom[k] && !STATE.deletedCustomKeys.includes(k)) {
+          STATE.deletedCustomKeys.push(k);
+        }
+      });
+      STATE.customVacations = prevCustom;
       selectedForMove = null;
       saveStateLocal();
       renderAll();
       showToast("Modification annulée");
-      pushStateToCloud({});
+      pushStateToCloud({ isChefValidation: true, replaceCustomVacations: true });
     }
 
     function resetCurrentWeekVacations() {
@@ -3421,19 +3490,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
       if (!STATE.customVacations) return;
       pushChefHistorySnapshot();
+      const nowIso = markChefValidationStamp();
+      if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
       days.forEach(dIso => {
         STATE.internes.forEach(i => {
-          delete STATE.customVacations[dIso + "__" + i.id];
+          const cKey = dIso + "__" + i.id;
+          delete STATE.customVacations[cKey];
+          if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
         });
       });
       if (STATE.lockedWeeks && STATE.lockedWeeks[monIso]) {
-        delete STATE.lockedWeeks[monIso];
+        STATE.lockedWeeks[monIso] = { locked: false, unlockedAt: nowIso };
       }
       selectedForMove = null;
       saveStateLocal();
       renderAll();
       showToast("Semaine réinitialisée par défaut");
-      pushStateToCloud({});
+      pushStateToCloud({ isChefValidation: true, replaceCustomVacations: true });
     }
 
     function applyInterneSlotChange(dIso, periodKey, interneId, newPoste, customNote) {
@@ -3441,6 +3514,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!dObj || !dObj.byInterne || !dObj.byInterne[interneId]) return;
       const curSlot = dObj.byInterne[interneId];
       if (!STATE.customVacations) STATE.customVacations = {};
+      const nowIso = markChefValidationStamp();
       const cKey = dIso + "__" + interneId;
       const existing = STATE.customVacations[cKey] || {
         am: curSlot.am,
@@ -3450,8 +3524,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       };
       existing[periodKey] = newPoste;
       existing.status = "approved";
+      existing.validatedBy = "Chef";
+      existing.validatedAt = nowIso;
       if (customNote !== undefined) existing.note = customNote;
       STATE.customVacations[cKey] = existing;
+      if (Array.isArray(STATE.deletedCustomKeys)) {
+        STATE.deletedCustomKeys = STATE.deletedCustomKeys.filter(k => k !== cKey);
+      }
     }
 
     function executeChefMoveOrSwap(source, target) {
@@ -3492,7 +3571,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         saveStateLocal();
         renderAll();
         showToast(`🔄 Échange : ${srcInterne.shortName} (${tgtPoste}) ↔ ${tgtInterne.shortName} (${srcPoste})`);
-        pushStateToCloud({});
+        pushStateToCloud({ isChefValidation: true });
         return;
       }
 
@@ -3534,7 +3613,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       saveStateLocal();
       renderAll();
       showToast(`✅ ${srcInterne.shortName} déplacé sur ${target.toPoste} (${source.periodKey === 'am' ? 'Matin' : 'PM'})`);
-      pushStateToCloud({});
+      pushStateToCloud({ isChefValidation: true });
     }
 
     function onInterneDragStart(ev, dIso, periodKey, interneId, fromPoste) {
@@ -3799,6 +3878,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const todayAm = daySched ? daySched.am : "—";
       const todayPm = daySched ? daySched.pm : "—";
+      const gIntToday = getInterneGardeInfo(currentDateIso);
+      const isMeGardeToday = Boolean(gIntToday && gIntToday.interneId === me.id);
 
       el.innerHTML = `
         <div class="summary-left">
@@ -3808,6 +3889,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               ${me.fullName}
               ${me.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
               ${isDJ ? `<span class="tag-dj">Docteur Junior (DJ)</span>` : ""}
+              ${isMeGardeToday ? `<span class="poste-pill poste-rg" style="font-size:10px; padding:1px 6px;">🌙 Garde ce soir</span>` : ""}
             </div>
             <div class="summary-sub">
               <span>${formatDateFr(currentDateIso)} :</span>
@@ -3820,6 +3902,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="summary-stats">
           <span><strong>${st.activeHalfDays}</strong> postes</span>
           <span><strong>${st.freeHalfDays}</strong> demi-offs</span>
+          <span><strong>${st.gardesCount || 0}</strong> gardes (${Math.round((st.rgHalfDays || 0) / 2)} RG)</span>
           <span><strong>${Math.round(st.vacHalfDays / 2)}j</strong> congés</span>
           <span><strong>${st.casMardi + st.biblioVendredi + (st.coursInternes || 0)}</strong> cours</span>
         </div>
@@ -3889,15 +3972,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const gSun = (STATE.chefsGardes && STATE.chefsGardes[sunIso] && STATE.chefsGardes[sunIso].noms)
         ? `Dr ${STATE.chefsGardes[sunIso].noms.join(", ")}`
         : "—";
+      const gIntSat = getInterneGardeInfo(satIso);
+      const gIntSun = getInterneGardeInfo(sunIso);
+      const intSatLabel = gIntSat
+        ? (gIntSat.isRadioB && gIntSat.interneId
+          ? `🌙 Int: <strong>${getInterneById(gIntSat.interneId).shortName}</strong>`
+          : `🌙 Int: ${gIntSat.rawLabel || "Radio A"}`)
+        : "";
+      const intSunLabel = gIntSun
+        ? (gIntSun.isRadioB && gIntSun.interneId
+          ? `🌙 Int: <strong>${getInterneById(gIntSun.interneId).shortName}</strong> (RG lun.)`
+          : `🌙 Int: ${gIntSun.rawLabel || "Radio A"}`)
+        : "";
       return `
         <div class="weekend-gardes-compact">
           <div class="weekend-garde-mini" onclick="setCurrentDate('${satIso}'); setPlanningMode('day');">
             <span class="wg-day">Sam. ${String(sd).padStart(2, "0")}/${String(sm).padStart(2, "0")} <span style="font-weight:600; color:#991B1B;">(Garde)</span></span>
-            <span class="wg-doc">🚨 ${gSat}</span>
+            <span class="wg-doc">🚨 ${gSat}${intSatLabel ? ` <span style="color:#475569; font-weight:600; margin-left:6px;">• ${intSatLabel}</span>` : ""}</span>
           </div>
           <div class="weekend-garde-mini" onclick="setCurrentDate('${sunIso}'); setPlanningMode('day');">
             <span class="wg-day">Dim. ${String(ud).padStart(2, "0")}/${String(um).padStart(2, "0")} <span style="font-weight:600; color:#991B1B;">(Garde)</span></span>
-            <span class="wg-doc">🚨 ${gSun}</span>
+            <span class="wg-doc">🚨 ${gSun}${intSunLabel ? ` <span style="color:#475569; font-weight:600; margin-left:6px;">• ${intSunLabel}</span>` : ""}</span>
           </div>
         </div>
       `;
@@ -3932,15 +4027,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
           ? STATE.chefsGardes[dIso].noms.join("/")
           : "";
+        const gInt = getInterneGardeInfo(dIso);
+        const gIntLabel = (gInt && gInt.isRadioB && gInt.interneId)
+          ? `🌙 ${getInterneById(gInt.interneId).shortName}`
+          : (gInt && gInt.rawLabel ? `🌙 ${gInt.rawLabel.split(" ")[0]}` : "");
+        const gardeSubLabel = [g ? `Dr ${g}` : "", gIntLabel].filter(Boolean).join(" • ");
         dayStripHtml += `
-          <div class="day-pill ${isAct} ${isBlock}" onclick="setCurrentDate('${dIso}')" title="${dayIssues.length ? dayIssues.map(x => x.title).join(' • ') : ''}">
+          <div class="day-pill ${isAct} ${isBlock}" onclick="setCurrentDate('${dIso}')" title="${dayIssues.length ? dayIssues.map(x => x.title).join(' • ') : gardeSubLabel}">
             <div class="dp-top">
               <span class="dp-dow">${dNames[offset]}${dayIssues.length ? ' •' : ''}</span>
               <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
             </div>
             ${dayIssues.length
               ? `<div class="dp-sub" style="color:${isAct ? '#FDE68A' : '#DC2626'}; font-weight:800;">À couvrir (${dayIssues.length})</div>`
-              : (g ? `<div class="dp-sub">Garde: ${g}</div>` : ``)}
+              : (gardeSubLabel ? `<div class="dp-sub">${gardeSubLabel}</div>` : ``)}
           </div>
         `;
       }
@@ -3952,13 +4052,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
           ? STATE.chefsGardes[dIso].noms.join("/")
           : "—";
+        const gInt = getInterneGardeInfo(dIso);
+        const gIntShort = (gInt && gInt.isRadioB && gInt.interneId)
+          ? getInterneById(gInt.interneId).shortName
+          : (gInt && gInt.rawLabel ? gInt.rawLabel.split(" ")[0] : "");
         dayStripHtml += `
-          <div class="day-pill weekend-pill ${isAct}" onclick="setCurrentDate('${dIso}')" title="Garde ${dNames[offset]} ${dd}/${mm} : Dr ${g}">
+          <div class="day-pill weekend-pill ${isAct}" onclick="setCurrentDate('${dIso}')" title="Garde ${dNames[offset]} ${dd}/${mm} : Dr ${g}${gIntShort ? ' • Int: ' + gIntShort : ''}">
             <div class="dp-top">
               <span class="dp-dow">${dNames[offset]}</span>
               <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
             </div>
-            <div class="dp-garde">🚨 ${g}</div>
+            <div class="dp-garde">🚨 ${g}${gIntShort ? ` • 🌙 ${gIntShort}` : ""}</div>
           </div>
         `;
       }
@@ -4183,7 +4287,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         { label: "IRM", chefMatch: ["IRM"], intMatch: ["IRM 3T", "IRM 1,5T", "IRM"], defaultPosteAm: "IRM 3T", defaultPostePm: "IRM" },
         { label: "TDM OLLIER", chefMatch: ["OLLIER 3"], intMatch: ["TDM OLLIER DIAG"], defaultPosteAm: "TDM OLLIER DIAG", defaultPostePm: "TDM OLLIER DIAG" },
         { label: "CONSULT / LECTURE", chefMatch: ["CONSULT", "UCSA"], intMatch: ["LECTURE/CS"], defaultPosteAm: "LECTURE/CS", defaultPostePm: "LECTURE/CS" },
-        { label: "DEMI-OFF", chefMatch: ["LIBRE"], intMatch: ["1/2 journée libre"], defaultPosteAm: "1/2 journée libre", defaultPostePm: "1/2 journée libre" }
+        { label: "DEMI-OFF", chefMatch: ["LIBRE"], intMatch: ["1/2 journée libre"], defaultPosteAm: "1/2 journée libre", defaultPostePm: "1/2 journée libre" },
+        { label: "REPOS DE GARDE (RG)", chefMatch: [], intMatch: ["RG"], defaultPosteAm: "RG", defaultPostePm: "RG", onlyIfPresent: true }
       ];
 
       function buildCombinedPeriodRows(periodKey) {
@@ -4254,7 +4359,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return rows;
       }
 
-      let gardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE</span></td>`;
+      let intGardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE INTERNE</span></td>`;
+      days.forEach(dIso => {
+        intGardeRowHtml += `<td>${renderInterneGardeCellHtml(dIso)}</td>`;
+      });
+      intGardeRowHtml += `</tr>`;
+
+      let gardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE SENIOR</span></td>`;
       days.forEach(dIso => {
         const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
         gardeRowHtml += `<td>${g && g.noms ? `<span class="garde-name" style="font-weight:700; color:#B91C1C;" title="Dr ${g.noms.join(", ")}"><span class="garde-dr">Dr </span>${g.noms.join(", ")}</span>` : '—'}</td>`;
@@ -4276,7 +4387,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${buildCombinedPeriodRows("am")}
                 <tr class="period-divider"><td colspan="6">APRÈS-MIDI — TDM SAU fin 18h30</td></tr>
                 ${buildCombinedPeriodRows("pm")}
-                <tr class="period-divider"><td colspan="6">GARDE SENIOR (LUN–VEN)</td></tr>
+                <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
+                ${intGardeRowHtml}
                 ${gardeRowHtml}
               </tbody>
             </table>
@@ -4311,10 +4423,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const dObj = STATE.schedule[dIso] || {};
           const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—", note: "" };
           const presList = STATE.presentations.filter(p => p.date === dIso && (p.interneId === me.id || (p.interneName && p.interneName.toLowerCase().includes(me.shortName.toLowerCase()))));
+          const gInt = getInterneGardeInfo(dIso);
+          const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
           cardsHtml += `
-            <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:#F8FAFC; cursor:pointer;" onclick="openVacationEditModal('${dIso}', '${me.id}')">
-              <div style="font-weight:800; font-size:11.5px; margin-bottom:6px; color:var(--primary); display:flex; justify-content:space-between; align-items:center;">
+            <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:${isMeOnGarde ? '#FEF2F2' : '#F8FAFC'}; border-color:${isMeOnGarde ? '#FCA5A5' : 'var(--border)'}; cursor:pointer;" onclick="openVacationEditModal('${dIso}', '${me.id}')">
+              <div style="font-weight:800; font-size:11.5px; margin-bottom:6px; color:var(--primary); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:2px;">
                 <span>${formatShortDayHeader(dIso)}</span>
+                ${isMeOnGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 5px;">🌙 Garde ce soir</span>` : ""}
               </div>
               <div style="margin-bottom:5px;">
                 <div style="font-size:8.5px; color:var(--text-muted); font-weight:700;">MATIN</div>
@@ -4325,6 +4440,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <span class="poste-pill ${getPosteClass(slot.pm)}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.pm, "pm")}</span>
               </div>
               ${slot.note ? `<div style="font-size:9.5px; color:#0369A1; font-weight:700; margin-top:4px;">${slot.note}</div>` : ''}
+              ${isMeOnGarde ? `<div style="font-size:9.5px; color:#991B1B; font-weight:800; margin-top:4px;">🌙 Garde Radio (RG demain)</div>` : ''}
               ${presList.map(p => `<div style="font-size:9.5px; color:#6D28D9; font-weight:700; margin-top:3px;">12h30: ${p.typeLabel || 'Cours'}</div>`).join("")}
             </div>
           `;
@@ -4459,7 +4575,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
       staffRowHtml += `</tr>`;
 
-      let gardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE</span></td>`;
+      let intGardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE INTERNE</span></td>`;
+      days.forEach(dIso => {
+        intGardeRowHtml += `<td>${renderInterneGardeCellHtml(dIso)}</td>`;
+      });
+      intGardeRowHtml += `</tr>`;
+
+      let gardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE SENIOR</span></td>`;
       days.forEach(dIso => {
         const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
         gardeRowHtml += `<td>${g && g.noms ? `<span class="garde-name" style="font-weight:700; color:#B91C1C;" title="Dr ${g.noms.join(", ")}"><span class="garde-dr">Dr </span>${g.noms.join(", ")}</span>` : '—'}</td>`;
@@ -4488,7 +4610,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${staffRowHtml}
                 <tr class="period-divider"><td colspan="6">APRÈS-MIDI — TDM SAU fin 18h30</td></tr>
                 ${renderPeriodRows(postesPm, "pm")}
-                <tr class="period-divider"><td colspan="6">GARDE SENIOR (LUN–VEN)</td></tr>
+                <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
+                ${intGardeRowHtml}
                 ${gardeRowHtml}
               </tbody>
             </table>
@@ -4501,17 +4624,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function renderDayPlanningView(iso) {
       const dObj = STATE.schedule[iso];
       const gSenior = STATE.chefsGardes ? STATE.chefsGardes[iso] : null;
+      const gInt = getInterneGardeInfo(iso);
+      const gIntBadge = gInt
+        ? (gInt.isRadioB && gInt.interneId
+          ? `<span class="poste-pill poste-rg">🌙 Garde Interne : ${getInterneById(gInt.interneId).fullName}</span>`
+          : `<span class="poste-pill poste-off">🌙 Garde Interne : ${gInt.rawLabel || "Radio A"}</span>`)
+        : "";
       if (!dObj) {
         return `
           <div class="card">
             <div class="card-header">
               <div class="card-title">${formatDateFr(iso, true)} — Week-end / Garde</div>
-              ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">🚨 Garde : Dr ${gSenior.noms.join(", ")}</span>` : ''}
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                ${gIntBadge}
+                ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">🚨 Garde Senior : Dr ${gSenior.noms.join(", ")}</span>` : ''}
+              </div>
             </div>
             <div style="font-size:13px; color:var(--text-muted);">
               ${gSenior && gSenior.noms
                 ? `Médecin senior de garde ce jour : <strong style="color:#B91C1C;">Dr ${gSenior.noms.join(", ")}</strong> (${gSenior.nature || "Garde Week-end"}).`
                 : `Aucune vacation ordinaire programmée pour le ${formatDateFr(iso, true)}.`}
+              ${gInt ? `<div style="margin-top:6px;">Interne de garde : <strong>${gInt.isRadioB && gInt.interneId ? getInterneById(gInt.interneId).fullName + " (Radio B — repos de garde le lendemain)" : (gInt.rawLabel + " (Radio A / Hors service)")}</strong>.</div>` : ""}
             </div>
           </div>
         `;
@@ -4529,6 +4662,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const isSelAm = isChefPlanningMode && selectedForMove && selectedForMove.interneId === i.id && selectedForMove.dIso === iso && selectedForMove.periodKey === "am";
         const isSelPm = isChefPlanningMode && selectedForMove && selectedForMove.interneId === i.id && selectedForMove.dIso === iso && selectedForMove.periodKey === "pm";
         const isDJ = Boolean(i.isDJ || i.id === "oussama");
+        const isOnGardeTonight = Boolean(gInt && gInt.interneId === i.id);
 
         const amDragAttrs = isChefPlanningMode
           ? `draggable="true" ondragstart="onInterneDragStart(event, '${iso}', 'am', '${i.id}', '${amEsc}')" ondragend="onInterneDragEnd(event)" ondragover="onCellDragOver(event, '${iso}', 'am')" ondrop="onBadgeDrop(event, '${iso}', 'am', '${i.id}', '${amEsc}')" onclick="onInterneBadgeClick(event, '${iso}', 'am', '${i.id}', '${amEsc}')"`
@@ -4540,11 +4674,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         rows += `
           <tr onclick="openVacationEditModal('${iso}', '${i.id}')" style="cursor:pointer;">
             <td>
-              <div style="display:flex; align-items:center; gap:7px; font-weight:700;">
+              <div style="display:flex; align-items:center; gap:7px; font-weight:700; flex-wrap:wrap;">
                 <span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;"></span>
                 ${i.shortName}
                 ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
                 ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
+                ${isOnGardeTonight ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 5px;">🌙 Garde ce soir</span>` : ""}
               </div>
             </td>
             <td class="${isChefPlanningMode ? 'drop-zone-cell' : ''}" ${amDragAttrs}>
@@ -4559,7 +4694,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${getPosteWithTimeLabel(slot.pm, "pm")}
               </span>
             </td>
-            <td style="color:var(--text-muted); font-size:12px;">${slot.note || "—"}</td>
+            <td style="color:var(--text-muted); font-size:12px;">${slot.note || (isOnGardeTonight ? "🌙 Garde ce soir (RG demain)" : "—")}</td>
           </tr>
         `;
       });
@@ -4570,7 +4705,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <div class="card-title">${formatDateFr(iso, true)}${isSingleInterneSelected ? ` — ${getInterneById(selectedInterneId).fullName}` : ''}</div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               ${isSingleInterneSelected ? `<button class="btn btn-sm" onclick="selectInterne('all')">Voir tous les internes</button>` : ''}
-              ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">Garde : Dr ${gSenior.noms.join(", ")}</span>` : ''}
+              ${gIntBadge}
+              ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">Garde Senior : Dr ${gSenior.noms.join(", ")}</span>` : ''}
             </div>
           </div>
           <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px;">
@@ -4625,9 +4761,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       daysInMonth.forEach(dIso => {
         const dObj = STATE.schedule[dIso];
         const slot = (dObj.byInterne && dObj.byInterne[targetId]) ? dObj.byInterne[targetId] : null;
+        const gInt = getInterneGardeInfo(dIso);
+        const isMeOnGarde = Boolean(gInt && gInt.interneId === targetId);
         cells += `
-          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
-            <div style="font-weight:800; font-size:12px;">${formatDateFr(dIso)}</div>
+          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${isMeOnGarde ? 'background:#FEF2F2; border-color:#FCA5A5;' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
+            <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:12px;">
+              <span>${formatDateFr(dIso)}</span>
+              ${isMeOnGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 4px;">🌙 Garde</span>` : ""}
+            </div>
             ${dObj.holiday ? `<span class="poste-pill poste-rg">Férié</span>` : (slot ? `
               <span class="poste-pill ${getPosteClass(slot.am)}" style="font-size:10.5px; padding:2px 6px;">M: ${getPosteWithTimeLabel(slot.am, "am")}</span>
               <span class="poste-pill ${getPosteClass(slot.pm)}" style="font-size:10.5px; padding:2px 6px;">PM: ${getPosteWithTimeLabel(slot.pm, "pm")}</span>
@@ -4757,6 +4898,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <td>${s.byModality.RI_GESTES}</td>
             <td>${s.byModality.LECTURE_CS}</td>
             <td>${s.freeHalfDays}</td>
+            <td><strong>${s.gardesCount || 0}</strong>${s.gardesWeekendCount ? ` <span style="font-size:10px; color:var(--text-muted);">(${s.gardesWeekendCount} WE/Fér.)</span>` : ""}</td>
+            <td>${Math.round((s.rgHalfDays || 0) / 2)} j.</td>
             <td>${Math.round(s.vacHalfDays / 2)} j.</td>
             <td>${s.casMardi} / ${s.biblioVendredi}${s.coursInternes ? ` / ${s.coursInternes}` : ""}</td>
           </tr>
@@ -4766,7 +4909,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       return `
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Répartition des postes sur le semestre</div>
+            <div class="card-title">Répartition des postes & gardes sur le semestre</div>
             <button class="btn btn-sm" onclick="toggleStatsTable()">Masquer</button>
           </div>
           <div class="week-table-wrap">
@@ -4781,6 +4924,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <th>Gestes</th>
                   <th>CS</th>
                   <th>Demi-offs</th>
+                  <th>Gardes</th>
+                  <th>RG</th>
                   <th>Congés</th>
                   <th>Cas / Biblio / Cours</th>
                 </tr>
@@ -4795,12 +4940,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     /* =========================================================================
      * ONGLET 2 : CONGÉS & RG
      * ========================================================================= */
+    let vacFilter = "all";
+    function setVacFilter(f) {
+      vacFilter = f;
+      renderTabContent();
+    }
+
     function renderVacancesTab() {
       const absences = (STATE.absences || []).slice().sort((a, b) => a.date.localeCompare(b.date));
       const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
-      const filtered = (selectedInterneId === "all" || inChefSpace)
+      const byInterneFiltered = (selectedInterneId === "all" || inChefSpace)
         ? absences
         : absences.filter(a => a.interneId === selectedInterneId);
+
+      const congesOnly = byInterneFiltered.filter(a => !String(a.type || "").toLowerCase().includes("garde"));
+      const rgOnly = byInterneFiltered.filter(a => String(a.type || "").toLowerCase().includes("garde"));
+
+      const gardesEntries = Object.keys(STATE.interneGardes || {})
+        .sort()
+        .map(d => Object.assign({ date: d }, STATE.interneGardes[d]))
+        .filter(g => g.isRadioB && g.interneId && (selectedInterneId === "all" || inChefSpace || g.interneId === selectedInterneId));
+
+      const filtered = vacFilter === "conges"
+        ? congesOnly
+        : (vacFilter === "rg" ? rgOnly : byInterneFiltered);
 
       const countByDate = {};
       absences.forEach(a => {
@@ -4810,15 +4973,72 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
       });
 
+      if (vacFilter === "gardes_cal") {
+        let gRows = "";
+        gardesEntries.forEach(g => {
+          const iObj = getInterneById(g.interneId);
+          const rgDate = g.rgDate || addDaysIso(g.date, 1);
+          const rgWorking = Boolean(STATE.schedule && STATE.schedule[rgDate] && !STATE.schedule[rgDate].holiday);
+          gRows += `
+            <tr>
+              <td style="font-weight:700;">${formatDateFr(g.date, true)}</td>
+              <td>
+                <span class="interne-badge" onclick="setCurrentDate('${g.date}'); switchTab('planning');">
+                  <span style="width:7px;height:7px;border-radius:50%;background:${iObj.color};display:inline-block;"></span>
+                  ${iObj.fullName}
+                </span>
+              </td>
+              <td><span class="poste-pill ${g.isWeekendOrHoliday ? 'poste-rg' : 'poste-irm'}">${g.isWeekendOrHoliday ? 'Garde WE / Férié' : 'Garde Semaine'}</span></td>
+              <td style="font-weight:700;">${formatDateFr(rgDate, true)}</td>
+              <td>${rgWorking ? `<span class="poste-pill poste-rg">✓ RG posé sur le planning</span>` : `<span class="poste-pill poste-off">Week-end / Férié (hors vac.)</span>`}</td>
+            </tr>
+          `;
+        });
+        return `
+          <div class="card">
+            <div class="card-header">
+              <div>
+                <div class="card-title">Congés, Repos de garde & Planning des Gardes Internes (Hiver 2026–2027)</div>
+                <div style="font-size:12px; color:var(--text-muted);">68 gardes Radio B sur le semestre • Repos de garde automatique le lendemain</div>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+                <div class="segmented">
+                  <button class="seg-btn ${vacFilter === 'all' ? 'active' : ''}" onclick="setVacFilter('all')">Tous (${byInterneFiltered.length})</button>
+                  <button class="seg-btn ${vacFilter === 'conges' ? 'active' : ''}" onclick="setVacFilter('conges')">Congés (${congesOnly.length})</button>
+                  <button class="seg-btn ${vacFilter === 'rg' ? 'active' : ''}" onclick="setVacFilter('rg')">Repos de garde (${rgOnly.length})</button>
+                  <button class="seg-btn ${vacFilter === 'gardes_cal' ? 'active' : ''}" onclick="setVacFilter('gardes_cal')">🌙 Gardes (${gardesEntries.length})</button>
+                </div>
+                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal()">+ Poser un congé</button>
+              </div>
+            </div>
+            <div class="week-table-wrap">
+              <table class="planning-table">
+                <thead>
+                  <tr>
+                    <th>Date de Garde</th>
+                    <th>Interne / DJ (Radio B)</th>
+                    <th>Nature</th>
+                    <th>Lendemain (Repos de garde)</th>
+                    <th>Impact Planning</th>
+                  </tr>
+                </thead>
+                <tbody>${gRows || `<tr><td colspan="5" style="text-align:center; padding:18px;">Aucune garde enregistrée.</td></tr>`}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
       const colSpanCount = inChefSpace ? 7 : 6;
       let rowsHtml = "";
       if (filtered.length === 0) {
-        rowsHtml = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:18px; color:var(--text-muted);">Aucun congé enregistré. Utilisez le bouton "+ Poser un congé".</td></tr>`;
+        rowsHtml = `<tr><td colspan="${colSpanCount}" style="text-align:center; padding:18px; color:var(--text-muted);">Aucun congé ou repos de garde enregistré dans ce filtre. Utilisez le bouton "+ Poser un congé".</td></tr>`;
       } else {
         filtered.forEach(a => {
           const iObj = getInterneById(a.interneId);
+          const isRg = String(a.type || "").toLowerCase().includes("garde");
           const simCount = countByDate[a.date] || 1;
-          const isOverLimit = simCount > 2;
+          const isOverLimit = !isRg && simCount > 2;
           const st = a.status || "pending";
           const statusHtml = st === "approved"
             ? `<span class="status-pill-approved">✓ Validé</span>`
@@ -4830,12 +5050,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <tr style="${st === 'rejected' ? 'opacity:0.55; text-decoration:line-through;' : ''}">
               <td style="font-weight:700;">${formatDateFr(a.date, true)}</td>
               <td>${iObj.shortName}</td>
-              <td><span class="poste-pill ${a.type.includes('garde') ? 'poste-rg' : 'poste-vac'}">${a.type}</span></td>
+              <td><span class="poste-pill ${isRg ? 'poste-rg' : 'poste-vac'}">${a.type}</span></td>
               <td style="color:var(--text-muted);">${a.comment || "—"}</td>
               <td>
-                ${isOverLimit
-                  ? `<span class="poste-pill poste-rg">${simCount} absents (max 2)</span>`
-                  : `<span class="poste-pill poste-vac">Quota OK (${simCount}/2)</span>`}
+                ${isRg
+                  ? `<span class="poste-pill poste-rg">Lendemain de garde</span>`
+                  : (isOverLimit
+                    ? `<span class="poste-pill poste-rg">${simCount} absents (max 2)</span>`
+                    : `<span class="poste-pill poste-vac">Quota OK (${simCount}/2)</span>`)}
               </td>
               ${inChefSpace ? `<td>${statusHtml}</td>` : ""}
               <td>
@@ -4855,9 +5077,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="card-header">
             <div>
               <div class="card-title">Congés & Repos de garde</div>
-              <div style="font-size:12px; color:var(--text-muted);">Max 2 internes absents simultanément • Éviter mardi/vendredi isolés</div>
+              <div style="font-size:12px; color:var(--text-muted);">Max 2 internes en congés simultanément • Repos de garde automatiques le lendemain des gardes (${rgOnly.length} j. ouvrés)</div>
             </div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <div class="segmented">
+                <button class="seg-btn ${vacFilter === 'all' ? 'active' : ''}" onclick="setVacFilter('all')">Tous (${byInterneFiltered.length})</button>
+                <button class="seg-btn ${vacFilter === 'conges' ? 'active' : ''}" onclick="setVacFilter('conges')">Congés (${congesOnly.length})</button>
+                <button class="seg-btn ${vacFilter === 'rg' ? 'active' : ''}" onclick="setVacFilter('rg')">Repos de garde (${rgOnly.length})</button>
+                <button class="seg-btn ${vacFilter === 'gardes_cal' ? 'active' : ''}" onclick="setVacFilter('gardes_cal')">🌙 Gardes (${gardesEntries.length})</button>
+              </div>
               <button class="btn btn-sm btn-primary" onclick="openAbsenceModal()">+ Poser un congé</button>
             </div>
           </div>
@@ -4870,7 +5098,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <th>Interne</th>
                   <th>Type</th>
                   <th>Note</th>
-                  <th>Quota</th>
+                  <th>Quota / Motif</th>
                   ${inChefSpace ? `<th>Statut</th>` : ""}
                   <th>Action</th>
                 </tr>
@@ -5585,21 +5813,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
         });
       }
-      STATE.customVacations[iso + "__" + iid] = {
+      const nowIso = isChefPlanningMode ? markChefValidationStamp() : new Date().toISOString();
+      const cKey = iso + "__" + iid;
+      STATE.customVacations[cKey] = {
         am,
         pm,
         note,
         prevAm,
         prevPm,
         status: isChefPlanningMode ? "approved" : "pending",
-        updatedAt: new Date().toISOString()
+        validatedBy: isChefPlanningMode ? "Chef" : undefined,
+        validatedAt: isChefPlanningMode ? nowIso : undefined,
+        updatedAt: nowIso
       };
+      if (Array.isArray(STATE.deletedCustomKeys)) {
+        STATE.deletedCustomKeys = STATE.deletedCustomKeys.filter(k => k !== cKey);
+      }
 
       saveStateLocal();
       closeModal("modalVacationEdit");
       renderAll();
-      showToast("Poste mis à jour");
-      pushStateToCloud({});
+      showToast(isChefPlanningMode ? "✓ Poste validé par le Chef" : "Poste mis à jour (en attente de validation)");
+      pushStateToCloud({ isChefValidation: Boolean(isChefPlanningMode) });
     }
 
     function resetSingleVacation() {
@@ -5610,12 +5845,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         alert("Ce planning hebdomadaire a été validé et fixé par le Chef. Déverrouillez l'Espace Chef pour le réinitialiser.");
         return;
       }
-      if (STATE.customVacations) delete STATE.customVacations[iso + "__" + iid];
+      const cKey = iso + "__" + iid;
+      if (isChefPlanningMode) markChefValidationStamp();
+      if (STATE.customVacations) delete STATE.customVacations[cKey];
+      if (!Array.isArray(STATE.deletedCustomKeys)) STATE.deletedCustomKeys = [];
+      if (!STATE.deletedCustomKeys.includes(cKey)) STATE.deletedCustomKeys.push(cKey);
       saveStateLocal();
       closeModal("modalVacationEdit");
       renderAll();
       showToast("Poste réinitialisé");
-      pushStateToCloud({});
+      pushStateToCloud({ isChefValidation: Boolean(isChefPlanningMode) });
     }
 
     function closeModal(id) {
@@ -5623,15 +5862,37 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* =========================================================================
-     * SYNCHRONISATION CLOUD & GOOGLE SHEET
+     * SYNCHRONISATION CLOUD & GOOGLE SHEET (PRIORITÉ IMPÉRATIVE ESPACE CHEF)
      * ========================================================================= */
-    async function pushStateToCloud(opts = {}) {
+    let cloudPushPromise = Promise.resolve();
+    let isCloudPushInFlight = false;
+
+    function pushStateToCloud(opts = {}) {
+      cloudPushPromise = cloudPushPromise
+        .catch(() => {})
+        .then(() => _executePushStateToCloud(opts));
+      return cloudPushPromise;
+    }
+
+    async function _executePushStateToCloud(opts = {}) {
       const statusEl = document.getElementById("syncStatusText");
       if (statusEl) statusEl.textContent = "Sync...";
+      isCloudPushInFlight = true;
+
+      const isChefVal = Boolean(opts.isChefValidation || isChefPlanningMode);
+      const nowIso = new Date().toISOString();
+      if (isChefVal && !STATE.chefValidatedAt) {
+        STATE.chefValidatedAt = nowIso;
+      }
 
       const compact = {
-        updatedAt: new Date().toISOString(),
+        updatedAt: nowIso,
+        chefValidatedAt: STATE.chefValidatedAt || null,
+        chefRevision: Number(STATE.chefRevision) || 0,
+        deletedAbsenceIds: STATE.deletedAbsenceIds || [],
+        deletedCustomKeys: STATE.deletedCustomKeys || [],
         absences: STATE.absences || [],
+        interneGardes: STATE.interneGardes || {},
         customVacations: STATE.customVacations || {},
         chefDecisions: STATE.chefDecisions || {},
         lockedWeeks: STATE.lockedWeeks || {},
@@ -5640,12 +5901,108 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         phoneDirectory: STATE.phoneDirectory || []
       };
 
+      const syncPayload = Object.assign({}, opts, { isChefValidation: isChefVal });
+
       const evalCode = `
         var props = PropertiesService.getScriptProperties();
+        var rawExisting = props.getProperty('${CLOUD_PROP_KEY}');
+        var existing = null;
+        try { existing = rawExisting ? JSON.parse(rawExisting) : null; } catch (e) { existing = null; }
         var incoming = ${JSON.stringify(compact)};
+        var syncOpts = ${JSON.stringify(syncPayload)};
+
+        if (existing && typeof existing === 'object') {
+          // 1. Fusionner deletedAbsenceIds et deletedCustomKeys
+          var delSet = {};
+          (existing.deletedAbsenceIds || []).forEach(function(id) { if (id) delSet[id] = true; });
+          (incoming.deletedAbsenceIds || []).forEach(function(id) { if (id) delSet[id] = true; });
+          incoming.deletedAbsenceIds = Object.keys(delSet);
+
+          var delCustomSet = {};
+          (existing.deletedCustomKeys || []).forEach(function(k) { if (k) delCustomSet[k] = true; });
+          (incoming.deletedCustomKeys || []).forEach(function(k) { if (k) delCustomSet[k] = true; });
+          Object.keys(incoming.customVacations || {}).forEach(function(k) {
+            if (incoming.customVacations[k]) delete delCustomSet[k];
+          });
+          incoming.deletedCustomKeys = Object.keys(delCustomSet);
+
+          // 2. Protéger les décisions et validations du Chef contre l'écrasement par un client non-Chef
+          if (!syncOpts.isChefValidation) {
+            var mergedCustom = Object.assign({}, existing.customVacations || {});
+            Object.keys(incoming.customVacations || {}).forEach(function(k) {
+              if (delCustomSet[k]) return;
+              var incV = incoming.customVacations[k];
+              var exV = mergedCustom[k];
+              if (!exV) {
+                mergedCustom[k] = incV;
+              } else if (exV.status === 'approved' && incV.status !== 'approved') {
+                // Ne jamais écraser un poste validé par le Chef par une demande non validée
+              } else if (exV.validatedAt && incV.validatedAt && exV.validatedAt > incV.validatedAt) {
+                // Conserver la validation Chef plus récente
+              } else {
+                mergedCustom[k] = incV;
+              }
+            });
+            Object.keys(delCustomSet).forEach(function(k) { delete mergedCustom[k]; });
+            incoming.customVacations = mergedCustom;
+
+            incoming.chefDecisions = Object.assign({}, existing.chefDecisions || {}, incoming.chefDecisions || {});
+            incoming.lockedWeeks = Object.assign({}, existing.lockedWeeks || {}, incoming.lockedWeeks || {});
+            if (existing.chefValidatedAt && (!incoming.chefValidatedAt || existing.chefValidatedAt > incoming.chefValidatedAt)) {
+              incoming.chefValidatedAt = existing.chefValidatedAt;
+            }
+            if ((Number(existing.chefRevision) || 0) > (Number(incoming.chefRevision) || 0)) {
+              incoming.chefRevision = Number(existing.chefRevision);
+            }
+          } else {
+            // Action explicite du Chef : ses suppressions/modifications font foi
+            if (!syncOpts.replaceCustomVacations) {
+              var chefMergedCustom = Object.assign({}, existing.customVacations || {}, incoming.customVacations || {});
+              Object.keys(delCustomSet).forEach(function(k) {
+                if (!incoming.customVacations || !incoming.customVacations[k]) {
+                  delete chefMergedCustom[k];
+                }
+              });
+              incoming.customVacations = chefMergedCustom;
+            }
+            if (!syncOpts.replaceChefDecisions) {
+              incoming.chefDecisions = Object.assign({}, existing.chefDecisions || {}, incoming.chefDecisions || {});
+            }
+            incoming.lockedWeeks = Object.assign({}, existing.lockedWeeks || {}, incoming.lockedWeeks || {});
+            incoming.chefRevision = Math.max((Number(existing.chefRevision) || 0) + 1, Number(incoming.chefRevision) || 1);
+          }
+
+          // 3. Fusionner les absences en préservant impérativement les statuts "approved" / "rejected" du Chef
+          var absByKey = {};
+          (existing.absences || []).forEach(function(a) {
+            if (!a || !a.date || !a.interneId || delSet[a.id]) return;
+            absByKey[a.date + '__' + a.interneId] = a;
+          });
+          (incoming.absences || []).forEach(function(a) {
+            if (!a || !a.date || !a.interneId || delSet[a.id]) return;
+            var k = a.date + '__' + a.interneId;
+            var ex = absByKey[k];
+            if (!ex) {
+              absByKey[k] = a;
+            } else {
+              var exDecided = (ex.status === 'approved' || ex.status === 'rejected');
+              var inDecided = (a.status === 'approved' || a.status === 'rejected');
+              if (syncOpts.isChefValidation) {
+                absByKey[k] = Object.assign({}, ex, a);
+              } else if (exDecided && !inDecided) {
+                // Conserver la décision du Chef
+              } else if (exDecided && inDecided && ex.validatedAt && a.validatedAt && ex.validatedAt > a.validatedAt) {
+                // Conserver la décision plus récente
+              } else {
+                absByKey[k] = Object.assign({}, ex, a);
+              }
+            }
+          });
+          incoming.absences = Object.keys(absByKey).sort().map(function(k) { return absByKey[k]; });
+        }
+
         props.setProperty('${CLOUD_PROP_KEY}', JSON.stringify(incoming));
 
-        var syncOpts = ${JSON.stringify(opts)};
         if (syncOpts.syncAbsenceSheet) {
           try {
             var ssInt = SpreadsheetApp.openById('${INTERNES_SHEET_ID}');
@@ -5659,10 +6016,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 if (dStr) rowByDate[dStr] = r + 1;
               }
               function isoToSheetDate(iso) {
-                var p = iso.split('-');
+                var p = String(iso || '').split('-');
+                if (p.length !== 3) return '';
                 return p[2] + '/' + p[1] + '/' + p[0].slice(2);
               }
-              if (Array.isArray(syncOpts.addedDates)) {
+              if (Array.isArray(syncOpts.addedDates) && syncOpts.interneName) {
                 var cIdx = colMap[syncOpts.absType] || 3;
                 syncOpts.addedDates.forEach(function(iso) {
                   var k = isoToSheetDate(iso);
@@ -5675,25 +6033,64 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   }
                 });
               }
+              if (Array.isArray(syncOpts.removedDates) && syncOpts.interneName) {
+                var shortToken = String(syncOpts.interneName).split(' ')[0].toLowerCase();
+                syncOpts.removedDates.forEach(function(iso) {
+                  var k = isoToSheetDate(iso);
+                  var rIdx = rowByDate[k];
+                  if (!rIdx) return;
+                  for (var c = 2; c <= 6; c++) {
+                    var cell = shAbs.getRange(rIdx, c);
+                    var curVal = String(cell.getDisplayValue() || '').trim();
+                    if (!curVal) continue;
+                    var parts = curVal.split(/\\s*\\/\\s*/).filter(function(tok) {
+                      var low = tok.toLowerCase();
+                      return low.indexOf(shortToken) === -1 && low !== String(syncOpts.interneName).toLowerCase();
+                    });
+                    var nextVal = parts.join(' / ');
+                    if (nextVal !== curVal) cell.setValue(nextVal);
+                  }
+                });
+              }
             }
           } catch (sheetErr) {}
         }
-        return { status: 'saved', updatedAt: incoming.updatedAt };
+        return {
+          status: 'saved',
+          updatedAt: incoming.updatedAt,
+          chefRevision: incoming.chefRevision,
+          chefValidatedAt: incoming.chefValidatedAt
+        };
       `;
 
-      try {
-        await fetch(WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ eval_code: evalCode })
-        });
-        if (statusEl) statusEl.textContent = "Synchronisé";
-      } catch (err) {
-        if (statusEl) statusEl.textContent = "Local";
+      let pushedOk = false;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const resp = await fetch(WEBHOOK_URL, {
+            method: "POST",
+            keepalive: true,
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
+            body: JSON.stringify({ eval_code: evalCode })
+          });
+          if (resp.ok) {
+            pushedOk = true;
+            break;
+          }
+        } catch (err) {
+          if (attempt === 0) {
+            await new Promise(r => setTimeout(r, 600));
+          }
+        }
       }
+      isCloudPushInFlight = false;
+      if (statusEl) statusEl.textContent = pushedOk ? "Synchronisé" : "Local";
     }
 
     async function syncWithCloud(manual = false) {
+      if (isCloudPushInFlight) {
+        try { await cloudPushPromise; } catch (e) {}
+      }
+      const seqBeforeFetch = localMutationSeq;
       const statusEl = document.getElementById("syncStatusText");
       if (statusEl) statusEl.textContent = "Sync...";
       const evalCode = `
@@ -5734,21 +6131,77 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           body: JSON.stringify({ eval_code: evalCode })
         });
         const res = await resp.json();
+        // Si l'utilisateur (ou le Chef) a effectué une modification locale pendant la requête, ne pas l'écraser
+        if (localMutationSeq !== seqBeforeFetch || isCloudPushInFlight) {
+          if (statusEl) statusEl.textContent = "Synchronisé";
+          return;
+        }
         if (res && res.evalResult) {
           const remote = res.evalResult.cloudState;
           if (remote) {
-            if (Array.isArray(remote.absences) && remote.absences.length >= (STATE.absences || []).length) {
-              STATE.absences = normalizeAbsencesList(remote.absences);
+            // 1. Synchroniser deletedAbsenceIds & deletedCustomKeys
+            const delAbsSet = new Set([
+              ...(STATE.deletedAbsenceIds || []),
+              ...(Array.isArray(remote.deletedAbsenceIds) ? remote.deletedAbsenceIds : [])
+            ]);
+            STATE.deletedAbsenceIds = Array.from(delAbsSet);
+
+            const delCustomSet = new Set([
+              ...(STATE.deletedCustomKeys || []),
+              ...(Array.isArray(remote.deletedCustomKeys) ? remote.deletedCustomKeys : [])
+            ]);
+            if (remote.customVacations && typeof remote.customVacations === "object") {
+              Object.keys(remote.customVacations).forEach(k => {
+                if (remote.customVacations[k]) delCustomSet.delete(k);
+              });
             }
-            if (remote.customVacations) {
-              STATE.customVacations = Object.assign({}, STATE.customVacations, remote.customVacations);
+            STATE.deletedCustomKeys = Array.from(delCustomSet);
+
+            // 2. Synchroniser les absences en donnant priorité absolue aux décisions du Chef ("approved" / "rejected")
+            if (Array.isArray(remote.absences)) {
+              STATE.absences = mergeAbsencesList(STATE.absences || [], remote.absences, STATE.deletedAbsenceIds);
             }
-            if (remote.chefDecisions) {
-              STATE.chefDecisions = Object.assign({}, STATE.chefDecisions || {}, remote.chefDecisions);
+
+            // 3. Synchroniser customVacations (les validations et suppressions du Chef dans le cloud sont impératives)
+            if (remote.customVacations && typeof remote.customVacations === "object") {
+              const nextCustom = Object.assign({}, remote.customVacations);
+              Object.keys(STATE.customVacations || {}).forEach(cKey => {
+                if (delCustomSet.has(cKey)) return;
+                const localEntry = STATE.customVacations[cKey];
+                const remEntry = nextCustom[cKey];
+                if (!remEntry) {
+                  // Conserver uniquement une demande locale très récente non encore présente sur le cloud
+                  if (localEntry && localEntry.status === "pending" && (!remote.chefValidatedAt || (localEntry.updatedAt && localEntry.updatedAt > remote.chefValidatedAt))) {
+                    nextCustom[cKey] = localEntry;
+                  }
+                } else if (localEntry && localEntry.status === "approved" && remEntry.status !== "approved") {
+                  nextCustom[cKey] = localEntry;
+                } else if (localEntry && remEntry && localEntry.validatedAt && remEntry.validatedAt && localEntry.validatedAt > remEntry.validatedAt) {
+                  nextCustom[cKey] = localEntry;
+                }
+              });
+              delCustomSet.forEach(cKey => { delete nextCustom[cKey]; });
+              STATE.customVacations = nextCustom;
             }
-            if (remote.lockedWeeks) {
-              STATE.lockedWeeks = Object.assign({}, STATE.lockedWeeks || {}, remote.lockedWeeks);
+
+            // 4. Synchroniser chefDecisions et lockedWeeks depuis le cloud
+            if (remote.chefDecisions && typeof remote.chefDecisions === "object") {
+              STATE.chefDecisions = Object.assign({}, remote.chefDecisions);
             }
+            if (remote.lockedWeeks && typeof remote.lockedWeeks === "object") {
+              const mergedLocks = Object.assign({}, STATE.lockedWeeks || {}, remote.lockedWeeks);
+              STATE.lockedWeeks = mergedLocks;
+            }
+            if (remote.interneGardes && typeof remote.interneGardes === "object") {
+              STATE.interneGardes = Object.assign({}, STATE.interneGardes || {}, remote.interneGardes);
+            }
+            if (remote.chefValidatedAt) {
+              STATE.chefValidatedAt = remote.chefValidatedAt;
+            }
+            if (Number(remote.chefRevision) > (Number(STATE.chefRevision) || 0)) {
+              STATE.chefRevision = Number(remote.chefRevision);
+            }
+
             if (Array.isArray(remote.presentations) && remote.presentations.length > 0) {
               STATE.presentations = mergePresentationsList(INITIAL_DATA.presentations, remote.presentations);
             }
@@ -5763,6 +6216,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
           }
           const sheetAbs = res.evalResult.sheetAbs || [];
+          const delSetSheet = new Set(STATE.deletedAbsenceIds || []);
           sheetAbs.forEach(sa => {
             const parts = sa.dateStr.split("/");
             if (parts.length === 3) {
@@ -5772,7 +6226,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               const matched = STATE.internes.find(i => low.includes(i.prenom.toLowerCase()) || low.includes(i.nom.toLowerCase()));
               if (matched) {
                 const id = `abs-${matched.id}-${iso}`;
-                if (!STATE.absences.some(x => x.id === id)) {
+                if (delSetSheet.has(id)) return;
+                if (!STATE.absences.some(x => x.id === id || (x.date === iso && x.interneId === matched.id))) {
                   STATE.absences.push({
                     id,
                     date: iso,
@@ -5786,7 +6241,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
             }
           });
-          saveStateLocal();
+          recomputeScheduleInPlace(STATE);
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({
+              updatedAt: new Date().toISOString(),
+              chefValidatedAt: STATE.chefValidatedAt || null,
+              chefRevision: Number(STATE.chefRevision) || 0,
+              deletedAbsenceIds: STATE.deletedAbsenceIds || [],
+              deletedCustomKeys: STATE.deletedCustomKeys || [],
+              absences: STATE.absences,
+              interneGardes: STATE.interneGardes || {},
+              customVacations: STATE.customVacations || {},
+              chefDecisions: STATE.chefDecisions || {},
+              lockedWeeks: STATE.lockedWeeks || {},
+              presentations: STATE.presentations,
+              meetings: STATE.meetings,
+              phoneDirectory: STATE.phoneDirectory || []
+            }));
+          } catch (e) {}
           renderAll();
         }
         if (statusEl) statusEl.textContent = "Synchronisé";
@@ -5796,9 +6268,32 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     }
 
+    // Synchronisation automatique multi-onglets et multi-appareils
+    window.addEventListener("storage", (ev) => {
+      if (ev.key === LOCAL_STORAGE_KEY && ev.newValue) {
+        STATE = loadInitialState();
+        renderAll();
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        syncWithCloud(false);
+      }
+    });
+
+    window.addEventListener("focus", () => {
+      syncWithCloud(false);
+    });
+
     window.addEventListener("DOMContentLoaded", () => {
       renderAll();
       syncWithCloud(false);
+      setInterval(() => {
+        if (document.visibilityState === "visible" && !isCloudPushInFlight) {
+          syncWithCloud(false);
+        }
+      }, 25000);
     });
   </script>
 </body>

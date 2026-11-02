@@ -1,9 +1,10 @@
 {
   "version": "1.8.0",
-  "updatedAt": "2026-11-02T13:57:53.846330+00:00",
+  "updatedAt": "2026-11-02T14:03:19.804420+00:00",
   "chefValidatedAt": null,
   "chefRevision": 0,
   "deletedAbsenceIds": [],
+  "deletedCustomKeys": [],
   "semester": {
     "title": "Semestre d'Hiver 2026–2027",
     "hospital": "Hôpital Cochin (AP-HP) — Service de Radiologie B (Pr A. Feydy)",
