@@ -336,6 +336,132 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       font-weight: 800;
     }
 
+    /* Sélecteur de planning interne bien en évidence */
+    .interne-picker-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .interne-picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .interne-picker-title {
+      font-size: 13.5px;
+      font-weight: 800;
+      color: #0F172A;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .interne-picker-all-btn {
+      border: 1.5px solid #CBD5E1;
+      background: #F8FAFC;
+      color: #334155;
+      padding: 6px 12px;
+      border-radius: 9px;
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .interne-picker-all-btn:hover {
+      background: #E2E8F0;
+      border-color: #94A3B8;
+    }
+
+    .interne-picker-all-btn.active {
+      background: #0284C7;
+      border-color: #0284C7;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(2, 132, 199, 0.25);
+    }
+
+    .interne-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      width: 100%;
+    }
+
+    .interne-pick-btn {
+      border: 1.5px solid #CBD5E1;
+      background: #F8FAFC;
+      color: #0F172A;
+      padding: 9px 10px;
+      border-radius: 10px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      min-width: 0;
+    }
+
+    .interne-pick-btn:hover {
+      background: #F0F9FF;
+      border-color: #0284C7;
+      transform: translateY(-1px);
+    }
+
+    .interne-pick-btn.active {
+      background: #E0F2FE;
+      border-color: #0284C7;
+      color: #0369A1;
+      box-shadow: 0 0 0 1.5px #0284C7, 0 3px 8px rgba(2, 132, 199, 0.18);
+    }
+
+    .interne-pick-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      flex-shrink: 0;
+    }
+
+    .interne-pick-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    @media (max-width: 768px) {
+      .interne-picker-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .interne-pick-btn {
+        padding: 8px 6px;
+        font-size: 12.5px;
+        gap: 6px;
+      }
+      .interne-pick-avatar {
+        width: 22px;
+        height: 22px;
+        font-size: 10px;
+      }
+    }
+
     /* Onglets principaux courts et lisibles */
     .main-tabs {
       display: grid;
@@ -2200,6 +2326,45 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       background: rgba(56, 189, 248, 0.18);
       color: #38BDF8;
       border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .interne-picker-title {
+      color: #F8FAFC;
+    }
+
+    html[data-theme="dark"] .interne-picker-all-btn {
+      background: #1E293B;
+      border-color: #334155;
+      color: #E2E8F0;
+    }
+
+    html[data-theme="dark"] .interne-picker-all-btn:hover {
+      background: #283548;
+      border-color: #475569;
+    }
+
+    html[data-theme="dark"] .interne-picker-all-btn.active {
+      background: #0284C7;
+      border-color: #38BDF8;
+      color: #FFFFFF;
+    }
+
+    html[data-theme="dark"] .interne-pick-btn {
+      background: #1E293B;
+      border-color: #334155;
+      color: #F1F5F9;
+    }
+
+    html[data-theme="dark"] .interne-pick-btn:hover {
+      background: #283548;
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .interne-pick-btn.active {
+      background: rgba(2, 132, 199, 0.28);
+      border-color: #38BDF8;
+      color: #7DD3FC;
+      box-shadow: 0 0 0 1.5px #38BDF8;
     }
 
     html[data-theme="dark"] .summary-strip,
@@ -7657,12 +7822,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    // Bandeau résumé épuré sur une seule barre lisible (masqué en Mode Chef et dans l'onglet Planning en vue Perso)
+    // Bandeau de sélection rapide du planning interne (ou résumé Chef / Perso hors onglet Planning)
     function renderPersonalBanner() {
       const el = document.getElementById("personalBanner");
       if (!el) return;
-      const isPersoSelected = (planningScope === "perso" || (selectedInterneId !== "all" && selectedInterneId !== "all_chefs"));
-      if (isChefPlanningMode || (currentTab === "planning" && isPersoSelected)) {
+      if (isChefPlanningMode || (currentTab === "planning" && isChefId(selectedInterneId))) {
         el.style.display = "none";
         el.innerHTML = "";
         return;
@@ -7720,21 +7884,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const statsAll = computeStatsByInterne();
 
-      if (selectedInterneId === "all") {
-        const mainCounts = ["gabriel", "noe", "marwane", "milan", "nathanael", "oussama"].map(id => statsAll[id].activeHalfDays);
-        const avgVac = Math.round(mainCounts.reduce((a, b) => a + b, 0) / mainCounts.length);
+      if (selectedInterneId === "all" || currentTab === "planning") {
+        const buttonsHtml = STATE.internes.map(i => {
+          const isAct = (selectedInterneId === i.id && planningScope === "perso");
+          return `
+            <button class="interne-pick-btn ${isAct ? 'active' : ''}" onclick="selectInterne('${isAct ? 'all' : i.id}')">
+              <span class="interne-pick-avatar" style="background:${i.color}">${i.initials}</span>
+              <span class="interne-pick-name">${i.shortName}</span>
+            </button>
+          `;
+        }).join("");
+
+        const isAllActive = (selectedInterneId === "all" && planningScope === "internes");
         el.innerHTML = `
-          <div class="summary-left">
-            <div class="avatar-sm" style="background:#0284C7">6</div>
-            <div>
-              <div class="summary-title">Tous les internes & DJ (6)</div>
-              <div class="summary-sub">2 SAU / sem. par interne (3 pour Noé en binôme) • Plus exceptionnellement • Scanners séparés (SAU, Achard, Ollier)</div>
+          <div class="interne-picker-wrap">
+            <div class="interne-picker-header">
+              <div class="interne-picker-title">📅 Sélectionner un planning interne :</div>
+              <button class="interne-picker-all-btn ${isAllActive ? 'active' : ''}" onclick="selectInterne('all')">
+                👥 Tous les internes
+              </button>
             </div>
-          </div>
-          <div class="summary-stats">
-            <span>Moyenne : <strong>${avgVac}</strong> postes</span>
-            <span>SAU : <strong>2/sem. (Noé 3)</strong></span>
-            <span>Demi-offs : <strong>2 / sem.</strong></span>
+            <div class="interne-picker-grid">
+              ${buttonsHtml}
+            </div>
           </div>
         `;
         return;
