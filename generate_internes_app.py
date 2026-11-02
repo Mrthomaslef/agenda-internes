@@ -4940,7 +4940,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     /* =========================================================================
      * ONGLET 2 : CONGÉS & RG
      * ========================================================================= */
-    let vacFilter = "all";
     function setVacFilter(f) {
       vacFilter = f;
       renderTabContent();
