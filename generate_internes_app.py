@@ -2187,7 +2187,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let currentTab = "planning";
     let selectedInterneId = localStorage.getItem(SELECTED_INTERNE_KEY) || "gabriel";
     let planningScope = (selectedInterneId === "all") ? "internes" : (selectedInterneId === "all_chefs" ? "chefs" : "perso"); // 'internes' | 'perso' | 'chefs' | 'combined'
-    let planningMode = "week";      // 'day' | 'week' | 'month'
+    let planningMode = "week";      // 'week' | 'month'
     let currentDateIso = "2026-11-02";
     let presFilter = "cas_mardi"; // 'cas_mardi' | 'biblio_vendredi' | 'cours_internes'
     let reunionsFilter = "bone_cra"; // 'bone_cra' | 'staffs_hebdo'
@@ -2935,10 +2935,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const carryOverOffs = {};
       const totalAmOffs = {};
       const totalPmOffs = {};
+      const totalSauAmCounts = {};
+      const totalSauPmCounts = {};
       (st.internes || []).forEach(intObj => {
         carryOverOffs[intObj.id] = 0;
         totalAmOffs[intObj.id] = 0;
         totalPmOffs[intObj.id] = 0;
+        totalSauAmCounts[intObj.id] = 0;
+        totalSauPmCounts[intObj.id] = 0;
       });
 
       Object.keys(weeksMap).sort().forEach(monIso => {
@@ -5842,11 +5846,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         : "";
       return `
         <div class="weekend-gardes-compact">
-          <div class="weekend-garde-mini ${currentDateIso === satIso ? 'active' : ''}" onclick="setCurrentDate('${satIso}'); setPlanningMode('day');">
+          <div class="weekend-garde-mini ${currentDateIso === satIso ? 'active' : ''}" onclick="setCurrentDate('${satIso}')">
             <span class="wg-day">Sam. ${String(sd).padStart(2, "0")}/${String(sm).padStart(2, "0")} <span style="font-weight:600; color:#991B1B;">(Garde)</span></span>
             <span class="wg-doc">🚨 ${gSat}${intSatLabel ? ` <span style="color:#475569; font-weight:600; margin-left:6px;">• ${intSatLabel}</span>` : ""}</span>
           </div>
-          <div class="weekend-garde-mini ${currentDateIso === sunIso ? 'active' : ''}" onclick="setCurrentDate('${sunIso}'); setPlanningMode('day');">
+          <div class="weekend-garde-mini ${currentDateIso === sunIso ? 'active' : ''}" onclick="setCurrentDate('${sunIso}')">
             <span class="wg-day">Dim. ${String(ud).padStart(2, "0")}/${String(um).padStart(2, "0")} <span style="font-weight:600; color:#991B1B;">(Garde)</span></span>
             <span class="wg-doc">🚨 ${gSun}${intSunLabel ? ` <span style="color:#475569; font-weight:600; margin-left:6px;">• ${intSunLabel}</span>` : ""}</span>
           </div>
@@ -5899,46 +5903,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const isPersoSpace = !isChefPlanningMode && (planningScope === "perso" || (selectedInterneId !== "all" && selectedInterneId !== "all_chefs"));
 
       let headerLabel = "";
-      if (planningMode === "day") {
-        headerLabel = formatDateFr(currentDateIso, true);
-      } else if (planningMode === "week") {
+      if (planningMode === "week" || isChefPlanningMode) {
         headerLabel = `${formatDateFr(monIso)} – ${formatDateFr(friIso)}`;
       } else {
         const [y, m] = currentDateIso.split("-").map(Number);
         const mNames = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
         headerLabel = `${mNames[m - 1]} ${y}`;
       }
-
-      const dNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-      let dayStripHtml = `<div class="day-strip">`;
-      // Lundi à Vendredi (5 jours principaux)
-      for (let offset = 0; offset < 5; offset++) {
-        const dIso = addDaysIso(monIso, offset);
-        dayStripHtml += renderWeekDayPillHtml(dIso, offset, isPersoSpace ? { customSubHtml: "" } : undefined);
-      }
-      // Samedi et Dimanche en petit avec juste les gardes
-      for (let offset = 5; offset < 7; offset++) {
-        const dIso = addDaysIso(monIso, offset);
-        const [yy, mm, dd] = dIso.split("-").map(Number);
-        const isAct = (dIso === currentDateIso) ? "active" : "";
-        const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
-          ? STATE.chefsGardes[dIso].noms.join("/")
-          : "—";
-        const gInt = getInterneGardeInfo(dIso);
-        const gIntShort = (gInt && gInt.isRadioB && gInt.interneId)
-          ? getInterneById(gInt.interneId).shortName
-          : (gInt && gInt.rawLabel ? gInt.rawLabel.split(" ")[0] : "");
-        dayStripHtml += `
-          <div class="day-pill weekend-pill ${isAct}" onclick="setCurrentDate('${dIso}')" title="Garde ${dNames[offset]} ${dd}/${mm} : Dr ${g}${gIntShort ? ' • Int: ' + gIntShort : ''}">
-            <div class="dp-top">
-              <span class="dp-dow">${dNames[offset]}</span>
-              <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
-            </div>
-            ${isPersoSpace ? "" : `<div class="dp-garde">🚨 ${g}${gIntShort ? ` • 🌙 ${gIntShort}` : ""}</div>`}
-          </div>
-        `;
-      }
-      dayStripHtml += `</div>`;
 
       const horairesStripHtml = (isChefPlanningMode || isPersoSpace) ? "" : `
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:8px; font-size:11px;">
@@ -5971,25 +5942,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       let bodyHtml = "";
-      let isWeekColumnsView = false;
       if (planningScope === "chefs" && !isChefPlanningMode) {
         bodyHtml = renderChefsPlanningView(monIso);
-        isWeekColumnsView = true;
       } else if (planningScope === "combined") {
         bodyHtml = renderCombinedChefsInternesView(monIso);
-        isWeekColumnsView = true;
       } else if (planningScope === "perso" && isChefId(selectedInterneId) && !isChefPlanningMode) {
         bodyHtml = renderSingleChefPersoView(monIso, getChefById(selectedInterneId));
-        isWeekColumnsView = (planningMode !== "month");
-      } else if (planningMode === "day") {
-        bodyHtml = renderDayPlanningView(currentDateIso);
-        isWeekColumnsView = false;
       } else if (planningMode === "week" || isChefPlanningMode) {
         bodyHtml = renderWeekPlanningView(monIso);
-        isWeekColumnsView = true;
       } else {
         bodyHtml = renderMonthPlanningView(currentDateIso);
-        isWeekColumnsView = false;
       }
 
       const toolbarScopeHtml = isChefPlanningMode
@@ -6005,12 +5967,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
            </div>`;
 
       const toolbarModeHtml = isChefPlanningMode
-        ? `<div class="segmented">
-             <button class="seg-btn ${planningMode !== 'day' ? 'active' : ''}" onclick="setPlanningMode('week')">Semaine</button>
-             <button class="seg-btn ${planningMode === 'day' ? 'active' : ''}" onclick="setPlanningMode('day')">Jour</button>
-           </div>`
+        ? ""
         : `<div class="segmented">
-             <button class="seg-btn ${planningMode === 'day' ? 'active' : ''}" onclick="setPlanningMode('day')">Jour</button>
              <button class="seg-btn ${planningMode === 'week' ? 'active' : ''}" onclick="setPlanningMode('week')">Semaine</button>
              <button class="seg-btn ${planningMode === 'month' ? 'active' : ''}" onclick="setPlanningMode('month')">Mois</button>
            </div>`;
@@ -6028,7 +5986,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           ${toolbarModeHtml}
         </div>
 
-        ${(!isWeekColumnsView && planningMode === 'day') ? dayStripHtml : ''}
         ${weekValidationStripHtml}
         ${horairesStripHtml}
         ${bodyHtml}
@@ -6051,7 +6008,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function setPlanningMode(md) {
-      planningMode = md;
+      planningMode = (md === "month" && !isChefPlanningMode) ? "month" : "week";
       renderTabContent();
     }
 
@@ -6061,9 +6018,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function shiftPlanningDate(dir) {
-      if (planningMode === "day") {
-        currentDateIso = addDaysIso(currentDateIso, dir);
-      } else if (planningMode === "week") {
+      if (planningMode === "week" || isChefPlanningMode) {
         currentDateIso = addDaysIso(currentDateIso, dir * 7);
       } else {
         const [y, m] = currentDateIso.split("-").map(Number);
@@ -6084,7 +6039,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         allDates.forEach(dIso => {
           const sl = getChefSlotsForDate(dIso, chef);
           cells += `
-            <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
+            <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('week');">
               <div style="display:flex; justify-content:space-between; font-weight:800; font-size:12px;">
                 <span>${formatDateFr(dIso)}</span>
                 ${sl.isGarde ? '<span class="perso-garde-pill" style="padding:1px 6px; font-size:9.5px;">Garde</span>' : ''}
@@ -6541,182 +6496,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       `;
     }
 
-    function renderDayPlanningView(iso) {
-      const dObj = STATE.schedule[iso];
-      const gSenior = STATE.chefsGardes ? STATE.chefsGardes[iso] : null;
-      const gInt = getInterneGardeInfo(iso);
-      const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
-      const isPersoDay = !isChefPlanningMode && (planningScope === "perso" || isSingleInterneSelected);
-
-      if (isPersoDay) {
-        const me = getInterneById(selectedInterneId === "all" ? "gabriel" : selectedInterneId);
-        const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
-        if (!dObj) {
-          return `
-            <div class="card">
-              <div class="card-header">
-                <div class="card-title">${formatDateFr(iso, true)} — ${me.fullName}</div>
-                <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
-              </div>
-              <div style="padding:12px 0; text-align:center;">
-                ${isMeOnGarde ? `<span class="perso-garde-pill" style="font-size:13px; padding:6px 14px;">🌙 Garde</span>` : `<span class="poste-pill poste-off" style="font-size:13px; padding:6px 14px;">Repos (Week-end)</span>`}
-              </div>
-            </div>
-          `;
-        }
-        const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—" };
-        return `
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title" style="display:flex; align-items:center; gap:8px;">
-                <span style="width:10px; height:10px; border-radius:50%; background:${me.color}; display:inline-block;"></span>
-                ${formatDateFr(iso, true)} — ${me.fullName}
-                ${isMeOnGarde ? `<span class="perso-garde-pill">🌙 Garde</span>` : ``}
-              </div>
-              <button class="btn btn-sm" onclick="selectInterne('all')">Tous les internes</button>
-            </div>
-            <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; cursor:pointer;" onclick="openVacationEditModal('${iso}', '${me.id}')">
-              <div class="perso-slot-block" style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:12px;">
-                <span class="perso-slot-label">Matin</span>
-                <span class="poste-pill ${getPosteClass(slot.am)} perso-vac-pill" style="margin-top:4px;">${getPosteCleanLabel(slot.am, "am")}</span>
-              </div>
-              <div class="perso-slot-block" style="background:#F8FAFC; border:1px solid var(--border); border-radius:10px; padding:12px;">
-                <span class="perso-slot-label">Après-midi</span>
-                <span class="poste-pill ${getPosteClass(slot.pm)} perso-vac-pill" style="margin-top:4px;">${getPosteCleanLabel(slot.pm, "pm")}</span>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-
-      const gIntBadge = gInt
-        ? (gInt.isRadioB && gInt.interneId
-          ? `<span class="poste-pill poste-rg">🌙 Garde Interne : ${getInterneById(gInt.interneId).fullName}</span>`
-          : `<span class="poste-pill poste-off">🌙 Garde Interne : ${gInt.rawLabel || "Radio A"}</span>`)
-        : "";
-      if (!dObj) {
-        return `
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">${formatDateFr(iso, true)} — Week-end / Garde</div>
-              <div style="display:flex; gap:6px; flex-wrap:wrap;">
-                ${gIntBadge}
-                ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">🚨 Garde Senior : Dr ${gSenior.noms.join(", ")}</span>` : ''}
-              </div>
-            </div>
-            <div style="font-size:13px; color:var(--text-muted);">
-              ${gSenior && gSenior.noms
-                ? `Médecin senior de garde ce jour : <strong style="color:#B91C1C;">Dr ${gSenior.noms.join(", ")}</strong> (${gSenior.nature || "Garde Week-end"}).`
-                : `Aucune vacation ordinaire programmée pour le ${formatDateFr(iso, true)}.`}
-              ${gInt ? `<div style="margin-top:6px;">Interne de garde : <strong>${gInt.isRadioB && gInt.interneId ? getInterneById(gInt.interneId).fullName + " (Radio B — repos de garde le lendemain)" : (gInt.rawLabel + " (Radio A / Hors service)")}</strong>.</div>` : ""}
-            </div>
-          </div>
-        `;
-      }
-      const chDay = (STATE.chefsPlanning && STATE.chefsPlanning[iso]) ? STATE.chefsPlanning[iso] : { am: [], pm: [] };
-
-      let rows = "";
-      STATE.internes.forEach(i => {
-        const slot = (dObj.byInterne && dObj.byInterne[i.id]) ? dObj.byInterne[i.id] : null;
-        if (!slot) return;
-        const amEsc = String(slot.am || "").replace(/'/g, "\\'");
-        const pmEsc = String(slot.pm || "").replace(/'/g, "\\'");
-        const isSelAm = isChefPlanningMode && selectedForMove && selectedForMove.interneId === i.id && selectedForMove.dIso === iso && selectedForMove.periodKey === "am";
-        const isSelPm = isChefPlanningMode && selectedForMove && selectedForMove.interneId === i.id && selectedForMove.dIso === iso && selectedForMove.periodKey === "pm";
-        const isAmMand = isMandatoryVacationSlot(iso, "am", slot.am);
-        const isPmMand = isMandatoryVacationSlot(iso, "pm", slot.pm);
-        const isDJ = Boolean(i.isDJ || i.id === "oussama");
-        const isOnGardeTonight = Boolean(gInt && gInt.interneId === i.id);
-
-        const amDragAttrs = isChefPlanningMode
-          ? `draggable="true" ondragstart="onInterneDragStart(event, '${iso}', 'am', '${i.id}', '${amEsc}')" ondragend="onInterneDragEnd(event)" ondragover="onCellDragOver(event, '${iso}', 'am')" ondrop="onBadgeDrop(event, '${iso}', 'am', '${i.id}', '${amEsc}')" onclick="onInterneBadgeClick(event, '${iso}', 'am', '${i.id}', '${amEsc}')"`
-          : "";
-        const pmDragAttrs = isChefPlanningMode
-          ? `draggable="true" ondragstart="onInterneDragStart(event, '${iso}', 'pm', '${i.id}', '${pmEsc}')" ondragend="onInterneDragEnd(event)" ondragover="onCellDragOver(event, '${iso}', 'pm')" ondrop="onBadgeDrop(event, '${iso}', 'pm', '${i.id}', '${pmEsc}')" onclick="onInterneBadgeClick(event, '${iso}', 'pm', '${i.id}', '${pmEsc}')"`
-          : "";
-
-        rows += `
-          <tr onclick="openVacationEditModal('${iso}', '${i.id}')" style="cursor:pointer;">
-            <td>
-              <div style="display:flex; align-items:center; gap:7px; font-weight:700; flex-wrap:wrap;">
-                <span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;"></span>
-                ${i.shortName}
-                ${i.isSocle ? `<span class="tag-sm">Socle</span>` : ""}
-                ${isDJ ? `<span class="tag-dj">DJ</span>` : ""}
-                ${isOnGardeTonight ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 5px;">🌙 Garde ce soir</span>` : ""}
-              </div>
-            </td>
-            <td class="${[isChefPlanningMode ? 'drop-zone-cell' : '', isAmMand ? 'cell-mandatory-vacation' : ''].filter(Boolean).join(' ')}" ${amDragAttrs} ${isAmMand ? 'title="Vacation obligatoire prioritaire"' : ''}>
-              <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''} ${isChefPlanningMode ? 'draggable-interne' : ''} ${isSelAm ? 'selected-for-move' : ''}">
-                ${isChefPlanningMode ? `<span class="drag-grip">⋮⋮</span>` : ""}
-                ${isAmMand ? `<span class="mandatory-dot"></span>` : ""}
-                ${getPosteWithTimeLabel(slot.am, "am")}
-              </span>
-            </td>
-            <td class="${[isChefPlanningMode ? 'drop-zone-cell' : '', isPmMand ? 'cell-mandatory-vacation' : ''].filter(Boolean).join(' ')}" ${pmDragAttrs} ${isPmMand ? 'title="Vacation obligatoire prioritaire"' : ''}>
-              <span class="poste-pill ${getPosteClass(slot.pm)} ${isPmMand ? 'poste-mandatory-slot' : ''} ${isChefPlanningMode ? 'draggable-interne' : ''} ${isSelPm ? 'selected-for-move' : ''}">
-                ${isChefPlanningMode ? `<span class="drag-grip">⋮⋮</span>` : ""}
-                ${isPmMand ? `<span class="mandatory-dot"></span>` : ""}
-                ${getPosteWithTimeLabel(slot.pm, "pm")}
-              </span>
-            </td>
-            <td style="color:var(--text-muted); font-size:12px;">${slot.note || (isOnGardeTonight ? "🌙 Garde ce soir (RG demain)" : "—")}</td>
-          </tr>
-        `;
-      });
-
-      return `
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">${formatDateFr(iso, true)}</div>
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              ${gIntBadge}
-              ${gSenior && gSenior.noms ? `<span class="poste-pill poste-rg">Garde Senior : Dr ${gSenior.noms.join(", ")}</span>` : ''}
-            </div>
-          </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px;">
-            <div>
-              <div style="font-size:12px; font-weight:800; margin-bottom:6px;">${isChefPlanningMode ? "Internes & DJ (glissez-déposez un créneau sur un autre interne pour échanger)" : "Internes & DJ (cliquez pour modifier)"}</div>
-              <div class="week-table-wrap">
-                <table class="planning-table" style="min-width:280px;">
-                  <thead>
-                    <tr>
-                      <th>Interne / DJ</th>
-                      <th>Matin</th>
-                      <th>Après-midi</th>
-                      <th>Note</th>
-                    </tr>
-                  </thead>
-                  <tbody>${rows}</tbody>
-                </table>
-              </div>
-            </div>
-            <div>
-              <div style="font-size:12px; font-weight:800; margin-bottom:6px;">Chefs & Seniors</div>
-              <div class="card" style="margin:0; background:#F8FAFC;">
-                <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:4px;">MATIN (IRM 7h45 • TDM SAU 8h • Écho/Poste C 9h)</div>
-                ${(chDay.am || []).map(x => {
-                  const isCl = (x.doc === "FERMÉ" || x.doc === "MAINTENANCE" || x.closed);
-                  const mappedP = CHEF_TO_INTERNE_POSTE_MAP[x.poste] || null;
-                  const isNoInt = !isCl && mappedP && getChefWithoutInterneDocsForPoste(iso, "am", mappedP).length > 0;
-                  return `<div style="font-size:12px; margin-bottom:3px; ${isNoInt ? 'background:#FEF3C7; border-left:3px solid #F59E0B; padding:2px 6px; border-radius:4px;' : ''}" ${isNoInt ? 'title="Chef présent sans interne prévu"' : ''}><strong>${getPosteWithTimeLabel(x.poste, "am")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:${isNoInt ? '#92400E' : '#0284C7'}; font-weight:700;">${x.doc}</span>`}</div>`;
-                }).join("") || '—'}
-                <div style="font-size:11px; font-weight:700; color:var(--text-muted); margin:10px 0 4px;">APRÈS-MIDI (TDM SAU fin 18h30)</div>
-                ${(chDay.pm || []).map(x => {
-                  const isCl = (x.doc === "FERMÉ" || x.doc === "MAINTENANCE" || x.closed);
-                  const [yyD, mmD, ddD] = iso.split("-").map(Number);
-                  const jsDayD = new Date(yyD, mmD - 1, ddD).getDay();
-                  const mappedP = CHEF_TO_INTERNE_POSTE_MAP[x.poste] || (x.poste === "CONSULTATION" && (jsDayD === 2 || jsDayD === 5) ? "CONSULTATION" : null);
-                  const isNoInt = !isCl && mappedP && getChefWithoutInterneDocsForPoste(iso, "pm", mappedP).length > 0;
-                  return `<div style="font-size:12px; margin-bottom:3px; ${isNoInt ? 'background:#FEF3C7; border-left:3px solid #F59E0B; padding:2px 6px; border-radius:4px;' : ''}" ${isNoInt ? 'title="Chef présent sans interne prévu"' : ''}><strong>${getPosteWithTimeLabel(x.poste, "pm")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:${isNoInt ? '#92400E' : '#6D28D9'}; font-weight:700;">${x.doc}</span>`}</div>`;
-                }).join("") || '—'}
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
     function renderMonthPlanningView(iso) {
       if (isChefId(selectedInterneId)) {
         return renderSingleChefPersoView(getMondayOfWeek(iso), getChefById(selectedInterneId));
@@ -6733,7 +6512,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const gInt = getInterneGardeInfo(dIso);
         const isMeOnGarde = Boolean(gInt && gInt.interneId === targetId);
         cells += `
-          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${isMeOnGarde ? 'background:#FFFDFD; border-color:#FCA5A5;' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('day');">
+          <div class="month-cell ${dIso === currentDateIso ? 'today' : ''}" style="${isMeOnGarde ? 'background:#FFFDFD; border-color:#FCA5A5;' : ''}" onclick="setCurrentDate('${dIso}'); setPlanningMode('week');">
             <div style="display:flex; justify-content:space-between; align-items:center; font-weight:800; font-size:12px;">
               <span>${formatDateFr(dIso)}</span>
               ${isMeOnGarde ? `<span class="perso-garde-pill" style="font-size:9px; padding:1px 5px;">🌙 Garde</span>` : ""}

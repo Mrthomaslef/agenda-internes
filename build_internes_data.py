@@ -1344,6 +1344,9 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
     total_pm_offs_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     # Suivi cumulé des IRM d'après-midi sur le semestre pour équilibrer entre internes
     total_irm_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    # Suivi cumulé des TDM SAU Matin (AM) vs Après-midi (PM) sur le semestre pour équilibrer dans la mesure du possible
+    total_sau_am_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_sau_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
 
     for w_idx, iso_list in sorted(weeks_map.items()):
         active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
@@ -2007,6 +2010,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 return True
             return False
 
+        def count_week_sau_half(interne_id: str, half_k: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if schedule[d_chk]["byInterne"][interne_id][half_k] == "TDM SAU"
+            )
+
         # A) Éviter les doublons de seniors au TDM SAU sur la même demi-journée
         #    (et retirer tout senior du TDM SAU le mardi matin où Noé est en solo avec Dr Macil Hamadouche)
         for d_iso in active_isos:
@@ -2021,7 +2031,17 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     avail = get_available_open_postes(d_iso, h)
                     if not avail:
                         break
-                    sau_sids.sort(key=lambda x: count_week_sau(x), reverse=True)
+                    other_h_a = "pm" if h == "am" else "am"
+                    sau_sids.sort(
+                        key=lambda x: (
+                            count_week_sau(x),
+                            count_week_sau_half(x, h) - count_week_sau_half(x, other_h_a),
+                            (total_sau_am_counts[x] - total_sau_pm_counts[x])
+                            if h == "am"
+                            else (total_sau_pm_counts[x] - total_sau_am_counts[x]),
+                        ),
+                        reverse=True,
+                    )
                     move_sid = sau_sids[0]
                     other_h = "pm" if h == "am" else "am"
                     other_p = by_int[move_sid][other_h]
@@ -2044,24 +2064,47 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             over_sids = [s_id for s_id, c in sau_counts.items() if c > 2]
             if not over_sids:
                 break
-            over_sids.sort(key=lambda x: sau_counts[x], reverse=True)
+            over_sids.sort(
+                key=lambda x: (
+                    sau_counts[x],
+                    total_sau_am_counts[x] + total_sau_pm_counts[x],
+                ),
+                reverse=True,
+            )
             swapped_sau = False
 
             for over_sid in over_sids:
                 under_sids = sorted(
                     [s_id for s_id in senior_interne_ids if sau_counts[s_id] < 2],
-                    key=lambda x: sau_counts[x],
+                    key=lambda x: (
+                        sau_counts[x],
+                        total_sau_am_counts[x] + total_sau_pm_counts[x],
+                    ),
                 )
                 if sau_counts[over_sid] > 3:
-                    under_sids += [s_id for s_id in senior_interne_ids if sau_counts[s_id] == 2]
+                    under_sids += sorted(
+                        [s_id for s_id in senior_interne_ids if sau_counts[s_id] == 2],
+                        key=lambda x: total_sau_am_counts[x] + total_sau_pm_counts[x],
+                    )
 
-                # 1. Échange direct sur la même demi-journée (en évitant de créer le même poste matin/PM)
+                # 1. Échange direct sur la même demi-journée (en privilégiant la demi-journée qui équilibre AM/PM)
                 for strict_mode in (True, False):
                     for under_sid in under_sids:
-                        for d_iso in active_isos:
-                            if d_iso == "2026-11-02":
-                                continue
-                            for h in ("am", "pm"):
+                        over_am = count_week_sau_half(over_sid, "am")
+                        over_pm = count_week_sau_half(over_sid, "pm")
+                        under_am = count_week_sau_half(under_sid, "am")
+                        under_pm = count_week_sau_half(under_sid, "pm")
+                        over_cum_diff = (total_sau_am_counts[over_sid] + over_am) - (total_sau_pm_counts[over_sid] + over_pm)
+                        under_cum_diff = (total_sau_am_counts[under_sid] + under_am) - (total_sau_pm_counts[under_sid] + under_pm)
+                        pref_halves = (
+                            ("am", "pm")
+                            if (over_am - over_pm, over_cum_diff) >= (under_am - under_pm, under_cum_diff)
+                            else ("pm", "am")
+                        )
+                        for h in pref_halves:
+                            for d_iso in active_isos:
+                                if d_iso == "2026-11-02":
+                                    continue
                                 other_h = "pm" if h == "am" else "am"
                                 by_int = schedule[d_iso]["byInterne"]
                                 if by_int[over_sid][h] != "TDM SAU":
@@ -2099,10 +2142,14 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             if mid_sid in (over_sid, under_sid):
                                 continue
                             step1_slot = None
-                            for d_iso in active_isos:
-                                if d_iso == "2026-11-02":
-                                    continue
-                                for h in ("am", "pm"):
+                            over_am = count_week_sau_half(over_sid, "am")
+                            over_pm = count_week_sau_half(over_sid, "pm")
+                            over_cum_diff = (total_sau_am_counts[over_sid] + over_am) - (total_sau_pm_counts[over_sid] + over_pm)
+                            pref_h1 = ("am", "pm") if (over_am - over_pm, over_cum_diff) >= (0, 0) else ("pm", "am")
+                            for h in pref_h1:
+                                for d_iso in active_isos:
+                                    if d_iso == "2026-11-02":
+                                        continue
                                     other_h = "pm" if h == "am" else "am"
                                     by_int = schedule[d_iso]["byInterne"]
                                     p_mid = by_int[mid_sid][h]
@@ -2120,10 +2167,14 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             if not step1_slot:
                                 continue
                             step2_slot = None
-                            for d_iso in active_isos:
-                                if d_iso == "2026-11-02":
-                                    continue
-                                for h in ("am", "pm"):
+                            under_am = count_week_sau_half(under_sid, "am")
+                            under_pm = count_week_sau_half(under_sid, "pm")
+                            under_cum_diff = (total_sau_am_counts[under_sid] + under_am) - (total_sau_pm_counts[under_sid] + under_pm)
+                            pref_h2 = ("am", "pm") if (under_am - under_pm, under_cum_diff) <= (0, 0) else ("pm", "am")
+                            for h in pref_h2:
+                                for d_iso in active_isos:
+                                    if d_iso == "2026-11-02":
+                                        continue
                                     if (d_iso, h) == step1_slot:
                                         continue
                                     other_h = "pm" if h == "am" else "am"
@@ -2178,8 +2229,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         else:
             rot_noe_w = (w_idx - 4) % 5
             noe_pref_sau_by_rot = {
-                0: {(1, "am"), (0, "pm"), (4, "am")},
-                1: {(1, "am"), (3, "am"), (4, "pm")},
+                0: {(1, "am"), (0, "pm"), (4, "pm")},
+                1: {(1, "am"), (2, "pm"), (4, "pm")},
                 2: {(1, "am"), (2, "pm"), (3, "pm")},
                 3: {(1, "am"), (2, "pm"), (4, "am")},
                 4: {(1, "am"), (0, "pm"), (3, "pm")},
@@ -2304,7 +2355,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             add_candidates.sort(
                 key=lambda s: (
                     0 if (datetime.date.fromisoformat(s[0]).weekday(), s[1]) in noe_pref_sau_slots else 1,
-                    0 if (w_idx >= 4 and ((s[1] == "pm" and sau_pm_cnt == 0) or (s[1] == "am" and sau_am_cnt == 0))) else 1,
+                    0 if (w_idx >= 4 and ((s[1] == "pm" and sau_pm_cnt < 2) or (s[1] == "am" and sau_am_cnt == 0))) else 1,
                     (datetime.date.fromisoformat(s[0]).weekday() * 2 + (0 if s[1] == "am" else 1) + w_idx * 3) % 10,
                 )
             )
@@ -2574,9 +2625,215 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if not resolved_conflict and pass_num >= 30:
                 break
 
-        # Mettre à jour le compteur cumulé d'IRM PM du semestre
+        # F) ÉQUILIBRAGE DES VACATIONS TDM SAU MATIN (AM) ET APRÈS-MIDI (PM) DANS LA LIMITE DU POSSIBLE :
+        #    1. Sur chaque semaine : privilégier 1 SAU Matin + 1 SAU Après-midi (au lieu de 2 Matins ou 2 Après-midis)
+        #    2. Sur le cumul du semestre : équilibrer l'écart (AM - PM) entre tous les internes seniors
+        def can_swap_sau_on_slot(d_slot: str, h_slot: str, from_sid: str, to_sid: str, strict_irm: bool = True) -> bool:
+            if d_slot == "2026-11-02":
+                return False
+            by_s = schedule[d_slot]["byInterne"]
+            if by_s[from_sid][h_slot] != "TDM SAU":
+                return False
+            other_p_s = by_s[to_sid][h_slot]
+            if other_p_s in non_active_codes or other_p_s == "TDM SAU":
+                return False
+            other_h_s = "pm" if h_slot == "am" else "am"
+            if is_same_poste_am_pm(other_p_s, by_s[from_sid][other_h_s], avoid_irm_both=strict_irm):
+                return False
+            if is_same_poste_am_pm("TDM SAU", by_s[to_sid][other_h_s], avoid_irm_both=strict_irm):
+                return False
+            if h_slot == "pm" and other_p_s == "IRM" and count_week_irm_pm(from_sid) >= 1:
+                return False
+            return True
+
+        def execute_sau_swap(d_slot: str, h_slot: str, from_sid: str, to_sid: str):
+            by_s = schedule[d_slot]["byInterne"]
+            nk_s = "noteAm" if h_slot == "am" else "notePm"
+            p_other = by_s[to_sid][h_slot]
+            n_other = by_s[to_sid].get(nk_s, "")
+            by_s[from_sid][h_slot] = p_other
+            by_s[from_sid][nk_s] = n_other
+            by_s[to_sid][h_slot] = "TDM SAU"
+            by_s[to_sid][nk_s] = ""
+
+        def try_transfer_sau_half(h_slot: str, from_sid: str, to_sid: str, strict_irm: bool = True) -> bool:
+            # 1. Échange direct sur un créneau h_slot de la semaine
+            for d_slot in active_isos:
+                if can_swap_sau_on_slot(d_slot, h_slot, from_sid, to_sid, strict_irm=strict_irm):
+                    execute_sau_swap(d_slot, h_slot, from_sid, to_sid)
+                    return True
+            # 2. Échange en 2 étapes sur le même type de demi-journée h_slot via un senior intermédiaire mid_sid
+            for mid_sid in senior_interne_ids:
+                if mid_sid in (from_sid, to_sid):
+                    continue
+                for d1 in active_isos:
+                    if not can_swap_sau_on_slot(d1, h_slot, from_sid, mid_sid, strict_irm=strict_irm):
+                        continue
+                    for d2 in active_isos:
+                        if d2 == d1:
+                            continue
+                        if can_swap_sau_on_slot(d2, h_slot, mid_sid, to_sid, strict_irm=strict_irm):
+                            execute_sau_swap(d1, h_slot, from_sid, mid_sid)
+                            execute_sau_swap(d2, h_slot, mid_sid, to_sid)
+                            return True
+            return False
+
+        def try_same_day_cross_swap(sid_am: str, sid_pm: str, strict_irm: bool = True) -> bool:
+            for d_same in active_isos:
+                if d_same == "2026-11-02":
+                    continue
+                by_s = schedule[d_same]["byInterne"]
+                if by_s[sid_am]["am"] != "TDM SAU" or by_s[sid_pm]["pm"] != "TDM SAU":
+                    continue
+                p_am_other = by_s[sid_pm]["am"]
+                p_pm_other = by_s[sid_am]["pm"]
+                if p_am_other in non_active_codes or p_am_other == "TDM SAU":
+                    continue
+                if p_pm_other in non_active_codes or p_pm_other == "TDM SAU":
+                    continue
+                if is_same_poste_am_pm(p_am_other, "TDM SAU", avoid_irm_both=strict_irm):
+                    continue
+                if is_same_poste_am_pm("TDM SAU", p_pm_other, avoid_irm_both=strict_irm):
+                    continue
+                if p_pm_other == "IRM" and count_week_irm_pm(sid_pm) >= 1:
+                    continue
+                n_am_other = by_s[sid_pm].get("noteAm", "")
+                n_pm_other = by_s[sid_am].get("notePm", "")
+                by_s[sid_am]["am"] = p_am_other
+                by_s[sid_am]["noteAm"] = n_am_other
+                by_s[sid_pm]["am"] = "TDM SAU"
+                by_s[sid_pm]["noteAm"] = ""
+                by_s[sid_pm]["pm"] = p_pm_other
+                by_s[sid_pm]["notePm"] = n_pm_other
+                by_s[sid_am]["pm"] = "TDM SAU"
+                by_s[sid_am]["notePm"] = ""
+                return True
+            return False
+
+        for _ in range(40):
+            swapped_am_pm_sau = False
+            sorted_seniors_am = sorted(
+                senior_interne_ids,
+                key=lambda s: (
+                    count_week_sau_half(s, "am") - count_week_sau_half(s, "pm"),
+                    (total_sau_am_counts[s] + count_week_sau_half(s, "am")) - (total_sau_pm_counts[s] + count_week_sau_half(s, "pm")),
+                ),
+                reverse=True,
+            )
+            sorted_seniors_pm = list(reversed(sorted_seniors_am))
+
+            for strict_irm in (True, False):
+                for sid_a in sorted_seniors_am:
+                    w_am_a = count_week_sau_half(sid_a, "am")
+                    w_pm_a = count_week_sau_half(sid_a, "pm")
+                    cum_diff_a = (total_sau_am_counts[sid_a] + w_am_a) - (total_sau_pm_counts[sid_a] + w_pm_a)
+                    if w_am_a == 0:
+                        continue
+                    for sid_b in sorted_seniors_pm:
+                        if sid_b == sid_a:
+                            continue
+                        w_am_b = count_week_sau_half(sid_b, "am")
+                        w_pm_b = count_week_sau_half(sid_b, "pm")
+                        cum_diff_b = (total_sau_am_counts[sid_b] + w_am_b) - (total_sau_pm_counts[sid_b] + w_pm_b)
+                        if w_pm_b == 0:
+                            continue
+                        before_week_imb = abs(w_am_a - w_pm_a) + abs(w_am_b - w_pm_b)
+                        after_week_imb = abs((w_am_a - 1) - (w_pm_a + 1)) + abs((w_am_b + 1) - (w_pm_b - 1))
+                        before_cum_spread = (cum_diff_a ** 2) + (cum_diff_b ** 2)
+                        after_cum_spread = ((cum_diff_a - 2) ** 2) + ((cum_diff_b + 2) ** 2)
+                        if not (
+                            (after_week_imb < before_week_imb and after_cum_spread <= before_cum_spread + 12)
+                            or (after_week_imb == before_week_imb and after_cum_spread < before_cum_spread)
+                        ):
+                            continue
+
+                        if try_same_day_cross_swap(sid_a, sid_b, strict_irm=strict_irm):
+                            swapped_am_pm_sau = True
+                            break
+
+                        snap_week = {
+                            d_s: {k_s: dict(v_s) for k_s, v_s in schedule[d_s]["byInterne"].items()}
+                            for d_s in active_isos
+                        }
+                        if (
+                            try_transfer_sau_half("am", sid_a, sid_b, strict_irm=strict_irm)
+                            and try_transfer_sau_half("pm", sid_b, sid_a, strict_irm=strict_irm)
+                        ):
+                            swapped_am_pm_sau = True
+                            break
+                        else:
+                            for d_s in active_isos:
+                                schedule[d_s]["byInterne"] = snap_week[d_s]
+                    if swapped_am_pm_sau:
+                        break
+                if swapped_am_pm_sau:
+                    break
+
+                # Échange simple d'1 demi-journée SAU entre un senior à 2 SAU et un senior à 1 SAU :
+                # - soit pour résorber un 0M/2P + 1M/0P -> 0M/1P + 1M/1P (ou 2M/0P + 0M/1P -> 1M/0P + 1M/1P)
+                # - soit pour équilibrer le cumul AM/PM (1M/1P + 0M/1P -> 0M/1P + 1M/1P)
+                for sid_from in senior_interne_ids:
+                    w_am_f = count_week_sau_half(sid_from, "am")
+                    w_pm_f = count_week_sau_half(sid_from, "pm")
+                    if w_am_f + w_pm_f != 2:
+                        continue
+                    for sid_to in senior_interne_ids:
+                        if sid_to == sid_from:
+                            continue
+                        w_am_t = count_week_sau_half(sid_to, "am")
+                        w_pm_t = count_week_sau_half(sid_to, "pm")
+                        if w_am_t + w_pm_t != 1:
+                            continue
+                        # Cas 1 : sid_from est à 0M/2P et sid_to est à 1M/0P -> transférer 1 PM de sid_from vers sid_to
+                        if w_am_f == 0 and w_pm_f == 2 and w_am_t == 1 and w_pm_t == 0:
+                            if try_transfer_sau_half("pm", sid_from, sid_to, strict_irm=strict_irm):
+                                swapped_am_pm_sau = True
+                                break
+                        # Cas 2 : sid_from est à 2M/0P et sid_to est à 0M/1P -> transférer 1 AM de sid_from vers sid_to
+                        if w_am_f == 2 and w_pm_f == 0 and w_am_t == 0 and w_pm_t == 1:
+                            if try_transfer_sau_half("am", sid_from, sid_to, strict_irm=strict_irm):
+                                swapped_am_pm_sau = True
+                                break
+                        # Cas 3 : sid_from est à 1M/1P et sid_to est à 0M/1P -> transférer 1 AM de sid_from vers sid_to
+                        if w_am_f == 1 and w_pm_f == 1 and w_am_t == 0 and w_pm_t == 1:
+                            cum_am_f = total_sau_am_counts[sid_from] + w_am_f
+                            cum_am_t = total_sau_am_counts[sid_to] + w_am_t
+                            cum_pm_f = total_sau_pm_counts[sid_from] + w_pm_f
+                            cum_pm_t = total_sau_pm_counts[sid_to] + w_pm_t
+                            cum_diff_f = cum_am_f - cum_pm_f
+                            cum_diff_t = cum_am_t - cum_pm_t
+                            if (cum_am_f >= cum_am_t + 2 and cum_diff_f >= cum_diff_t + 2) or (
+                                (cum_am_f + cum_pm_f) >= (cum_am_t + cum_pm_t) + 2 and cum_am_f >= cum_am_t + 1
+                            ):
+                                if try_transfer_sau_half("am", sid_from, sid_to, strict_irm=strict_irm):
+                                    swapped_am_pm_sau = True
+                                    break
+                        # Cas 4 : sid_from est à 1M/1P et sid_to est à 1M/0P -> transférer 1 PM de sid_from vers sid_to
+                        if w_am_f == 1 and w_pm_f == 1 and w_am_t == 1 and w_pm_t == 0:
+                            cum_am_f = total_sau_am_counts[sid_from] + w_am_f
+                            cum_am_t = total_sau_am_counts[sid_to] + w_am_t
+                            cum_pm_f = total_sau_pm_counts[sid_from] + w_pm_f
+                            cum_pm_t = total_sau_pm_counts[sid_to] + w_pm_t
+                            cum_diff_f = cum_am_f - cum_pm_f
+                            cum_diff_t = cum_am_t - cum_pm_t
+                            if (cum_pm_f >= cum_pm_t + 2 and cum_diff_f <= cum_diff_t - 2) or (
+                                (cum_am_f + cum_pm_f) >= (cum_am_t + cum_pm_t) + 2 and cum_pm_f >= cum_pm_t + 1
+                            ):
+                                if try_transfer_sau_half("pm", sid_from, sid_to, strict_irm=strict_irm):
+                                    swapped_am_pm_sau = True
+                                    break
+                    if swapped_am_pm_sau:
+                        break
+                if swapped_am_pm_sau:
+                    break
+            if not swapped_am_pm_sau:
+                break
+
+        # Mettre à jour les compteurs cumulés d'IRM PM et de TDM SAU (AM/PM) du semestre
         for iid in all_interne_ids:
             total_irm_pm_counts[iid] += count_week_irm_pm(iid)
+            total_sau_am_counts[iid] += count_week_sau_half(iid, "am")
+            total_sau_pm_counts[iid] += count_week_sau_half(iid, "pm")
 
         # 5C. Mise à jour des notes de binôme de Noé (Phase Socle) et des remplacements exceptionnels (TDM SAU / IRM PM)
         final_senior_sau = {s_id: count_week_sau(s_id) for s_id in senior_interne_ids}
