@@ -1358,6 +1358,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
     total_cs_tue_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     total_cs_fri_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     total_lecture_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    # Suivi cumulé des vacations d'Échographie (ECHO) et d'IRM (Matin / PM) ainsi que Scanners diagnostiques sur le semestre
+    total_echo_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_echo_am_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_echo_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_irm_am_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_achard_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_ollier_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
 
     for w_idx, iso_list in sorted(weeks_map.items()):
         active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
@@ -2355,7 +2362,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     by_int = schedule[d_iso]["byInterne"]
                     swapped_achard = False
                     used_pm_s = {by_int[k_id][h] for k_id in all_interne_ids}
-                    target_cs_lec = "CONSULTATION" if "CONSULTATION" not in used_pm_s else "LECTURE"
+                    target_cs_lec = "CONSULTATION" if ("CONSULTATION" not in used_pm_s and d_iso >= "2027-03-01") else "LECTURE"
                     target_note_s = (
                         ("Consultation Internes (Mardi PM)" if wd_s == 1 else "Consultation Internes (Vendredi PM)")
                         if target_cs_lec == "CONSULTATION"
@@ -3160,6 +3167,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         ) -> bool:
             if d_slot == "2026-11-02":
                 return False
+            if to_id == "noe" and d_slot < "2027-03-01":
+                return False
             wd_s = datetime.date.fromisoformat(d_slot).weekday()
             by_s = schedule[d_slot]["byInterne"]
             if by_s[from_id]["pm"] != "CONSULTATION":
@@ -3169,6 +3178,9 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 return False
             if wd_s == 1 and p_other == "LECTURE" and from_id == "noe":
                 return False
+            if "noe" in (from_id, to_id) and p_other != "LECTURE" and from_id != "noe":
+                if any(by_s[s_id]["pm"] == p_other for s_id in senior_interne_ids if s_id != from_id):
+                    return False
             if is_same_poste_am_pm(by_s[from_id]["am"], p_other, avoid_irm_both=strict_irm):
                 return False
             if is_same_poste_am_pm(by_s[to_id]["am"], "CONSULTATION", avoid_irm_both=strict_irm):
@@ -3183,14 +3195,60 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             by_s[to_id]["pm"] = "CONSULTATION"
             by_s[to_id]["notePm"] = format_pm_note_for_poste(d_slot, to_id, "CONSULTATION")
 
-        # H-1) Équilibrer le nombre hebdomadaire (max 1/semaine) et cumulé de CONSULTATION entre les 6 internes
+        # H-0) Avant le 01/03/2027, Noé ne fait aucune consultation : transférer toute CONSULTATION éventuelle de Noé vers un senior
+        for d_iso in active_isos:
+            if d_iso < "2027-03-01" and schedule[d_iso]["byInterne"]["noe"]["pm"] == "CONSULTATION":
+                swapped_noe_cs = False
+                cands_s = sorted(
+                    [s for s in senior_interne_ids if count_week_cs(s) == 0],
+                    key=lambda s: (total_cs_counts[s] + count_week_cs(s), -(total_lecture_counts[s] + count_week_lecture(s))),
+                )
+                for strict_irm in (True, False):
+                    for allowed_postes in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
+                        for u_sid in cands_s:
+                            if can_swap_cs_on_slot(d_iso, "noe", u_sid, allowed_postes, strict_irm=strict_irm):
+                                execute_cs_swap(d_iso, "noe", u_sid)
+                                swapped_noe_cs = True
+                                break
+                        if swapped_noe_cs:
+                            break
+                        for mid_sid in senior_interne_ids:
+                            if count_week_cs(mid_sid) != 1:
+                                continue
+                            if not can_swap_cs_on_slot(d_iso, "noe", mid_sid, allowed_postes, strict_irm=strict_irm):
+                                continue
+                            d2 = next(
+                                (
+                                    dt
+                                    for dt in active_isos
+                                    if dt != d_iso and schedule[dt]["byInterne"][mid_sid]["pm"] == "CONSULTATION"
+                                ),
+                                None,
+                            )
+                            if not d2:
+                                continue
+                            for u_sid in cands_s:
+                                if can_swap_cs_on_slot(d2, mid_sid, u_sid, allowed_postes, strict_irm=strict_irm):
+                                    execute_cs_swap(d2, mid_sid, u_sid)
+                                    execute_cs_swap(d_iso, "noe", mid_sid)
+                                    swapped_noe_cs = True
+                                    break
+                            if swapped_noe_cs:
+                                break
+                        if swapped_noe_cs:
+                            break
+                    if swapped_noe_cs:
+                        break
+
+        # H-1) Équilibrer le nombre hebdomadaire (max 1/semaine) et cumulé de CONSULTATION
+        #      (cible : 9 pour chacun des 5 seniors, et 3 pour Noé sur les 2 derniers mois Mars-Avril)
         for _ in range(45):
             swapped_cs = False
             sorted_cs_iids = sorted(
                 all_interne_ids,
                 key=lambda i: (
                     1 if count_week_cs(i) >= 2 else 0,
-                    total_cs_counts[i] + count_week_cs(i),
+                    (total_cs_counts[i] + count_week_cs(i)) - (3 if i == "noe" else 9),
                     1 if i == "noe" else 0,
                     count_week_cs(i),
                     -(total_lecture_counts[i] + count_week_lecture(i)),
@@ -3204,19 +3262,22 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         if w_over == 0:
                             continue
                         c_over = total_cs_counts[over_id] + w_over
+                        eff_over = c_over - (3 if over_id == "noe" else 9)
                         for under_id in reversed(sorted_cs_iids):
                             if under_id == over_id:
                                 continue
                             w_under = count_week_cs(under_id)
                             c_under = total_cs_counts[under_id] + w_under
+                            eff_under = c_under - (3 if under_id == "noe" else 9)
+                            if under_id == "noe" and c_under >= 3:
+                                continue
                             if not (
                                 (w_over >= 2 and w_under == 0)
-                                or (c_over >= c_under + 2 and w_under == 0)
+                                or (eff_over >= eff_under + 2 and w_under == 0)
                                 or (
                                     over_id == "noe"
                                     and under_id in senior_interne_ids
-                                    and c_over >= c_under + 1
-                                    and c_over > 8
+                                    and c_over > 3
                                     and w_under == 0
                                 )
                             ):
@@ -3283,15 +3344,17 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     continue
                 w_from = count_week_cs(from_id)
                 c_from = total_cs_counts[from_id] + w_from
+                eff_from = c_from - (3 if from_id == "noe" else 9)
                 from_wd_cnt = (total_cs_tue_counts[from_id] if wd_tf == 1 else total_cs_fri_counts[from_id]) + 1
                 from_oth_cnt = total_cs_fri_counts[from_id] if wd_tf == 1 else total_cs_tue_counts[from_id]
                 for to_id in all_interne_ids:
                     if to_id == from_id or count_week_cs(to_id) != 0:
                         continue
                     c_to = total_cs_counts[to_id]
-                    if c_from < c_to + 1:
+                    eff_to = c_to - (3 if to_id == "noe" else 9)
+                    if eff_from < eff_to + 1:
                         continue
-                    if to_id == "noe" and c_to >= 8:
+                    if to_id == "noe" and (d_iso < "2027-03-01" or c_to >= 3):
                         continue
                     to_wd_cnt = total_cs_tue_counts[to_id] if wd_tf == 1 else total_cs_fri_counts[to_id]
                     to_oth_cnt = total_cs_fri_counts[to_id] if wd_tf == 1 else total_cs_tue_counts[to_id]
@@ -3353,7 +3416,137 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if not swapped_lec:
                 break
 
-        # Mettre à jour les compteurs cumulés d'IRM PM, de TDM SAU (AM/PM), de Poste C (GESTES (C) / RI) et de Consultations / Lectures du semestre
+        # I) ÉQUILIBRAGE HEBDOMADAIRE ET CUMULÉ DES VACATIONS D'ÉCHOGRAPHIE (ECHO) ET D'IRM (IRM 3T / 1,5T / IRM PM)
+        #    ainsi que des Scanners diagnostiques (SCAN ACHARD / TDM OLLIER DIAG) entre tous les internes :
+        diag_balance_postes = ("ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG")
+
+        def count_week_echo(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "ECHO"
+            )
+
+        def count_week_echo_half(interne_id: str, half_k: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if schedule[d_chk]["byInterne"][interne_id][half_k] == "ECHO"
+            )
+
+        def count_week_irm_am(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if schedule[d_chk]["byInterne"][interne_id]["am"] in ("IRM 3T", "IRM 1,5T")
+            )
+
+        def count_week_achard(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "SCAN ACHARD"
+            )
+
+        def count_week_ollier(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "TDM OLLIER DIAG"
+            )
+
+        def can_swap_diag_on_slot(d_slot: str, h_slot: str, i1: str, i2: str) -> bool:
+            if d_slot == "2026-11-02":
+                return False
+            by_s = schedule[d_slot]["byInterne"]
+            p1 = by_s[i1][h_slot]
+            p2 = by_s[i2][h_slot]
+            if p1 == p2 or p1 not in diag_balance_postes or p2 not in diag_balance_postes:
+                return False
+            if "noe" in (i1, i2):
+                sen_id = i2 if i1 == "noe" else i1
+                p_noe = p1 if i1 == "noe" else p2
+                if any(by_s[s_other][h_slot] == p_noe for s_other in senior_interne_ids if s_other != sen_id):
+                    return False
+            other_h_s = "pm" if h_slot == "am" else "am"
+            if is_same_poste_am_pm(p2, by_s[i1][other_h_s], avoid_irm_both=True):
+                return False
+            if is_same_poste_am_pm(p1, by_s[i2][other_h_s], avoid_irm_both=True):
+                return False
+            if h_slot == "pm":
+                if p2 == "IRM" and p1 != "IRM" and count_week_irm_pm(i1) >= 1:
+                    return False
+                if p1 == "IRM" and p2 != "IRM" and count_week_irm_pm(i2) >= 1:
+                    return False
+            return True
+
+        def execute_diag_swap(d_slot: str, h_slot: str, i1: str, i2: str):
+            by_s = schedule[d_slot]["byInterne"]
+            nk_s = "noteAm" if h_slot == "am" else "notePm"
+            p1, p2 = by_s[i1][h_slot], by_s[i2][h_slot]
+            by_s[i1][h_slot] = p2
+            by_s[i1][nk_s] = f"Phase Socle ({p2})" if i1 == "noe" else ""
+            by_s[i2][h_slot] = p1
+            by_s[i2][nk_s] = f"Phase Socle ({p1})" if i2 == "noe" else ""
+
+        def eval_week_cum_diag_score() -> float:
+            w_echo = {i: count_week_echo(i) for i in all_interne_ids}
+            w_echo_am = {i: count_week_echo_half(i, "am") for i in all_interne_ids}
+            w_echo_pm = {i: count_week_echo_half(i, "pm") for i in all_interne_ids}
+            w_irm_am = {i: count_week_irm_am(i) for i in all_interne_ids}
+            w_irm_pm = {i: count_week_irm_pm(i) for i in all_interne_ids}
+            w_ach = {i: count_week_achard(i) for i in all_interne_ids}
+            w_oll = {i: count_week_ollier(i) for i in all_interne_ids}
+
+            c_echo = [total_echo_counts[i] + w_echo[i] for i in all_interne_ids]
+            c_echo_am = [total_echo_am_counts[i] + w_echo_am[i] for i in all_interne_ids]
+            c_echo_pm = [total_echo_pm_counts[i] + w_echo_pm[i] for i in all_interne_ids]
+            c_irm_am = [total_irm_am_counts[i] + w_irm_am[i] for i in all_interne_ids]
+            c_irm_pm = [total_irm_pm_counts[i] + w_irm_pm[i] for i in all_interne_ids]
+            c_irm_tot = [c_irm_am[k] + c_irm_pm[k] for k in range(len(all_interne_ids))]
+            c_ach_sen = [total_achard_counts[s] + w_ach[s] for s in senior_interne_ids]
+            c_oll_sen = [total_ollier_counts[s] + w_oll[s] for s in senior_interne_ids]
+
+            def _var(vals: list[int | float]) -> float:
+                mean_v = sum(vals) / len(vals)
+                return sum((v - mean_v) ** 2 for v in vals)
+
+            return (
+                16.0 * _var(c_echo)
+                + 16.0 * _var(c_irm_tot)
+                + 10.0 * _var(c_irm_am)
+                + 10.0 * _var(c_irm_pm)
+                + 3.0 * _var(c_echo_am)
+                + 3.0 * _var(c_echo_pm)
+                + 4.0 * _var(c_ach_sen)
+                + 4.0 * _var(c_oll_sen)
+                + 4.0 * _var(list(w_echo.values()))
+                + 4.0 * _var([w_irm_am[i] + w_irm_pm[i] for i in all_interne_ids])
+            )
+
+        for _ in range(60):
+            improved_diag = False
+            cur_diag_score = eval_week_cum_diag_score()
+            for d_iso in active_isos:
+                for h_d in ("am", "pm"):
+                    for idx1 in range(len(all_interne_ids)):
+                        for idx2 in range(idx1 + 1, len(all_interne_ids)):
+                            i1, i2 = all_interne_ids[idx1], all_interne_ids[idx2]
+                            if can_swap_diag_on_slot(d_iso, h_d, i1, i2):
+                                execute_diag_swap(d_iso, h_d, i1, i2)
+                                new_diag_score = eval_week_cum_diag_score()
+                                if new_diag_score < cur_diag_score - 1e-6:
+                                    cur_diag_score = new_diag_score
+                                    improved_diag = True
+                                else:
+                                    execute_diag_swap(d_iso, h_d, i1, i2)
+            if not improved_diag:
+                break
+
+        # Mettre à jour les compteurs cumulés d'IRM PM, de TDM SAU (AM/PM), de Poste C (GESTES (C) / RI), de Consultations / Lectures et d'Écho / IRM du semestre
         for iid in all_interne_ids:
             total_irm_pm_counts[iid] += count_week_irm_pm(iid)
             total_sau_am_counts[iid] += count_week_sau_half(iid, "am")
@@ -3366,6 +3559,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             total_cs_tue_counts[iid] += count_week_cs_wd(iid, 1)
             total_cs_fri_counts[iid] += count_week_cs_wd(iid, 4)
             total_lecture_counts[iid] += count_week_lecture(iid)
+            total_echo_counts[iid] += count_week_echo(iid)
+            total_echo_am_counts[iid] += count_week_echo_half(iid, "am")
+            total_echo_pm_counts[iid] += count_week_echo_half(iid, "pm")
+            total_irm_am_counts[iid] += count_week_irm_am(iid)
+            total_achard_counts[iid] += count_week_achard(iid)
+            total_ollier_counts[iid] += count_week_ollier(iid)
 
         # 5C. Mise à jour des notes de binôme de Noé (Phase Socle) et des remplacements exceptionnels (TDM SAU / IRM PM)
         final_senior_sau = {s_id: count_week_sau(s_id) for s_id in senior_interne_ids}
@@ -4612,6 +4811,8 @@ def build_full_dataset() -> dict:
     def _can_swap_cs_global(d_iso: str, from_id: str, to_id: str, allowed_postes: tuple[str, ...]) -> bool:
         if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
             return False
+        if to_id == "noe" and d_iso < "2027-03-01":
+            return False
         if isinstance(custom_vacations.get(f"{d_iso}__{from_id}"), dict) and custom_vacations[f"{d_iso}__{from_id}"].get("pm"):
             return False
         if isinstance(custom_vacations.get(f"{d_iso}__{to_id}"), dict) and custom_vacations[f"{d_iso}__{to_id}"].get("pm"):
@@ -4624,6 +4825,9 @@ def build_full_dataset() -> dict:
             return False
         if wd_d == 1 and p_other == "LECTURE" and from_id == "noe":
             return False
+        if "noe" in (from_id, to_id) and p_other != "LECTURE" and from_id != "noe":
+            if any(_effective_slot_post(d_iso, s_id, "pm") == p_other for s_id in all_iids_global if s_id not in ("noe", from_id)):
+                return False
         if _is_same_poste_day_global(_effective_slot_post(d_iso, from_id, "am"), p_other):
             return False
         if _is_same_poste_day_global(_effective_slot_post(d_iso, to_id, "am"), "CONSULTATION"):
@@ -4641,6 +4845,46 @@ def build_full_dataset() -> dict:
         by_s[to_id]["note"] = " • ".join(x for x in (by_s[to_id].get("noteAm", ""), by_s[to_id].get("notePm", "")) if x)
         rebuild_day_lists(schedule[d_iso])
 
+    senior_iids_global = [x for x in all_iids_global if x != "noe"]
+
+    # 0) Avant le 01/03/2027, transférer toute consultation de Noé vers un interne senior
+    for mon_iso in unlocked_mons_global:
+        for d_iso in weeks_by_mon_global[mon_iso]:
+            if d_iso < "2027-03-01" and not schedule[d_iso].get("holiday") and _effective_slot_post(d_iso, "noe", "pm") == "CONSULTATION":
+                sw_n = False
+                cands_s = sorted([s for s in senior_iids_global if _week_cs_cnt(mon_iso, s) == 0], key=_total_cs_cnt)
+                for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
+                    for u_id in cands_s:
+                        if _can_swap_cs_global(d_iso, "noe", u_id, allowed_list):
+                            _exec_swap_cs_global(d_iso, "noe", u_id)
+                            sw_n = True
+                            break
+                    if sw_n:
+                        break
+                    for mid_s in senior_iids_global:
+                        if _week_cs_cnt(mon_iso, mid_s) != 1 or not _can_swap_cs_global(d_iso, "noe", mid_s, allowed_list):
+                            continue
+                        d2 = next(
+                            (
+                                dt
+                                for dt in weeks_by_mon_global[mon_iso]
+                                if dt != d_iso and not schedule[dt].get("holiday") and _effective_slot_post(dt, mid_s, "pm") == "CONSULTATION"
+                            ),
+                            None,
+                        )
+                        if not d2:
+                            continue
+                        for u_id in cands_s:
+                            if _can_swap_cs_global(d2, mid_s, u_id, allowed_list):
+                                _exec_swap_cs_global(d2, mid_s, u_id)
+                                _exec_swap_cs_global(d_iso, "noe", mid_s)
+                                sw_n = True
+                                break
+                        if sw_n:
+                            break
+                    if sw_n:
+                        break
+
     # 1) Éliminer les semaines avec >= 2 consultations pour un même interne
     for mon_iso in unlocked_mons_global:
         for _ in range(10):
@@ -4650,8 +4894,8 @@ def build_full_dataset() -> dict:
                     if _week_cs_cnt(mon_iso, over_id) < 2:
                         continue
                     under_cands = sorted(
-                        [u for u in all_iids_global if u != over_id and _week_cs_cnt(mon_iso, u) == 0],
-                        key=_total_cs_cnt,
+                        [u for u in all_iids_global if u != over_id and _week_cs_cnt(mon_iso, u) == 0 and not (u == "noe" and mon_iso < "2027-03-01")],
+                        key=lambda x: _total_cs_cnt(x) - (3 if x == "noe" else 9),
                     )
                     for under_id in under_cands:
                         for d_iso in weeks_by_mon_global[mon_iso]:
@@ -4668,24 +4912,34 @@ def build_full_dataset() -> dict:
             if not sw:
                 break
 
-    # 2) Égaliser le total de CONSULTATION sur le semestre (cible 8 par interne)
+    # 2) Égaliser le total de CONSULTATION sur le semestre (cible 9 pour chacun des 5 seniors, 3 pour Noé sur les 2 derniers mois)
+    target_cs_global = {iid: (3 if iid == "noe" else 9) for iid in all_iids_global}
     for _ in range(80):
         swapped_g = False
         counts_g = {iid: _total_cs_cnt(iid) for iid in all_iids_global}
-        sorted_iids_g = sorted(all_iids_global, key=lambda x: (-counts_g[x], 1 if x == "noe" else 0))
-        max_c = counts_g[sorted_iids_g[0]]
-        min_c = counts_g[sorted_iids_g[-1]]
-        if max_c - min_c <= 1 and not (counts_g["noe"] > min_c and counts_g["noe"] > 8):
-            break
+        over_iids = sorted(
+            [i for i in all_iids_global if counts_g[i] > target_cs_global[i]],
+            key=lambda x: (counts_g[x] - target_cs_global[x], 1 if x == "noe" else 0),
+            reverse=True,
+        )
+        under_iids = sorted(
+            [i for i in all_iids_global if counts_g[i] < target_cs_global[i]],
+            key=lambda x: (counts_g[x] - target_cs_global[x], 1 if x == "noe" else 0),
+        )
+        if not over_iids and not under_iids:
+            sen_cnts = [counts_g[s] for s in senior_iids_global]
+            if max(sen_cnts) - min(sen_cnts) <= 1:
+                break
+            over_iids = [s for s in senior_iids_global if counts_g[s] == max(sen_cnts)]
+            under_iids = [s for s in senior_iids_global if counts_g[s] == min(sen_cnts)]
         for allowed_list in (("LECTURE",), ("LECTURE", "ECHO", "SCAN ACHARD", "TDM OLLIER DIAG")):
-            for over_id in sorted_iids_g:
-                for under_id in reversed(sorted_iids_g):
+            for over_id in over_iids:
+                for under_id in under_iids:
                     if under_id == over_id:
                         continue
-                    diff = counts_g[over_id] - counts_g[under_id]
-                    if not (diff >= 2 or (over_id == "noe" and diff >= 1 and counts_g[over_id] > 8)):
-                        continue
                     for mon_iso in unlocked_mons_global:
+                        if under_id == "noe" and mon_iso < "2027-03-01":
+                            continue
                         if _week_cs_cnt(mon_iso, over_id) == 0 or _week_cs_cnt(mon_iso, under_id) > 0:
                             continue
                         for d_iso in weeks_by_mon_global[mon_iso]:
@@ -4719,9 +4973,13 @@ def build_full_dataset() -> dict:
                         continue
                     if (tue_c[over_tue_id] - fri_c[over_tue_id]) + (fri_c[over_fri_id] - tue_c[over_fri_id]) < 4:
                         continue
-                    if abs(tot_c[over_tue_id] - tot_c[over_fri_id]) > 1:
+                    eff_tue = tot_c[over_tue_id] - target_cs_global[over_tue_id]
+                    eff_fri = tot_c[over_fri_id] - target_cs_global[over_fri_id]
+                    if abs(eff_tue - eff_fri) > 1:
                         continue
                     for mon_tue in unlocked_mons_global:
+                        if over_fri_id == "noe" and mon_tue < "2027-03-01":
+                            continue
                         if _week_cs_cnt(mon_tue, over_tue_id) == 0 or _week_cs_cnt(mon_tue, over_fri_id) > 0:
                             continue
                         tue_day = next(
@@ -4735,6 +4993,8 @@ def build_full_dataset() -> dict:
                         if not tue_day:
                             continue
                         for mon_fri in unlocked_mons_global:
+                            if over_tue_id == "noe" and mon_fri < "2027-03-01":
+                                continue
                             if mon_fri == mon_tue or _week_cs_cnt(mon_fri, over_fri_id) == 0 or _week_cs_cnt(mon_fri, over_tue_id) > 0:
                                 continue
                             fri_day = next(
@@ -4761,6 +5021,139 @@ def build_full_dataset() -> dict:
                 break
         if not swapped_tf:
             break
+
+    # 4) Équilibrage global final des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM Matin / IRM PM / Total IRM)
+    #    ainsi que des Scanners diagnostiques (SCAN ACHARD / TDM OLLIER DIAG) sur les semaines non verrouillées :
+    diag_postes_global = ("ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG")
+
+    def _week_irm_pm_cnt_global(mon_iso: str, iid: str) -> int:
+        return sum(
+            1
+            for d_iso in weeks_by_mon_global[mon_iso]
+            if not schedule[d_iso].get("holiday") and _effective_slot_post(d_iso, iid, "pm") == "IRM"
+        )
+
+    def _can_swap_diag_global(d_iso: str, h_key: str, i1: str, i2: str) -> bool:
+        if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+            return False
+        if isinstance(custom_vacations.get(f"{d_iso}__{i1}"), dict) and custom_vacations[f"{d_iso}__{i1}"].get(h_key):
+            return False
+        if isinstance(custom_vacations.get(f"{d_iso}__{i2}"), dict) and custom_vacations[f"{d_iso}__{i2}"].get(h_key):
+            return False
+        p1 = _effective_slot_post(d_iso, i1, h_key)
+        p2 = _effective_slot_post(d_iso, i2, h_key)
+        if p1 == p2 or p1 not in diag_postes_global or p2 not in diag_postes_global:
+            return False
+        if "noe" in (i1, i2):
+            sen_id = i2 if i1 == "noe" else i1
+            p_noe = p1 if i1 == "noe" else p2
+            if any(_effective_slot_post(d_iso, s_other, h_key) == p_noe for s_other in senior_iids_global if s_other != sen_id):
+                return False
+        other_h = "pm" if h_key == "am" else "am"
+        if _is_same_poste_day_global(p2, _effective_slot_post(d_iso, i1, other_h)):
+            return False
+        if _is_same_poste_day_global(p1, _effective_slot_post(d_iso, i2, other_h)):
+            return False
+        if h_key == "pm":
+            mon_iso = _mon_of_iso(d_iso)
+            if p2 == "IRM" and p1 != "IRM" and _week_irm_pm_cnt_global(mon_iso, i1) >= 1:
+                return False
+            if p1 == "IRM" and p2 != "IRM" and _week_irm_pm_cnt_global(mon_iso, i2) >= 1:
+                return False
+        return True
+
+    def _exec_swap_diag_global(d_iso: str, h_key: str, i1: str, i2: str) -> None:
+        by_s = schedule[d_iso]["byInterne"]
+        nk = "noteAm" if h_key == "am" else "notePm"
+        p1, p2 = by_s[i1][h_key], by_s[i2][h_key]
+        by_s[i1][h_key] = p2
+        by_s[i1][nk] = f"Phase Socle ({p2})" if i1 == "noe" else ""
+        by_s[i1]["note"] = " • ".join(x for x in (by_s[i1].get("noteAm", ""), by_s[i1].get("notePm", "")) if x)
+        by_s[i2][h_key] = p1
+        by_s[i2][nk] = f"Phase Socle ({p1})" if i2 == "noe" else ""
+        by_s[i2]["note"] = " • ".join(x for x in (by_s[i2].get("noteAm", ""), by_s[i2].get("notePm", "")) if x)
+
+    def _eval_global_diag_score() -> float:
+        echo_am = {i: 0 for i in all_iids_global}
+        echo_pm = {i: 0 for i in all_iids_global}
+        irm_am = {i: 0 for i in all_iids_global}
+        irm_pm = {i: 0 for i in all_iids_global}
+        achard = {i: 0 for i in all_iids_global}
+        ollier = {i: 0 for i in all_iids_global}
+        w_pen = 0.0
+        for mon_iso, d_list in weeks_by_mon_global.items():
+            we = {i: 0 for i in all_iids_global}
+            wi = {i: 0 for i in all_iids_global}
+            for d_iso in d_list:
+                if schedule[d_iso].get("holiday"):
+                    continue
+                for h_k in ("am", "pm"):
+                    for i in all_iids_global:
+                        v = _effective_slot_post(d_iso, i, h_k)
+                        if v == "ECHO":
+                            if h_k == "am":
+                                echo_am[i] += 1
+                            else:
+                                echo_pm[i] += 1
+                            we[i] += 1
+                        elif v in ("IRM 3T", "IRM 1,5T") and h_k == "am":
+                            irm_am[i] += 1
+                            wi[i] += 1
+                        elif v == "IRM" and h_k == "pm":
+                            irm_pm[i] += 1
+                            wi[i] += 1
+                        elif v == "SCAN ACHARD":
+                            achard[i] += 1
+                        elif v == "TDM OLLIER DIAG":
+                            ollier[i] += 1
+            me = sum(we.values()) / len(all_iids_global)
+            mi = sum(wi.values()) / len(all_iids_global)
+            w_pen += sum((we[i] - me) ** 2 for i in all_iids_global) + sum((wi[i] - mi) ** 2 for i in all_iids_global)
+
+        def _var_g(vals: list[int | float]) -> float:
+            m = sum(vals) / len(vals)
+            return sum((x - m) ** 2 for x in vals)
+
+        echo_tot = [echo_am[i] + echo_pm[i] for i in all_iids_global]
+        irm_tot = [irm_am[i] + irm_pm[i] for i in all_iids_global]
+        return (
+            16.0 * _var_g(echo_tot)
+            + 16.0 * _var_g(irm_tot)
+            + 10.0 * _var_g(list(irm_am.values()))
+            + 10.0 * _var_g(list(irm_pm.values()))
+            + 3.0 * _var_g(list(echo_am.values()))
+            + 3.0 * _var_g(list(echo_pm.values()))
+            + 4.0 * _var_g([achard[s] for s in senior_iids_global])
+            + 4.0 * _var_g([ollier[s] for s in senior_iids_global])
+            + 1.5 * _var_g(list(achard.values()))
+            + 1.5 * _var_g(list(ollier.values()))
+            + 1.5 * w_pen
+        )
+
+    for _ in range(120):
+        improved_g = False
+        cur_score_g = _eval_global_diag_score()
+        for mon_iso in unlocked_mons_global:
+            for d_iso in weeks_by_mon_global[mon_iso]:
+                if schedule[d_iso].get("holiday"):
+                    continue
+                for h_k in ("am", "pm"):
+                    for idx1 in range(len(all_iids_global)):
+                        for idx2 in range(idx1 + 1, len(all_iids_global)):
+                            i1, i2 = all_iids_global[idx1], all_iids_global[idx2]
+                            if _can_swap_diag_global(d_iso, h_k, i1, i2):
+                                _exec_swap_diag_global(d_iso, h_k, i1, i2)
+                                new_score_g = _eval_global_diag_score()
+                                if new_score_g < cur_score_g - 1e-6:
+                                    cur_score_g = new_score_g
+                                    improved_g = True
+                                else:
+                                    _exec_swap_diag_global(d_iso, h_k, i1, i2)
+        if not improved_g:
+            break
+    for mon_iso in unlocked_mons_global:
+        for d_iso in weeks_by_mon_global[mon_iso]:
+            rebuild_day_lists(schedule[d_iso])
 
     presentations = build_initial_presentations(schedule)
     meetings = build_service_meetings()

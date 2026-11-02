@@ -3034,10 +3034,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (custom[cKey]) {
               const [yyC, mmC, ddC] = iso.split("-").map(Number);
               const jsDayC = new Date(yyC, mmC - 1, ddC).getDay();
+              const isChefCustom = Boolean(custom[cKey].status === "approved" || custom[cKey].validatedBy === "Chef");
               if (custom[cKey].am) {
                 am = custom[cKey].am === "LECTURE/CS" ? "LECTURE" : custom[cKey].am;
               }
-              if (custom[cKey].pm && !((jsDayC === 2 || jsDayC === 5) && custom[cKey].pm === "1/2 journée libre")) {
+              if (custom[cKey].pm && (isChefCustom || !((jsDayC === 2 || jsDayC === 5) && custom[cKey].pm === "1/2 journée libre"))) {
                 pm = custom[cKey].pm === "LECTURE/CS" ? (jsDayC === 5 ? "CONSULTATION" : "LECTURE") : custom[cKey].pm;
               }
               if (custom[cKey].note !== undefined) {
@@ -5728,8 +5729,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       tableRows.push({ kind: "staff" });
       tableRows.push({ kind: "divider", title: "APRÈS-MIDI" });
       activePm.forEach(p => tableRows.push({ kind: "poste", periodKey: "pm", posteName: p }));
-      tableRows.push({ kind: "divider", title: "GARDES (LUNDI – VENDREDI)" });
-      tableRows.push({ kind: "garde_interne" });
+      tableRows.push({ kind: "divider", title: "GARDE SENIOR (LUNDI – VENDREDI)" });
       tableRows.push({ kind: "garde_senior" });
 
       // Calcul des poids de hauteur pour que tout tienne sur 1 page A4 Paysage
@@ -5780,14 +5780,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const dayTitle = `${dFullNames[idx]} ${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}`;
         drawText(dayTitle, cx + 6, TABLE_TOP + 10.5, 8.2, "#0F172A", true, COL_DAY_W - 10);
 
-        const gSen = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
-          ? `Dr ${STATE.chefsGardes[dIso].noms.join("/")}`
-          : "";
         const gInt = getInterneGardeInfo(dIso);
         const gIntTxt = (gInt && gInt.isRadioB && gInt.interneId)
           ? `Int: ${getInterneById(gInt.interneId).shortName}`
-          : (gInt && gInt.rawLabel ? `Int: ${gInt.rawLabel.split(" ")[0]}` : "");
-        const subHeader = [gSen, gIntTxt].filter(Boolean).join(" • ");
+          : (gInt && (gInt.rawLabel || gInt.interneName || gInt.rawName) ? `Int: ${(gInt.rawLabel || gInt.interneName || gInt.rawName).split(" ")[0]}` : "");
+        const subHeader = gIntTxt;
         if (subHeader) {
           drawText(subHeader, cx + 6, TABLE_TOP + 20, 6.6, "#64748B", false, COL_DAY_W - 10);
         }
@@ -6715,14 +6712,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const blocking = inChefSpace ? computeBlockingDays(STATE) : { byDate: {} };
       const dayIssues = inChefSpace ? (blocking.byDate[dIso] || []).filter(x => x.severity === "critical") : [];
       const isBlock = dayIssues.length > 0 ? "blocking-day" : "";
-      const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
-        ? STATE.chefsGardes[dIso].noms.join("/")
-        : "";
       const gInt = getInterneGardeInfo(dIso);
       const gIntLabel = (gInt && gInt.isRadioB && gInt.interneId)
         ? `🌙 ${getInterneById(gInt.interneId).shortName}`
-        : (gInt && gInt.rawLabel ? `🌙 ${gInt.rawLabel.split(" ")[0]}` : "");
-      const gardeSubLabel = [g ? `Dr ${g}` : "", gIntLabel].filter(Boolean).join(" • ");
+        : (gInt && (gInt.rawLabel || gInt.interneName || gInt.rawName) ? `🌙 ${(gInt.rawLabel || gInt.interneName || gInt.rawName).split(" ")[0]}` : "");
+      const gardeSubLabel = gIntLabel;
       const stopJs = (opts && opts.stopProp) ? "event.stopPropagation(); " : "";
       const extraStyle = (opts && opts.extraStyle) ? `style="${opts.extraStyle}"` : "";
       const customSubHtml = (opts && opts.customSubHtml !== undefined)
@@ -7051,12 +7045,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return rows;
       }
 
-      let intGardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE INTERNE</span></td>`;
-      days.forEach(dIso => {
-        intGardeRowHtml += `<td>${renderInterneGardeCellHtml(dIso)}</td>`;
-      });
-      intGardeRowHtml += `</tr>`;
-
       let gardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE SENIOR</span></td>`;
       days.forEach(dIso => {
         const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
@@ -7079,8 +7067,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${buildCombinedPeriodRows("am")}
                 <tr class="period-divider"><td colspan="6">APRÈS-MIDI</td></tr>
                 ${buildCombinedPeriodRows("pm")}
-                <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
-                ${intGardeRowHtml}\n                ${gardeRowHtml}
+                <tr class="period-divider"><td colspan="6">GARDE SENIOR (LUN–VEN)</td></tr>
+                ${gardeRowHtml}
               </tbody>
             </table>
           </div>
@@ -7304,12 +7292,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
       staffRowHtml += `</tr>`;
 
-      let intGardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE INTERNE</span></td>`;
-      days.forEach(dIso => {
-        intGardeRowHtml += `<td>${renderInterneGardeCellHtml(dIso)}</td>`;
-      });
-      intGardeRowHtml += `</tr>`;
-
       let gardeRowHtml = `<tr><td><span class="poste-pill poste-rg">GARDE SENIOR</span></td>`;
       days.forEach(dIso => {
         const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
@@ -7334,8 +7316,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${staffRowHtml}
                 <tr class="period-divider"><td colspan="6">APRÈS-MIDI</td></tr>
                 ${renderPeriodRows(postesPm, "pm")}
-                <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
-                ${intGardeRowHtml}
+                <tr class="period-divider"><td colspan="6">GARDE SENIOR (LUN–VEN)</td></tr>
                 ${gardeRowHtml}
               </tbody>
             </table>
