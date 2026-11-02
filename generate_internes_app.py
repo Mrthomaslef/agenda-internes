@@ -2938,12 +2938,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const totalPmOffs = {};
       const totalSauAmCounts = {};
       const totalSauPmCounts = {};
+      const totalGestesCounts = {};
+      const totalGestesAmCounts = {};
+      const totalGestesPmCounts = {};
       (st.internes || []).forEach(intObj => {
         carryOverOffs[intObj.id] = 0;
         totalAmOffs[intObj.id] = 0;
         totalPmOffs[intObj.id] = 0;
         totalSauAmCounts[intObj.id] = 0;
         totalSauPmCounts[intObj.id] = 0;
+        totalGestesCounts[intObj.id] = 0;
+        totalGestesAmCounts[intObj.id] = 0;
+        totalGestesPmCounts[intObj.id] = 0;
       });
 
       Object.keys(weeksMap).sort().forEach(monIso => {
@@ -3475,6 +3481,98 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             totalSauAmCounts[id] = (totalSauAmCounts[id] || 0) + countWeekSauHalfJs(id, "am");
             totalSauPmCounts[id] = (totalSauPmCounts[id] || 0) + countWeekSauHalfJs(id, "pm");
           });
+
+          // 2B-sexies. Équilibrage des vacations de Poste C (GESTES (C) / RI) entre les internes
+          const countWeekGestesJs = (interneId) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (!sl) return;
+              if (sl.am === "GESTES (C)" || sl.am === "ALLURA") cnt++;
+              if (sl.pm === "GESTES (C)" || sl.pm === "ALLURA") cnt++;
+            });
+            return cnt;
+          };
+          const countWeekGestesHalfJs = (interneId, halfKey) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (sl && sl[halfKey] === "GESTES (C)") cnt++;
+            });
+            return cnt;
+          };
+          const canSwapGestesSlotJs = (dIso, hKey, fromSid, toSid) => {
+            if (dIso === "2026-11-02") return false;
+            if (custom[dIso + "__" + fromSid] && custom[dIso + "__" + fromSid][hKey]) return false;
+            if (custom[dIso + "__" + toSid] && custom[dIso + "__" + toSid][hKey]) return false;
+            const byS = st.schedule[dIso].byInterne;
+            if (!byS[fromSid] || byS[fromSid][hKey] !== "GESTES (C)" || !byS[toSid]) return false;
+            const otherP = byS[toSid][hKey];
+            if (!otherP || nonActivePostes.includes(otherP) || ["TDM SAU", "GESTES (C)", "ALLURA"].includes(otherP)) return false;
+            const otherH = hKey === "am" ? "pm" : "am";
+            if (isSamePosteDayJs(otherP, byS[fromSid][otherH]) || isSamePosteDayJs("GESTES (C)", byS[toSid][otherH])) return false;
+            if (hKey === "pm" && otherP === "IRM" && countWeekIrmPmJs(fromSid) >= 1) return false;
+            return true;
+          };
+          const execSwapGestesSlotJs = (dIso, hKey, fromSid, toSid) => {
+            const byS = st.schedule[dIso].byInterne;
+            const nk = hKey === "am" ? "noteAm" : "notePm";
+            const pOther = byS[toSid][hKey];
+            const nFrom = byS[fromSid][nk] || "";
+            const nTo = byS[toSid][nk] || "";
+            byS[fromSid][hKey] = pOther;
+            byS[fromSid][nk] = nTo;
+            byS[toSid][hKey] = "GESTES (C)";
+            byS[toSid][nk] = nFrom;
+          };
+          for (let iterG = 0; iterG < 30; iterG++) {
+            let swappedG = false;
+            const sortedSeniorsG = seniorIds.slice().sort((a, b) => {
+              const wa = countWeekGestesJs(a), wb = countWeekGestesJs(b);
+              const hiA = wa >= 2 ? 1 : 0, hiB = wb >= 2 ? 1 : 0;
+              if (hiA !== hiB) return hiB - hiA;
+              const ca = (totalGestesCounts[a] || 0) + wa, cb = (totalGestesCounts[b] || 0) + wb;
+              if (ca !== cb) return cb - ca;
+              return wb - wa;
+            });
+            for (const sidOver of sortedSeniorsG) {
+              const wOver = countWeekGestesJs(sidOver);
+              if (wOver === 0) continue;
+              const cOver = (totalGestesCounts[sidOver] || 0) + wOver;
+              for (let uIdx = sortedSeniorsG.length - 1; uIdx >= 0; uIdx--) {
+                const sidUnder = sortedSeniorsG[uIdx];
+                if (sidUnder === sidOver) continue;
+                const wUnder = countWeekGestesJs(sidUnder);
+                const cUnder = (totalGestesCounts[sidUnder] || 0) + wUnder;
+                if (!(
+                  (wOver >= 2 && wUnder === 0 && cOver >= cUnder) ||
+                  (wOver >= 3 && wUnder <= 1) ||
+                  (cOver >= cUnder + 2 && wUnder + 1 <= Math.max(2, wOver))
+                )) continue;
+                const overAmDiff = ((totalGestesAmCounts[sidOver] || 0) + countWeekGestesHalfJs(sidOver, "am")) - ((totalGestesPmCounts[sidOver] || 0) + countWeekGestesHalfJs(sidOver, "pm"));
+                const underAmDiff = ((totalGestesAmCounts[sidUnder] || 0) + countWeekGestesHalfJs(sidUnder, "am")) - ((totalGestesPmCounts[sidUnder] || 0) + countWeekGestesHalfJs(sidUnder, "pm"));
+                const prefHalves = overAmDiff >= underAmDiff ? ["am", "pm"] : ["pm", "am"];
+                for (const hG of prefHalves) {
+                  for (const dIso of activeIsos) {
+                    if (canSwapGestesSlotJs(dIso, hG, sidOver, sidUnder)) {
+                      execSwapGestesSlotJs(dIso, hG, sidOver, sidUnder);
+                      swappedG = true;
+                      break;
+                    }
+                  }
+                  if (swappedG) break;
+                }
+                if (swappedG) break;
+              }
+              if (swappedG) break;
+            }
+            if (!swappedG) break;
+          }
+          allIidsJs.forEach(id => {
+            totalGestesCounts[id] = (totalGestesCounts[id] || 0) + countWeekGestesJs(id);
+            totalGestesAmCounts[id] = (totalGestesAmCounts[id] || 0) + countWeekGestesHalfJs(id, "am");
+            totalGestesPmCounts[id] = (totalGestesPmCounts[id] || 0) + countWeekGestesHalfJs(id, "pm");
+          });
         }
 
         // 2C. Mise à jour des notes de binôme de Noé (Phase Socle)
@@ -3593,7 +3691,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           casMardi: 0,
           biblioVendredi: 0,
           coursInternes: 0,
-          byModality: { TDM_SAU: 0, TDM_SAU_AM: 0, TDM_SAU_PM: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, CONSULTATION: 0, LECTURE: 0, LECTURE_CS: 0 }
+          byModality: { TDM_SAU: 0, TDM_SAU_AM: 0, TDM_SAU_PM: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, RI_GESTES_AM: 0, RI_GESTES_PM: 0, CONSULTATION: 0, LECTURE: 0, LECTURE_CS: 0 }
         };
       });
 
@@ -3647,7 +3745,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 else stats[iid].byModality.TDM_SAU_PM++;
                 stats[iid].byModality.TDM++;
               }
-              else if (up.includes("GESTES") || up.includes("ALLURA")) stats[iid].byModality.RI_GESTES++;
+              else if (up.includes("GESTES") || up.includes("ALLURA")) {
+                stats[iid].byModality.RI_GESTES++;
+                if (hKey === "am") stats[iid].byModality.RI_GESTES_AM++;
+                else stats[iid].byModality.RI_GESTES_PM++;
+              }
               else if (up.includes("CONSULT") || up === "CS") {
                 stats[iid].byModality.CONSULTATION++;
                 stats[iid].byModality.LECTURE_CS++;
@@ -6897,7 +6999,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <td>${s.byModality.IRM_AM || 0}</td>
               <td><strong>${s.byModality.IRM_PM || 0}</strong></td>
               <td>${s.byModality.ECHO}</td>
-              <td>${s.byModality.RI_GESTES}</td>
+              <td><strong>${s.byModality.RI_GESTES}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.byModality.RI_GESTES_AM || 0}M/${s.byModality.RI_GESTES_PM || 0}PM)</span></td>
               <td>${s.byModality.CONSULTATION || 0}</td>
               <td>${s.byModality.LECTURE || 0}</td>
               <td><strong>${s.gardesCount || 0}</strong>${s.gardesWeekendCount ? ` <span style="font-size:10px; color:var(--text-muted);">(${s.gardesWeekendCount} WE/Fér.)</span>` : ""}</td>
@@ -7938,7 +8040,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <strong>Créneaux Off cette semaine :</strong> ${w.weekOffSlots.length ? w.weekOffSlots.join(" • ") : "Aucun demi-off"}
         </div>
         <div style="font-size:11px; color:#475569; margin-bottom:6px;">
-          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. (SAU: <strong>${(s.byModality && s.byModality.TDM_SAU) || 0}</strong> <span style="font-size:10px;">(${(s.byModality && s.byModality.TDM_SAU_AM) || 0}M/${(s.byModality && s.byModality.TDM_SAU_PM) || 0}PM)</span> • Achard: <strong>${(s.byModality && s.byModality.SCAN_ACHARD) || 0}</strong> • Ollier: <strong>${(s.byModality && s.byModality.TDM_OLLIER) || 0}</strong> • IRM Mat: <strong>${(s.byModality && s.byModality.IRM_AM) || 0}</strong> • IRM PM: <strong>${(s.byModality && s.byModality.IRM_PM) || 0}</strong>) • <strong>${s.freeHalfDays}</strong> demi-offs
+          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. (SAU: <strong>${(s.byModality && s.byModality.TDM_SAU) || 0}</strong> <span style="font-size:10px;">(${(s.byModality && s.byModality.TDM_SAU_AM) || 0}M/${(s.byModality && s.byModality.TDM_SAU_PM) || 0}PM)</span> • Poste C: <strong>${(s.byModality && s.byModality.RI_GESTES) || 0}</strong> <span style="font-size:10px;">(${(s.byModality && s.byModality.RI_GESTES_AM) || 0}M/${(s.byModality && s.byModality.RI_GESTES_PM) || 0}PM)</span> • Achard: <strong>${(s.byModality && s.byModality.SCAN_ACHARD) || 0}</strong> • Ollier: <strong>${(s.byModality && s.byModality.TDM_OLLIER) || 0}</strong> • IRM Mat: <strong>${(s.byModality && s.byModality.IRM_AM) || 0}</strong> • IRM PM: <strong>${(s.byModality && s.byModality.IRM_PM) || 0}</strong>) • <strong>${s.freeHalfDays}</strong> demi-offs
         </div>
         ${samePosteAllDay ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).</div>` : ""}
         ${forbiddenPmOff ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.</div>` : ""}

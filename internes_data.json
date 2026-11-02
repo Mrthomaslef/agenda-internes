@@ -1,8 +1,8 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-02T19:54:56.062981+00:00",
-  "chefValidatedAt": "2026-11-02T19:47:38.808Z",
-  "chefRevision": 21,
+  "updatedAt": "2026-11-02T19:57:29.582937+00:00",
+  "chefValidatedAt": "2026-11-02T19:57:04.464Z",
+  "chefRevision": 24,
   "deletedAbsenceIds": [],
   "deletedCustomKeys": [],
   "semester": {
@@ -1238,28 +1238,28 @@
       "validatedAt": "2026-11-02T19:44:40.928Z"
     },
     "2026-11-04__nathanael": {
-      "am": "TDM OLLIER DIAG",
+      "am": "IRM 3T",
       "pm": "ECHO",
       "note": "",
       "status": "approved",
       "validatedBy": "Chef",
-      "validatedAt": "2026-11-02T19:46:35.706Z"
+      "validatedAt": "2026-11-02T19:57:04.464Z"
     },
     "2026-11-04__gabriel": {
       "am": "IRM 1,5T",
-      "pm": "TDM SAU",
+      "pm": "IRM",
       "note": "",
       "status": "approved",
       "validatedBy": "Chef",
-      "validatedAt": "2026-11-02T19:46:54.872Z"
+      "validatedAt": "2026-11-02T19:56:36.312Z"
     },
     "2026-11-04__noe": {
-      "am": "IRM 3T",
+      "am": "TDM OLLIER DIAG",
       "pm": "TDM SAU",
       "note": "Vacation obligatoire (IRM 3T) • Échographie (avec Dr Mihoubi)",
       "status": "approved",
       "validatedBy": "Chef",
-      "validatedAt": "2026-11-02T19:46:41.265Z"
+      "validatedAt": "2026-11-02T19:57:03.336Z"
     },
     "2026-11-04__milan": {
       "am": "1/2 journée libre",
