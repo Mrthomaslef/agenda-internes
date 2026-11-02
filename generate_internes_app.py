@@ -1734,7 +1734,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 4px;
+      gap: 6px;
       min-width: 0;
     }
 
@@ -1743,7 +1743,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       align-items: center;
       gap: 5px;
       font-weight: 800;
-      font-size: 12px;
+      font-size: 12.5px;
       color: #0F172A;
       white-space: nowrap;
       overflow: hidden;
@@ -1760,9 +1760,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .offvac-pill {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 3px;
-      padding: 1.5px 6px;
-      border-radius: 5px;
+      padding: 2px 6.5px;
+      border-radius: 6px;
       font-size: 10.5px;
       font-weight: 800;
       white-space: nowrap;
@@ -1799,12 +1800,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .chef-offvac-slots {
-      font-size: 10px;
+      font-size: 10.5px;
       color: #475569;
       font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1.3;
+      border-top: 1px dashed #E2E8F0;
+      padding-top: 4px;
+      margin-top: 1px;
     }
 
     .chef-offvac-sem {
@@ -1822,6 +1824,253 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .chef-offvac-sem strong {
       color: #1E293B;
       font-weight: 800;
+    }
+
+    /* Tableau de décompte de la semaine & du semestre */
+    .decompte-card {
+      padding: 16px;
+    }
+
+    .decompte-quotas-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 7px 11px;
+      margin-bottom: 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 8px;
+      font-size: 11.5px;
+      color: #475569;
+    }
+
+    .decompte-quotas-strip strong {
+      color: #0F172A;
+    }
+
+    .decompte-rule-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    table.decompte-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      min-width: 980px;
+      background: #FFFFFF;
+    }
+
+    table.decompte-table th,
+    table.decompte-table td {
+      border-bottom: 1px solid #E2E8F0;
+      border-right: 1px solid #E2E8F0;
+      padding: 8px 7px;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 12px;
+    }
+
+    table.decompte-table th:last-child,
+    table.decompte-table td:last-child {
+      border-right: none;
+    }
+
+    table.decompte-table tr.decompte-group-row th {
+      padding: 5px 8px;
+      font-size: 10.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid #CBD5E1;
+    }
+
+    table.decompte-table tr.decompte-group-row th.grp-synthese {
+      background: #EFF6FF;
+      color: #1E40AF;
+    }
+
+    table.decompte-table tr.decompte-group-row th.grp-tdm {
+      background: #FFFBEB;
+      color: #92400E;
+    }
+
+    table.decompte-table tr.decompte-group-row th.grp-irm {
+      background: #FAF5FF;
+      color: #6B21A8;
+    }
+
+    table.decompte-table tr.decompte-group-row th.grp-clinique {
+      background: #F0FDFA;
+      color: #115E59;
+    }
+
+    table.decompte-table tr.decompte-group-row th.grp-gardes {
+      background: #FFF1F2;
+      color: #9F1239;
+    }
+
+    table.decompte-table tr.decompte-col-row th {
+      background: #F8FAFC;
+      color: #334155;
+      font-weight: 800;
+      font-size: 11px;
+      text-transform: none;
+      white-space: nowrap;
+      padding: 7px 7px;
+      border-bottom: 2px solid #CBD5E1;
+    }
+
+    table.decompte-table th.col-interne-sticky,
+    table.decompte-table td.col-interne-sticky {
+      position: sticky;
+      left: 0;
+      z-index: 2;
+      text-align: left;
+      min-width: 132px;
+      padding: 9px 11px;
+      border-right: 2px solid #CBD5E1;
+      background: #FFFFFF;
+    }
+
+    table.decompte-table thead th.col-interne-sticky {
+      background: #F1F5F9;
+      z-index: 3;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0F172A;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-bottom: 2px solid #CBD5E1;
+    }
+
+    table.decompte-table tbody tr:nth-child(even) {
+      background: #FCFDFE;
+    }
+
+    table.decompte-table tbody tr:nth-child(even) td.col-interne-sticky {
+      background: #F8FAFC;
+    }
+
+    table.decompte-table tbody tr:hover td {
+      background: #F0F9FF !important;
+    }
+
+    table.decompte-table th.grp-end,
+    table.decompte-table td.grp-end {
+      border-right: 2px solid #CBD5E1;
+    }
+
+    table.decompte-table tfoot tr.decompte-total-row td {
+      background: #F1F5F9;
+      font-weight: 800;
+      color: #0F172A;
+      border-top: 2px solid #94A3B8;
+      border-bottom: none;
+      padding: 8px 7px;
+      font-size: 12px;
+    }
+
+    table.decompte-table tfoot tr.decompte-total-row td.col-interne-sticky {
+      background: #E2E8F0;
+    }
+
+    .decompte-cell-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .decompte-zero {
+      color: #CBD5E1;
+      font-weight: 600;
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .decompte-quota-zero {
+      display: inline-flex;
+      align-items: center;
+      padding: 1.5px 6px;
+      border-radius: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      background: #F8FAFC;
+      color: #94A3B8;
+      border: 1px solid #E2E8F0;
+    }
+
+    .decompte-mod-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 800;
+      border: 1px solid transparent;
+      white-space: nowrap;
+    }
+
+    .decompte-sub {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748B;
+      white-space: nowrap;
+      line-height: 1.15;
+    }
+
+    .decompte-slots-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2.5px;
+      margin-top: 1px;
+      max-width: 125px;
+    }
+
+    .decompte-slot-chip {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      line-height: 1.25;
+      background: #F1F5F9;
+      color: #334155;
+      border: 1px solid #CBD5E1;
+    }
+
+    .decompte-slot-chip.slot-am {
+      background: #F0F9FF;
+      color: #0369A1;
+      border-color: #BAE6FD;
+    }
+
+    .decompte-slot-chip.slot-pm {
+      background: #EEF2FF;
+      color: #4338CA;
+      border-color: #C7D2FE;
+    }
+
+    .decompte-slot-chip.slot-garde {
+      background: #FEF2F2;
+      color: #B91C1C;
+      border-color: #FECACA;
     }
 
     @media (max-width: 960px) {
@@ -2753,14 +3002,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       // 1. Appliquer customVacations et absences jour par jour
       const weeksMap = {};
+      const weekHasLeaveChange = {};
       Object.keys(baseSched).sort().forEach(iso => {
         const dayObj = JSON.parse(JSON.stringify(baseSched[iso]));
         const [yy, mm, dd] = iso.split("-").map(Number);
         const dt = new Date(yy, mm - 1, dd);
         const jsDay = dt.getDay(); // 1=Mon, 2=Tue, ..., 5=Fri
         const monIso = getMondayOfWeek(iso);
+        const isWeekLocked = Boolean(lockedWeeks[monIso] && lockedWeeks[monIso].locked);
         if (!weeksMap[monIso]) weeksMap[monIso] = [];
         weeksMap[monIso].push(iso);
+
+        let dayHasLeaveChange = false;
 
         if (!dayObj.holiday && dayObj.byInterne) {
           Object.keys(dayObj.byInterne).forEach(iid => {
@@ -2772,17 +3025,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             let noteAm = origSlot.noteAm || "";
             let notePm = origSlot.notePm || "";
             let note = origSlot.note || noteAm || notePm || "";
-            let absStatus = null;
+            let absStatus = (am === "RG" || pm === "RG" || am === "VACANCES" || pm === "VACANCES") ? "approved" : null;
             const isSocle = Boolean(origSlot.isSocle || (intObj && intObj.isSocle));
 
-            // Si un Repos de garde officiel avait été pré-intégré mais a été supprimé/refusé, restaurer le poste pré-RG
-            if (!absLookup[cKey] && origSlot.am === "RG" && origSlot.preRgAm) {
+            // Si un Repos de garde officiel avait été pré-intégré mais a été supprimé/refusé, restaurer le poste pré-RG (sauf semaine déjà validée/fixée)
+            if (!isWeekLocked && !absLookup[cKey] && origSlot.am === "RG" && origSlot.preRgAm) {
               am = origSlot.preRgAm === "LECTURE/CS" ? "LECTURE" : origSlot.preRgAm;
               const rawPrePm = origSlot.preRgPm || origSlot.preRgAm;
               pm = rawPrePm === "LECTURE/CS" ? (jsDay === 5 ? "CONSULTATION" : "LECTURE") : rawPrePm;
               note = "";
               noteAm = "";
               notePm = "";
+              absStatus = null;
+              dayHasLeaveChange = true;
+              weekHasLeaveChange[monIso] = true;
             }
 
             if (custom[cKey]) {
@@ -2798,54 +3054,69 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 note = custom[cKey].note;
                 noteAm = custom[cKey].note;
               }
+              absStatus = (am === "RG" || pm === "RG" || am === "VACANCES" || pm === "VACANCES") ? (custom[cKey].status || "approved") : null;
             }
 
-            if (absLookup[cKey]) {
+            // Si la semaine est déjà validée et fixée par le Chef, un congé posé ne modifie pas le planning validé de la semaine
+            if (!isWeekLocked && absLookup[cKey]) {
               const absInfo = absLookup[cKey];
-              const at = absInfo.type;
-              const badge = (at.toLowerCase().includes("garde") || at.toUpperCase() === "RG") ? "RG" : "VACANCES";
-              am = badge;
-              pm = badge;
-              absStatus = absInfo.status || "pending";
-              const noteTxt = (badge === "RG" && absInfo.comment) ? absInfo.comment : at;
-              note = noteTxt;
-              noteAm = noteTxt;
-              notePm = noteTxt;
+              const hasApprovedCustomOverride = Boolean(
+                custom[cKey] &&
+                custom[cKey].status === "approved" &&
+                custom[cKey].am !== "VACANCES" &&
+                custom[cKey].pm !== "VACANCES" &&
+                (absInfo.status !== "approved" || (custom[cKey].validatedAt && (!absInfo.validatedAt || custom[cKey].validatedAt > absInfo.validatedAt)))
+              );
+              if (!hasApprovedCustomOverride) {
+                const at = absInfo.type;
+                const badge = (at.toLowerCase().includes("garde") || at.toUpperCase() === "RG") ? "RG" : "VACANCES";
+                if (origSlot.am !== badge || origSlot.pm !== badge) {
+                  dayHasLeaveChange = true;
+                  weekHasLeaveChange[monIso] = true;
+                }
+                am = badge;
+                pm = badge;
+                absStatus = absInfo.status || "pending";
+                const noteTxt = (badge === "RG" && absInfo.comment) ? absInfo.comment : at;
+                note = noteTxt;
+                noteAm = noteTxt;
+                notePm = noteTxt;
+              }
             }
 
             dayObj.byInterne[iid] = { am, pm, note, noteAm, notePm, isSocle, absStatus };
           });
 
-          // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
-          // (sauf le Mardi matin où Noé assure le TDM SAU en solo sans doublure avec Dr Macil HAMADOUCHE, sauf absence/RG de Noé)
-          // en prélevant d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
-          const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM", "CONSULTATION", "LECTURE"];
-          ["am", "pm"].forEach(hSau => {
-            if (iso === "2026-11-02" && hSau === "am") return;
-            if (jsDay === 2 && hSau === "am" && dayObj.byInterne.noe && !["RG", "VACANCES"].includes(dayObj.byInterne.noe.am)) {
-              const cKeyNoe = iso + "__noe";
-              if (!(custom[cKeyNoe] && custom[cKeyNoe].am)) {
-                dayObj.byInterne.noe.am = "TDM SAU";
-                dayObj.byInterne.noe.noteAm = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)";
-                if (!dayObj.byInterne.noe.note) dayObj.byInterne.noe.note = dayObj.byInterne.noe.noteAm;
+          if (!isWeekLocked && dayHasLeaveChange) {
+            // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
+            // (sauf le Mardi matin où Noé assure le TDM SAU en solo sans doublure avec Dr Macil HAMADOUCHE, sauf absence/RG de Noé)
+            // en prélevant d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires), sans écraser les postes validés par le Chef
+            const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM", "CONSULTATION", "LECTURE"];
+            ["am", "pm"].forEach(hSau => {
+              if (iso === "2026-11-02" && hSau === "am") return;
+              if (jsDay === 2 && hSau === "am" && dayObj.byInterne.noe && !["RG", "VACANCES"].includes(dayObj.byInterne.noe.am)) {
+                const cKeyNoe = iso + "__noe";
+                if (!(custom[cKeyNoe] && custom[cKeyNoe].am)) {
+                  dayObj.byInterne.noe.am = "TDM SAU";
+                  dayObj.byInterne.noe.noteAm = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)";
+                  if (!dayObj.byInterne.noe.note) dayObj.byInterne.noe.note = dayObj.byInterne.noe.noteAm;
+                }
               }
-            }
-            const noeSoloTueAm = (jsDay === 2 && hSau === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
-            const hasSauSenior = noeSoloTueAm || seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
-            if (!hasSauSenior) {
-              const nkSau = hSau === "am" ? "noteAm" : "notePm";
-              const phSauSet = getPhInternePostesForHalfDay(iso, hSau, jsDay);
-              const sauDonorOrder = [
-                ...baseSauDonors.filter(d => !phSauSet.has(d)),
-                ...baseSauDonors.filter(d => phSauSet.has(d)),
-                "1/2 journée libre"
-              ];
-              let replacedSau = false;
-              for (const allowCustomOverride of [false, true]) {
+              const noeSoloTueAm = (jsDay === 2 && hSau === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
+              const hasSauSenior = noeSoloTueAm || seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
+              if (!hasSauSenior) {
+                const nkSau = hSau === "am" ? "noteAm" : "notePm";
+                const phSauSet = getPhInternePostesForHalfDay(iso, hSau, jsDay);
+                const sauDonorOrder = [
+                  ...baseSauDonors.filter(d => !phSauSet.has(d)),
+                  ...baseSauDonors.filter(d => phSauSet.has(d)),
+                  "1/2 journée libre"
+                ];
+                let replacedSau = false;
                 for (const donorP of sauDonorOrder) {
                   for (const sId of seniorIds) {
                     const cKeySau = iso + "__" + sId;
-                    if (!allowCustomOverride && custom[cKeySau] && custom[cKeySau][hSau]) continue;
+                    if (custom[cKeySau] && custom[cKeySau][hSau]) continue;
                     const sl = dayObj.byInterne[sId];
                     if (sl && sl[hSau] === donorP) {
                       sl[hSau] = "TDM SAU";
@@ -2857,58 +3128,57 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   }
                   if (replacedSau) break;
                 }
-                if (replacedSau) break;
               }
-            }
-          });
+            });
 
-          // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE (Mardi) / CONSULTATION (Vendredi)
-          // en prélevant d'abord sur une vacation non obligatoire
-          if (jsDay === 2) {
-            const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE");
-            const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
-            const anyVacToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "VACANCES");
-            if (!hasTueCs && anyRgToday && !anyVacToday) {
-              const phTuePm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
-              const tueDonors = ["GESTES (C)", "ECHO", "SCAN ACHARD", "CONSULTATION"];
-              const orderedTueDonors = [...tueDonors.filter(d => !phTuePm.has(d)), ...tueDonors.filter(d => phTuePm.has(d))];
-              for (const donorP of orderedTueDonors) {
-                let rep = false;
-                for (const sId of seniorIds) {
-                  if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
-                  const sl = dayObj.byInterne[sId];
-                  if (sl && sl.pm === donorP) {
-                    sl.pm = "LECTURE";
-                    sl.notePm = "Relecture avec Pr Drapé (systématique)";
-                    if (!sl.note) sl.note = sl.notePm;
-                    rep = true;
-                    break;
+            // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE (Mardi) / CONSULTATION (Vendredi)
+            // en prélevant d'abord sur une vacation non obligatoire
+            if (jsDay === 2) {
+              const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE");
+              const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
+              const anyVacToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "VACANCES");
+              if (!hasTueCs && anyRgToday && !anyVacToday) {
+                const phTuePm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
+                const tueDonors = ["GESTES (C)", "ECHO", "SCAN ACHARD", "CONSULTATION"];
+                const orderedTueDonors = [...tueDonors.filter(d => !phTuePm.has(d)), ...tueDonors.filter(d => phTuePm.has(d))];
+                for (const donorP of orderedTueDonors) {
+                  let rep = false;
+                  for (const sId of seniorIds) {
+                    if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
+                    const sl = dayObj.byInterne[sId];
+                    if (sl && sl.pm === donorP) {
+                      sl.pm = "LECTURE";
+                      sl.notePm = "Relecture avec Pr Drapé (systématique)";
+                      if (!sl.note) sl.note = sl.notePm;
+                      rep = true;
+                      break;
+                    }
                   }
+                  if (rep) break;
                 }
-                if (rep) break;
               }
             }
-          }
-          if (jsDay === 5) {
-            const hasFriCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "CONSULTATION");
-            const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
-            if (!hasFriCs && anyRgToday) {
-              const phFriPm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
-              for (const donorP of ["GESTES (C)", "IRM", "SCAN ACHARD", "LECTURE"]) {
-                if (phFriPm.has(donorP)) continue;
-                let rep = false;
-                for (const sId of seniorIds) {
-                  if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
-                  const sl = dayObj.byInterne[sId];
-                  if (sl && sl.pm === donorP) {
-                    sl.pm = "CONSULTATION";
-                    sl.notePm = "Consultation Internes (Vendredi PM)";
-                    if (!sl.note) sl.note = sl.notePm;
-                    rep = true;
-                    break;
+            if (jsDay === 5) {
+              const hasFriCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "CONSULTATION");
+              const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
+              if (!hasFriCs && anyRgToday) {
+                const phFriPm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
+                for (const donorP of ["GESTES (C)", "IRM", "SCAN ACHARD", "LECTURE"]) {
+                  if (phFriPm.has(donorP)) continue;
+                  let rep = false;
+                  for (const sId of seniorIds) {
+                    if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
+                    const sl = dayObj.byInterne[sId];
+                    if (sl && sl.pm === donorP) {
+                      sl.pm = "CONSULTATION";
+                      sl.notePm = "Consultation Internes (Vendredi PM)";
+                      if (!sl.note) sl.note = sl.notePm;
+                      rep = true;
+                      break;
+                    }
                   }
+                  if (rep) break;
                 }
-                if (rep) break;
               }
             }
           }
@@ -2919,7 +3189,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       // 2. Garantie hebdomadaire :
       //    - Couverture stricte du TDM SAU permanent et des 13 vacations obligatoires prioritaires
       //    - Pose des 2 demi-offs en fonction (avec demi-journée fixe pour Oussama Lundi AM, Gabriel Mardi AM, Marwane Jeudi AM)
-      //    - Équilibrage automatique sur les semaines suivantes (carryOverOffs) si < 2 demi-offs possibles sur une semaine chargée
+      //    - Isolation par semaine : un congé posé sur une semaine X ne modifie jamais une semaine déjà validée ni une autre semaine Y != X
       const nonMandatoryPriority = [
         "ALLURA",
         "GESTES (C)",
@@ -2954,6 +3224,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       Object.keys(weeksMap).sort().forEach(monIso => {
         const isWeekLocked = Boolean(lockedWeeks[monIso] && lockedWeeks[monIso].locked);
+        const shouldRebalanceWeek = !isWeekLocked && Boolean(weekHasLeaveChange[monIso]);
         const activeIsos = weeksMap[monIso].filter(dIso => st.schedule[dIso] && !st.schedule[dIso].holiday && st.schedule[dIso].byInterne);
         const countWeekHalfOffsJs = (interneId, halfKey) => {
           let cnt = 0;
@@ -2964,33 +3235,33 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           return cnt;
         };
 
-        // 2A. Couverture des vacations obligatoires (TDM SAU + 13 vacations) sur chaque jour de la semaine
-        activeIsos.forEach(iso => {
-          const dayObj = st.schedule[iso];
-          const [yy, mm, dd] = iso.split("-").map(Number);
-          const jsDay = new Date(yy, mm - 1, dd).getDay();
-          ["am", "pm"].forEach(h => {
-            if (iso === "2026-11-02" && h === "am") return;
-            const nk = h === "am" ? "noteAm" : "notePm";
-            const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
-            const noeSoloTueAm2A = (jsDay === 2 && h === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
-            const hasSeniorSau = noeSoloTueAm2A || seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
-            if (!hasSeniorSau) {
-              const finalSauDonors = [
-                ...nonMandatoryPriority.filter(d => !phSet.has(d)),
-                "1/2 journée libre",
-                ...nonMandatoryPriority.filter(d => phSet.has(d))
-              ];
-              const orderedSeniors = [
-                ...seniorIds.filter(sId => !isProtectedFixedOff(sId, iso, h)),
-                ...seniorIds.filter(sId => isProtectedFixedOff(sId, iso, h))
-              ];
-              let replaced = false;
-              for (const allowCustomOverride of [false, true]) {
+        // 2A. Couverture des vacations obligatoires (TDM SAU + 13 vacations) sur chaque jour de la semaine (uniquement si semaine non verrouillée et modifiée par un congé/RG)
+        if (shouldRebalanceWeek) {
+          activeIsos.forEach(iso => {
+            const dayObj = st.schedule[iso];
+            const [yy, mm, dd] = iso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+            ["am", "pm"].forEach(h => {
+              if (iso === "2026-11-02" && h === "am") return;
+              const nk = h === "am" ? "noteAm" : "notePm";
+              const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
+              const noeSoloTueAm2A = (jsDay === 2 && h === "am" && dayObj.byInterne.noe && dayObj.byInterne.noe.am === "TDM SAU");
+              const hasSeniorSau = noeSoloTueAm2A || seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
+              if (!hasSeniorSau) {
+                const finalSauDonors = [
+                  ...nonMandatoryPriority.filter(d => !phSet.has(d)),
+                  "1/2 journée libre",
+                  ...nonMandatoryPriority.filter(d => phSet.has(d))
+                ];
+                const orderedSeniors = [
+                  ...seniorIds.filter(sId => !isProtectedFixedOff(sId, iso, h)),
+                  ...seniorIds.filter(sId => isProtectedFixedOff(sId, iso, h))
+                ];
+                let replaced = false;
                 for (const donorP of finalSauDonors) {
                   for (const sId of orderedSeniors) {
                     const cKeySau = iso + "__" + sId;
-                    if (!allowCustomOverride && custom[cKeySau] && custom[cKeySau][h]) continue;
+                    if (custom[cKeySau] && custom[cKeySau][h]) continue;
                     const sl = dayObj.byInterne[sId];
                     if (sl && sl[h] === donorP) {
                       sl[h] = "TDM SAU";
@@ -3002,84 +3273,84 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   }
                   if (replaced) break;
                 }
-                if (replaced) break;
               }
-            }
 
-            if (!isWeekLocked && !(iso === "2026-11-02" && h === "am")) {
-              Array.from(phSet).sort().forEach(phPoste => {
-                const allIds = Object.keys(dayObj.byInterne);
-                const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
-                if (isCovered) return;
-                let reassignedPh = false;
-                const candIids = (phPoste !== "TDM SAU" && !(jsDay === 2 && h === "am")) ? [...seniorIds, "noe"] : [...seniorIds];
-                // A) Prélever sur une vacation non obligatoire
-                for (const donorP of nonMandatoryPriority) {
-                  if (phSet.has(donorP)) continue;
-                  for (const candId of candIids) {
-                    if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
-                    const sl = dayObj.byInterne[candId];
-                    if (sl && sl[h] === donorP) {
-                      sl[h] = phPoste;
-                      sl[nk] = `Vacation obligatoire (${phPoste})`;
-                      if (!sl.note) sl.note = sl[nk];
+              if (!(iso === "2026-11-02" && h === "am")) {
+                Array.from(phSet).sort().forEach(phPoste => {
+                  const allIds = Object.keys(dayObj.byInterne);
+                  const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
+                  if (isCovered) return;
+                  let reassignedPh = false;
+                  const candIids = (phPoste !== "TDM SAU" && !(jsDay === 2 && h === "am")) ? [...seniorIds, "noe"] : [...seniorIds];
+                  // A) Prélever sur une vacation non obligatoire
+                  for (const donorP of nonMandatoryPriority) {
+                    if (phSet.has(donorP)) continue;
+                    for (const candId of candIids) {
+                      if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
+                      const sl = dayObj.byInterne[candId];
+                      if (sl && sl[h] === donorP) {
+                        sl[h] = phPoste;
+                        sl[nk] = `Vacation obligatoire (${phPoste})`;
+                        if (!sl.note) sl.note = sl[nk];
+                        reassignedPh = true;
+                        break;
+                      }
+                    }
+                    if (reassignedPh) break;
+                  }
+                  // B) Binôme au TDM SAU (en respectant les vacations fixées par le Chef)
+                  if (!reassignedPh && phPoste !== "TDM SAU") {
+                    const sauSeniors = seniorIds.filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
+                    const movableSauSeniors = sauSeniors.filter(sId => !(custom[iso + "__" + sId] && custom[iso + "__" + sId][h]));
+                    if (sauSeniors.length >= 2 && movableSauSeniors.length >= 1) {
+                      const donorSid = movableSauSeniors[movableSauSeniors.length - 1];
+                      dayObj.byInterne[donorSid][h] = phPoste;
+                      dayObj.byInterne[donorSid][nk] = `Vacation obligatoire (${phPoste})`;
                       reassignedPh = true;
-                      break;
+                    } else if (!(jsDay === 2 && h === "am") && sauSeniors.length >= 1 && dayObj.byInterne.noe && dayObj.byInterne.noe[h] === "TDM SAU" && !(custom[iso + "__noe"] && custom[iso + "__noe"][h])) {
+                      if (["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG"].includes(phPoste)) {
+                        dayObj.byInterne.noe[h] = phPoste;
+                        dayObj.byInterne.noe[nk] = `Vacation obligatoire (${phPoste})`;
+                        reassignedPh = true;
+                      }
                     }
                   }
-                  if (reassignedPh) break;
-                }
-                // B) Binôme au TDM SAU
-                if (!reassignedPh && phPoste !== "TDM SAU") {
-                  const sauSeniors = seniorIds.filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
-                  if (sauSeniors.length >= 2) {
-                    const donorSid = sauSeniors[sauSeniors.length - 1];
-                    dayObj.byInterne[donorSid][h] = phPoste;
-                    dayObj.byInterne[donorSid][nk] = `Vacation obligatoire (${phPoste})`;
-                    reassignedPh = true;
-                  } else if (!(jsDay === 2 && h === "am") && sauSeniors.length >= 1 && dayObj.byInterne.noe && dayObj.byInterne.noe[h] === "TDM SAU") {
-                    if (["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG"].includes(phPoste)) {
-                      dayObj.byInterne.noe[h] = phPoste;
-                      dayObj.byInterne.noe[nk] = `Vacation obligatoire (${phPoste})`;
-                      reassignedPh = true;
+                  // C) Demi-off disponible (en sollicitant d'abord un interne ayant >1 off sur cette période AM/PM ou 2 offs le même jour)
+                  if (!reassignedPh) {
+                    const otherH = h === "am" ? "pm" : "am";
+                    const orderedOffCands = candIids
+                      .filter(cid => dayObj.byInterne[cid] && dayObj.byInterne[cid][h] === "1/2 journée libre")
+                      .sort((a, b) => {
+                        const pa = isProtectedFixedOff(a, iso, h) ? 1 : 0;
+                        const pb = isProtectedFixedOff(b, iso, h) ? 1 : 0;
+                        if (pa !== pb) return pa - pb;
+                        const sa = dayObj.byInterne[a][otherH] === "1/2 journée libre" ? 0 : 1;
+                        const sb = dayObj.byInterne[b][otherH] === "1/2 journée libre" ? 0 : 1;
+                        if (sa !== sb) return sa - sb;
+                        const diffA = countWeekHalfOffsJs(a, h) - countWeekHalfOffsJs(a, otherH);
+                        const diffB = countWeekHalfOffsJs(b, h) - countWeekHalfOffsJs(b, otherH);
+                        return diffB - diffA;
+                      });
+                    for (const candId of orderedOffCands) {
+                      if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
+                      const sl = dayObj.byInterne[candId];
+                      if (sl && sl[h] === "1/2 journée libre") {
+                        sl[h] = phPoste;
+                        sl[nk] = `Vacation obligatoire (${phPoste})`;
+                        if (!sl.note) sl.note = sl[nk];
+                        reassignedPh = true;
+                        break;
+                      }
                     }
                   }
-                }
-                // C) Demi-off disponible (en sollicitant d'abord un interne ayant >1 off sur cette période AM/PM ou 2 offs le même jour)
-                if (!reassignedPh) {
-                  const otherH = h === "am" ? "pm" : "am";
-                  const orderedOffCands = candIids
-                    .filter(cid => dayObj.byInterne[cid] && dayObj.byInterne[cid][h] === "1/2 journée libre")
-                    .sort((a, b) => {
-                      const pa = isProtectedFixedOff(a, iso, h) ? 1 : 0;
-                      const pb = isProtectedFixedOff(b, iso, h) ? 1 : 0;
-                      if (pa !== pb) return pa - pb;
-                      const sa = dayObj.byInterne[a][otherH] === "1/2 journée libre" ? 0 : 1;
-                      const sb = dayObj.byInterne[b][otherH] === "1/2 journée libre" ? 0 : 1;
-                      if (sa !== sb) return sa - sb;
-                      const diffA = countWeekHalfOffsJs(a, h) - countWeekHalfOffsJs(a, otherH);
-                      const diffB = countWeekHalfOffsJs(b, h) - countWeekHalfOffsJs(b, otherH);
-                      return diffB - diffA;
-                    });
-                  for (const candId of orderedOffCands) {
-                    if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
-                    const sl = dayObj.byInterne[candId];
-                    if (sl && sl[h] === "1/2 journée libre") {
-                      sl[h] = phPoste;
-                      sl[nk] = `Vacation obligatoire (${phPoste})`;
-                      if (!sl.note) sl.note = sl[nk];
-                      reassignedPh = true;
-                      break;
-                    }
-                  }
-                }
-              });
-            }
+                });
+              }
+            });
           });
-        });
+        }
 
-        // 2B. Ajustement des demi-offs (en alternant Matin / Après-midi : 1 AM + 1 PM par semaine) et équilibrage multi-semaines
-        if (!isWeekLocked) {
+        // 2B. Ajustement des demi-offs (en alternant Matin / Après-midi : 1 AM + 1 PM par semaine) et équilibrage hebdomadaire
+        if (shouldRebalanceWeek) {
           (st.internes || []).forEach(intObj => {
             const iid = intObj.id;
             let vacHalfDays = 0;
@@ -3188,10 +3459,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
               if (!freed) break;
             }
-
-            totalAmOffs[iid] = (totalAmOffs[iid] || 0) + countWeekHalfOffsJs(iid, "am");
-            totalPmOffs[iid] = (totalPmOffs[iid] || 0) + countWeekHalfOffsJs(iid, "pm");
-            carryOverOffs[iid] = Math.max(0, (carryOverOffs[iid] || 0) + (2 - offCnt));
           });
 
           // 2B-bis. Quotas hebdomadaires (TDM SAU & IRM d'après-midi max 1/sem) + Règle Matin != Après-midi :
@@ -3477,10 +3744,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             if (!swappedBal) break;
           }
-          allIidsJs.forEach(id => {
-            totalSauAmCounts[id] = (totalSauAmCounts[id] || 0) + countWeekSauHalfJs(id, "am");
-            totalSauPmCounts[id] = (totalSauPmCounts[id] || 0) + countWeekSauHalfJs(id, "pm");
-          });
 
           // 2B-sexies. Équilibrage des vacations de Poste C (GESTES (C) / RI) entre les internes
           const countWeekGestesJs = (interneId) => {
@@ -3568,50 +3831,80 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             if (!swappedG) break;
           }
-          allIidsJs.forEach(id => {
-            totalGestesCounts[id] = (totalGestesCounts[id] || 0) + countWeekGestesJs(id);
-            totalGestesAmCounts[id] = (totalGestesAmCounts[id] || 0) + countWeekGestesHalfJs(id, "am");
-            totalGestesPmCounts[id] = (totalGestesPmCounts[id] || 0) + countWeekGestesHalfJs(id, "pm");
-          });
         }
 
-        // 2C. Mise à jour des notes de binôme de Noé (Phase Socle)
-        activeIsos.forEach(iso => {
-          const dayObj = st.schedule[iso];
-          const [yy, mm, dd] = iso.split("-").map(Number);
-          const jsDay = new Date(yy, mm - 1, dd).getDay();
-          ["am", "pm"].forEach(h => {
-            const nk = h === "am" ? "noteAm" : "notePm";
-            if (!dayObj.byInterne.noe) return;
-            const noeSlot = dayObj.byInterne.noe;
-            const noeP = noeSlot[h];
-            if (!noeP || nonActivePostes.includes(noeP)) return;
-            if (noeP === "TDM SAU") {
-              const sauPartners = seniorIds
-                .filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU")
-                .map(sId => {
-                  const iObj = (st.internes || []).find(x => x.id === sId);
-                  return iObj ? iObj.shortName : sId;
-                });
-              if (sauPartners.length > 0) {
-                const pStr = sauPartners.join(" & ");
-                if (h === "am" && (jsDay === 2 || jsDay === 4)) {
-                  noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec ${pStr}`;
-                } else {
-                  noeSlot[nk] = `Posté Socle Urgences • Binôme SAU avec ${pStr}`;
+        // Accumuler les compteurs inter-semaines sur baseSched (et non st.schedule)
+        // afin qu'un congé posé sur une semaine X ne modifie jamais le planning d'une autre semaine Y != X.
+        (st.internes || []).forEach(intObj => {
+          const iid = intObj.id;
+          let bVacHalf = 0, bOffAm = 0, bOffPm = 0, bSauAm = 0, bSauPm = 0, bGestes = 0, bGestesAm = 0, bGestesPm = 0;
+          activeIsos.forEach(dChk => {
+            const bSl = baseSched[dChk] && baseSched[dChk].byInterne && baseSched[dChk].byInterne[iid];
+            if (!bSl) return;
+            if (bSl.am === "VACANCES" || bSl.am === "RG") bVacHalf++;
+            else if (bSl.am === "1/2 journée libre") bOffAm++;
+            if (bSl.pm === "VACANCES" || bSl.pm === "RG") bVacHalf++;
+            else if (bSl.pm === "1/2 journée libre") bOffPm++;
+            if (bSl.am === "TDM SAU") bSauAm++;
+            if (bSl.pm === "TDM SAU") bSauPm++;
+            if (bSl.am === "GESTES (C)" || bSl.am === "ALLURA") bGestes++;
+            if (bSl.pm === "GESTES (C)" || bSl.pm === "ALLURA") bGestes++;
+            if (bSl.am === "GESTES (C)") bGestesAm++;
+            if (bSl.pm === "GESTES (C)") bGestesPm++;
+          });
+          const bOffTotal = bOffAm + bOffPm;
+          totalAmOffs[iid] = (totalAmOffs[iid] || 0) + bOffAm;
+          totalPmOffs[iid] = (totalPmOffs[iid] || 0) + bOffPm;
+          if (bVacHalf < 6) {
+            carryOverOffs[iid] = Math.max(0, (carryOverOffs[iid] || 0) + (2 - bOffTotal));
+          }
+          totalSauAmCounts[iid] = (totalSauAmCounts[iid] || 0) + bSauAm;
+          totalSauPmCounts[iid] = (totalSauPmCounts[iid] || 0) + bSauPm;
+          totalGestesCounts[iid] = (totalGestesCounts[iid] || 0) + bGestes;
+          totalGestesAmCounts[iid] = (totalGestesAmCounts[iid] || 0) + bGestesAm;
+          totalGestesPmCounts[iid] = (totalGestesPmCounts[iid] || 0) + bGestesPm;
+        });
+
+        // 2C. Mise à jour des notes de binôme de Noé (Phase Socle) — uniquement sur semaine non verrouillée
+        if (!isWeekLocked) {
+          activeIsos.forEach(iso => {
+            const dayObj = st.schedule[iso];
+            const [yy, mm, dd] = iso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+            ["am", "pm"].forEach(h => {
+              const nk = h === "am" ? "noteAm" : "notePm";
+              if (!dayObj.byInterne.noe) return;
+              const noeSlot = dayObj.byInterne.noe;
+              const noeP = noeSlot[h];
+              if (!noeP || nonActivePostes.includes(noeP)) return;
+              if (noeP === "TDM SAU") {
+                const sauPartners = seniorIds
+                  .filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU")
+                  .map(sId => {
+                    const iObj = (st.internes || []).find(x => x.id === sId);
+                    return iObj ? iObj.shortName : sId;
+                  });
+                if (sauPartners.length > 0) {
+                  const pStr = sauPartners.join(" & ");
+                  if (h === "am" && (jsDay === 2 || jsDay === 4)) {
+                    noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec ${pStr}`;
+                  } else {
+                    noeSlot[nk] = `Posté Socle Urgences • Binôme SAU avec ${pStr}`;
+                  }
+                } else if (jsDay === 2 && h === "am") {
+                  noeSlot[nk] = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)";
                 }
-              } else if (jsDay === 2 && h === "am") {
-                noeSlot[nk] = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)";
+              }
+            });
+            if (dayObj.byInterne.noe) {
+              const noeSlot = dayObj.byInterne.noe;
+              const cKeyNoe = iso + "__noe";
+              if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm) && !(custom[cKeyNoe] && custom[cKeyNoe].note)) {
+                noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
               }
             }
           });
-          if (dayObj.byInterne.noe) {
-            const noeSlot = dayObj.byInterne.noe;
-            if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm)) {
-              noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
-            }
-          }
-        });
+        }
       });
 
       // 3. Reconstruire dayObj.am, dayObj.pm et dayObj.slots
@@ -3801,6 +4094,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           weekEcho: 0,
           weekEchoSlots: [],
           weekGestes: 0,
+          weekGestesAm: 0,
+          weekGestesPm: 0,
           weekGestesSlots: [],
           weekCs: 0,
           weekCsSlots: [],
@@ -3892,6 +4187,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
               else if (up.includes("GESTES") || up.includes("ALLURA")) {
                 weekStats[iid].weekGestes++;
+                if (hKey === "am") weekStats[iid].weekGestesAm++;
+                else weekStats[iid].weekGestesPm++;
                 weekStats[iid].weekGestesSlots.push(slotLbl);
               }
               else if (up.includes("CONSULT") || up === "CS") {
@@ -3921,7 +4218,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       let cardsHtml = "";
       STATE.internes.forEach(i => {
-        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, weekSauAm: 0, weekSauPm: 0, weekIrmPm: 0, sauTarget: i.isSocle ? 3 : 2, weekCongesHalf: 0, weekRgHalf: 0 };
+        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, weekSauAm: 0, weekSauPm: 0, weekIrmPm: 0, weekGestes: 0, weekGestesAm: 0, weekGestesPm: 0, sauTarget: i.isSocle ? 3 : 2, weekCongesHalf: 0, weekRgHalf: 0 };
         const absHalf = w.weekCongesHalf + w.weekRgHalf;
         const isFullWeekAbs = absHalf >= 8;
 
@@ -3949,15 +4246,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <div class="chef-offvac-card ${cardQuotaClass}" onclick="openVacationEditModal('${currentDateIso}', '${i.id}')" title="Modifier les postes de ${i.fullName}">
             <div class="chef-offvac-top">
               <div class="chef-offvac-name">
-                <span style="width:7px;height:7px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>
+                <span style="width:8px;height:8px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>
                 <span>${i.shortName}</span>
               </div>
-              <div class="chef-offvac-badges">
-                <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
-                <span class="offvac-pill ${sauPillClass}" title="Quota Scanner SAU : ${w.sauTarget} / semaine (${w.weekSauAm || 0} Matin / ${w.weekSauPm || 0} PM)">${w.weekSau}/${w.sauTarget} SAU (${w.weekSauAm || 0}M/${w.weekSauPm || 0}PM)</span>
-                <span class="offvac-pill ${irmPmPillClass}" title="Quota IRM d'après-midi : max 1 / semaine (sauf exception)">${w.weekIrmPm}/1 IRM PM</span>
-                <span class="offvac-pill vac-count">${w.weekVac}v</span>
-              </div>
+              <span class="offvac-pill vac-count">${w.weekVac} vac.</span>
+            </div>
+            <div class="chef-offvac-badges">
+              <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
+              <span class="offvac-pill ${sauPillClass}" title="Quota Scanner SAU : ${w.sauTarget} / semaine (${w.weekSauAm || 0} Matin / ${w.weekSauPm || 0} PM)">${w.weekSau}/${w.sauTarget} SAU <span style="font-weight:700;opacity:0.85;">(${w.weekSauAm || 0}M/${w.weekSauPm || 0}PM)</span></span>
+              <span class="offvac-pill ${irmPmPillClass}" title="Quota IRM d'après-midi : max 1 / semaine (sauf exception)">${w.weekIrmPm}/1 IRM PM</span>
+              ${w.weekGestes ? `<span class="offvac-pill" style="background:#FFE4E6;color:#BE123C;border:1px solid #FDA4AF;" title="Poste C (Gestes)">${w.weekGestes} Poste C</span>` : ""}
             </div>
             <div class="chef-offvac-slots" title="${offSlotsLabel}">${offSlotsLabel}</div>
           </div>
@@ -7244,18 +7542,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       let cur = startIso;
       let weekdays = 0;
       const tueFriDates = [];
+      const lockedWeeksSeen = new Set();
       while (cur <= endIso) {
         const [yy, mm, dd] = cur.split("-").map(Number);
         const jsDay = new Date(yy, mm - 1, dd).getDay();
         if (jsDay >= 1 && jsDay <= 5) {
           weekdays++;
+          const monIso = getMondayOfWeek(cur);
+          if (isWeekLocked(monIso) && !lockedWeeksSeen.has(monIso)) {
+            lockedWeeksSeen.add(monIso);
+            warnings.push(`📌 <strong>Semaine du ${formatDateFr(monIso)} déjà validée par le Chef</strong> : la demande sera enregistrée en attente sans modifier le planning validé.`);
+          }
           if (jsDay === 2 || jsDay === 5) tueFriDates.push(formatDateFr(cur));
           const otherAbs = (STATE.absences || []).filter(a => a.date === cur && a.interneId !== iid && a.status !== "rejected" && !String(a.type || "").toLowerCase().includes("garde"));
           if (otherAbs.length >= 2) {
             warnings.push(`🚨 <strong>${formatDateFr(cur)}</strong> : déjà ${otherAbs.length} internes en congés (${otherAbs.map(x => getInterneById(x.interneId).shortName).join(", ")}) — dépasse la limite de 2.`);
           }
           const baseSched = INITIAL_DATA.baseSchedule || INITIAL_DATA.schedule;
-          const dOrig = baseSched[cur];
+          const dOrig = (STATE.schedule && STATE.schedule[cur]) || baseSched[cur];
           if (dOrig && dOrig.byInterne && dOrig.byInterne[iid]) {
             const sl = dOrig.byInterne[iid];
             if (sl.am === "TDM SAU" || sl.pm === "TDM SAU") {
@@ -7301,26 +7605,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         return;
       }
 
-      const initialStatus = isChefPlanningMode ? "approved" : "pending";
-
+      const nowIso = new Date().toISOString();
       let cur = startIso;
       const addedDates = [];
+      let lockedDatesCount = 0;
       while (cur <= endIso) {
         const id = `abs-${iid}-${cur}`;
+        const curWeekLocked = isWeekLocked(getMondayOfWeek(cur));
+        if (curWeekLocked) lockedDatesCount++;
+        const dayStatus = (isChefPlanningMode && !curWeekLocked) ? "approved" : "pending";
         STATE.absences = (STATE.absences || []).filter(x => x.id !== id);
         if (Array.isArray(STATE.deletedAbsenceIds)) {
           STATE.deletedAbsenceIds = STATE.deletedAbsenceIds.filter(x => x !== id);
         }
-        STATE.absences.push({
+        const absEntry = {
           id,
           date: cur,
           interneId: iid,
           interneName: iObj.fullName,
           type,
-          status: initialStatus,
+          status: dayStatus,
           comment,
-          createdAt: new Date().toISOString()
-        });
+          createdAt: nowIso
+        };
+        if (dayStatus === "approved") {
+          absEntry.validatedBy = "Chef";
+          absEntry.validatedAt = nowIso;
+        }
+        STATE.absences.push(absEntry);
         addedDates.push(cur);
         cur = addDaysIso(cur, 1);
       }
@@ -7328,7 +7640,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       saveStateLocal();
       closeModal("modalAbsence");
       renderAll();
-      showToast(`Congé enregistré (${addedDates.length} j.)`);
+      if (lockedDatesCount > 0) {
+        showToast(`Congé enregistré (${addedDates.length} j.) — planning de la semaine validée inchangé`);
+      } else {
+        showToast(`Congé enregistré (${addedDates.length} j.)`);
+      }
       pushStateToCloud({ syncAbsenceSheet: true, addedDates, interneName: iObj.fullName, absType: type });
     }
 

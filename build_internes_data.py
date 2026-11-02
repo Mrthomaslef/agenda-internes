@@ -275,14 +275,14 @@ POSTES_META = [
     {"code": "TDM SAU", "label": "Scanner SAU (TDM SAU — Ollier 4)", "cat": "tdm_sau", "color": "#D97706", "horaire": "08h00 – 18h30", "horaireAm": "08h00 – 13h00", "horairePm": "13h30 – 18h30"},
     {"code": "SCAN ACHARD", "label": "Scanner Achard (TDM Achard 1)", "cat": "scan_achard", "color": "#DB2777", "horaire": "08h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
     {"code": "TDM OLLIER DIAG", "label": "Scanner Ollier (TDM Ollier 3 Diag)", "cat": "tdm_ollier", "color": "#0284C7", "horaire": "08h30 – 18h00", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h00"},
-    {"code": "IRM 3T", "label": "IRM 3T (dès 07h45)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
-    {"code": "IRM 1,5T", "label": "IRM 1,5T (dès 07h45)", "cat": "irm", "color": "#6D28D9", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
-    {"code": "IRM", "label": "IRM Après-midi (13h30 – 18h30)", "cat": "irm", "color": "#7C3AED", "horaire": "13h30 – 18h30", "horaireAm": "07h45 – 13h00", "horairePm": "13h30 – 18h30"},
-    {"code": "ECHO", "label": "Échographie Ostéo-Articulaire (dès 09h00)", "cat": "echo", "color": "#0D9488", "horaire": "Dès 09h00", "horaireAm": "09h00 – 13h00", "horairePm": "13h30 – 18h00"},
-    {"code": "GESTES (C)", "label": "Poste C / Gestes Interventionnels (dès 09h00)", "cat": "gestes", "color": "#E11D48", "horaire": "Dès 09h00", "horaireAm": "09h00 – 13h00", "horairePm": "13h30 – 18h00"},
-    {"code": "ALLURA", "label": "Salle Allura (Vasculaire / Os)", "cat": "gestes", "color": "#BE123C", "horaire": "13h30 – 18h30", "horaireAm": "08h30 – 13h00", "horairePm": "13h30 – 18h30"},
-    {"code": "CONSULTATION", "label": "Consultation Internes (Mardi PM & Vendredi PM)", "cat": "cs", "color": "#2563EB", "horaire": "13h30 – 18h00 (Mardi PM & Vendredi PM)", "horaireAm": "—", "horairePm": "13h30 – 18h00"},
-    {"code": "LECTURE", "label": "Lecture / Relecture (Mardi PM : Pr Drapé & Vendredi PM)", "cat": "lecture", "color": "#4F46E5", "horaire": "13h30 – 18h00 (Mardi PM : Relecture Pr Drapé)", "horaireAm": "—", "horairePm": "13h30 – 18h00"},
+    {"code": "IRM 3T", "label": "IRM 3T (dès 07h45)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "Dès 13h00"},
+    {"code": "IRM 1,5T", "label": "IRM 1,5T (dès 07h45)", "cat": "irm", "color": "#6D28D9", "horaire": "Dès 07h45", "horaireAm": "07h45 – 13h00", "horairePm": "Dès 13h00"},
+    {"code": "IRM", "label": "IRM Après-midi (dès 13h00)", "cat": "irm", "color": "#7C3AED", "horaire": "Dès 13h00", "horaireAm": "07h45 – 13h00", "horairePm": "Dès 13h00"},
+    {"code": "ECHO", "label": "Échographie Ostéo-Articulaire (Matin 09h00 • PM 14h00)", "cat": "echo", "color": "#0D9488", "horaire": "Matin 09h00 • PM 14h00", "horaireAm": "Dès 09h00", "horairePm": "Dès 14h00"},
+    {"code": "GESTES (C)", "label": "Poste C / Gestes Interventionnels (Matin 09h00 • PM 14h00)", "cat": "gestes", "color": "#E11D48", "horaire": "Matin 09h00 • PM 14h00", "horaireAm": "Dès 09h00", "horairePm": "Dès 14h00"},
+    {"code": "ALLURA", "label": "Salle Allura (Vasculaire / Os)", "cat": "gestes", "color": "#BE123C", "horaire": "Dès 14h00", "horaireAm": "08h30 – 13h00", "horairePm": "Dès 14h00"},
+    {"code": "CONSULTATION", "label": "Consultation Internes (14h00 – 15h00 • Mardi PM & Vendredi PM)", "cat": "cs", "color": "#2563EB", "horaire": "14h00 – 15h00 (Mardi PM & Vendredi PM)", "horaireAm": "—", "horairePm": "14h00 – 15h00"},
+    {"code": "LECTURE", "label": "Lecture / Relecture (14h00 – 16h00 • Mardi PM : Pr Drapé & Vendredi PM)", "cat": "lecture", "color": "#4F46E5", "horaire": "14h00 – 16h00 (Mardi PM : Relecture Pr Drapé)", "horaireAm": "—", "horairePm": "14h00 – 16h00"},
     {"code": "FORMATION / ACCUEIL", "label": "Accueil & Formation obligatoire des nouveaux arrivants (08h15 – 12h00)", "cat": "cs", "color": "#0284C7", "horaire": "08h15 – 12h00", "horaireAm": "08h15 – 12h00", "horairePm": "—"},
     {"code": "1/2 journée libre", "label": "Demi-off (1/2 journée libre)", "cat": "off", "color": "#64748B", "horaire": "Demi-journée libre", "horaireAm": "Demi-off matin", "horairePm": "Demi-off après-midi"},
     {"code": "FERMÉ", "label": "Vacation Fermée", "cat": "closed", "color": "#DC2626", "horaire": "Fermé", "horaireAm": "Fermé", "horairePm": "Fermé"},
@@ -1363,7 +1363,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if schedule[d_chk]["byInterne"][interne_id][half_k] == "1/2 journée libre"
             )
 
-        # Objectif de demi-offs pour la semaine = 2 + éventuel crédit reporté des semaines précédentes (max 3/semaine)
+        # Objectif de demi-offs pour la semaine = 2 maximum par interne (0 si >= 6 demi-journées de congés/RG)
         target_offs_for_week: dict[str, int] = {}
         vac_halfdays_by_interne: dict[str, int] = {}
         for iid in all_interne_ids:
@@ -1377,7 +1377,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if v_cnt >= 6:
                 target_offs_for_week[iid] = 0
             else:
-                target_offs_for_week[iid] = min(3, 2 + carry_over_offs[iid])
+                target_offs_for_week[iid] = 2
 
         # 5A. Garantir d'abord que toutes les vacations obligatoires (TDM SAU + les 13 vacations listées) sont pourvues
         for d_iso in active_isos:
@@ -1541,7 +1541,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     iid: count_week_half_offs(iid, "am") + count_week_half_offs(iid, "pm")
                     for iid in all_interne_ids
                 }
-                over_iids = [iid for iid, cnt in off_counts.items() if cnt > target_offs_for_week[iid] and target_offs_for_week[iid] > 0]
+                over_iids = [iid for iid, cnt in off_counts.items() if cnt > min(2, target_offs_for_week[iid])]
                 if not over_iids:
                     break
                 fixed = False
@@ -1571,33 +1571,35 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             ),
                         )
                     )
-                    for d_iso, h in off_slots:
-                        if is_protected_fixed_off(iid, d_iso, h):
-                            continue
-                        if assign_active_poste_on_slot(iid, d_iso, h):
-                            fixed = True
+                    for allow_protected in (False, True):
+                        for d_iso, h in off_slots:
+                            if not allow_protected and is_protected_fixed_off(iid, d_iso, h):
+                                continue
+                            if assign_active_poste_on_slot(iid, d_iso, h):
+                                fixed = True
+                                break
+                        if fixed:
                             break
                     if fixed:
                         break
                 if not fixed:
                     break
 
-        # 5B. Ajuster les demi-offs de la semaine selon target_offs_for_week (réduire si > cible, libérer des vacations non obligatoires si < cible)
-        #     1) Réduction si un interne dépasse sa cible hebdomadaire
+        # 5B. Ajuster les demi-offs de la semaine selon target_offs_for_week (max 2 demi-offs / semaine par interne)
+        #     1) Réduction si un interne dépasse sa cible hebdomadaire (jamais > 2 demi-offs)
         reduce_excess_offs_for_week()
 
-        #     2) Attribution des demi-offs manquants (jusqu'à target_offs_for_week[iid], soit 2 de base + éventuel report)
+        #     2) Attribution des demi-offs manquants (jusqu'à 2 maximum par semaine)
         #        en privilégiant systématiquement l'alternance Matin / Après-midi (1 AM + 1 PM par semaine)
         #        et en évitant 2 demi-offs le même jour.
         for iid in all_interne_ids:
             if vac_halfdays_by_interne[iid] >= 6:
                 continue
-            target_cnt = target_offs_for_week[iid]
+            target_cnt = min(2, target_offs_for_week[iid])
             off_cnt = count_week_half_offs(iid, "am") + count_week_half_offs(iid, "pm")
 
             while off_cnt < target_cnt:
                 freed = False
-                is_rattrapage = off_cnt >= 2
                 w_am = count_week_half_offs(iid, "am")
                 w_pm = count_week_half_offs(iid, "pm")
                 if w_am < w_pm:
@@ -1645,6 +1647,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 # demi-journée AM/PM manquante, demi-journée fixe), tenter :
                 # - Passe 1 : libérer directement une vacation non obligatoire occupée par l'interne
                 # - Passe 2 : échanger sur la même demi-journée avec un co-interne qui occupe une vacation non obligatoire
+                # - Passe 3 : relais avec un co-interne en demi-off sur (d_iso, h) qui occupe un poste non obligatoire un autre jour de la semaine
                 cand_list = list(non_mandatory_priority) + (["TDM SAU"] if iid == "noe" else [])
                 for d_iso, h in slot_candidates:
                     wd_cur = datetime.date.fromisoformat(d_iso).weekday()
@@ -1665,9 +1668,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         if my_p == cand_poste:
                             nk = "noteAm" if h == "am" else "notePm"
                             st[h] = "1/2 journée libre"
-                            if is_rattrapage:
-                                st[nk] = "Demi-off de rattrapage (équilibrage semaine précédente)"
-                            elif is_protected_fixed_off(iid, d_iso, h):
+                            if is_protected_fixed_off(iid, d_iso, h):
                                 st[nk] = "Demi-journée off fixe hebdomadaire"
                             else:
                                 st[nk] = "Demi-off hebdomadaire (hors vacations obligatoires)"
@@ -1680,9 +1681,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         break
 
                     # Passe 2 : échange sur la même demi-journée avec un co-interne occupant un poste non obligatoire
-                    swap_partners = senior_interne_ids if iid in senior_interne_ids else [
-                        s_id for s_id in senior_interne_ids if my_p != "TDM SAU"
-                    ]
+                    swap_partners = (
+                        list(senior_interne_ids) + (["noe"] if my_p != "TDM SAU" else [])
+                        if iid in senior_interne_ids
+                        else [s_id for s_id in senior_interne_ids if my_p != "TDM SAU"]
+                    )
                     for cand_non_mand in non_mandatory_priority:
                         if cand_non_mand in ph_set:
                             continue
@@ -1693,9 +1696,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                 nk = "noteAm" if h == "am" else "notePm"
                                 by_int[other_id][h] = my_p
                                 st[h] = "1/2 journée libre"
-                                if is_rattrapage:
-                                    st[nk] = "Demi-off de rattrapage (équilibrage semaine précédente)"
-                                elif is_protected_fixed_off(iid, d_iso, h):
+                                if is_protected_fixed_off(iid, d_iso, h):
                                     st[nk] = "Demi-journée off fixe hebdomadaire"
                                 else:
                                     st[nk] = "Demi-off hebdomadaire (équilibré)"
@@ -1703,6 +1704,61 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                     st["note"] = st[nk]
                                 off_cnt += 1
                                 freed = True
+                                break
+                        if freed:
+                            break
+                    if freed:
+                        break
+
+                    # Passe 3 : relais avec un co-interne en demi-off sur (d_iso, h) qui occupe une vacation non obligatoire
+                    #           sur un autre créneau (d_alt, h_alt) de la même semaine
+                    for other_id in swap_partners:
+                        if other_id == iid:
+                            continue
+                        if is_protected_fixed_off(other_id, d_iso, h):
+                            continue
+                        if by_int[other_id][h] != "1/2 journée libre":
+                            continue
+                        other_h_cur = "pm" if h == "am" else "am"
+                        if by_int[other_id][other_h_cur] == my_p:
+                            continue
+                        for d_alt in active_isos:
+                            if d_alt in ("2026-11-02", d_iso):
+                                continue
+                            wd_alt = datetime.date.fromisoformat(d_alt).weekday()
+                            ch_alt = (chefs_planning or {}).get(d_alt, {})
+                            for h_alt in ("am", "pm"):
+                                if h_alt == "pm" and wd_alt in (1, 4):
+                                    continue
+                                if other_id == "noe" and wd_alt == 1 and h_alt == "am":
+                                    continue
+                                other_h_alt = "pm" if h_alt == "am" else "am"
+                                if schedule[d_alt]["byInterne"][other_id][other_h_alt] == "1/2 journée libre":
+                                    continue
+                                p_alt = schedule[d_alt]["byInterne"][other_id][h_alt]
+                                if p_alt in non_active_codes or p_alt == "TDM SAU":
+                                    continue
+                                ph_alt = get_ph_interne_postes_for_halfday(ch_alt, h_alt, wd_alt, d_alt)
+                                if p_alt in ph_alt:
+                                    continue
+                                nk = "noteAm" if h == "am" else "notePm"
+                                nk_alt = "noteAm" if h_alt == "am" else "notePm"
+                                schedule[d_alt]["byInterne"][other_id][h_alt] = "1/2 journée libre"
+                                schedule[d_alt]["byInterne"][other_id][nk_alt] = "Demi-off hebdomadaire (équilibré)"
+                                by_int[other_id][h] = my_p
+                                by_int[other_id][nk] = ""
+                                st[h] = "1/2 journée libre"
+                                st[nk] = (
+                                    "Demi-journée off fixe hebdomadaire"
+                                    if is_protected_fixed_off(iid, d_iso, h)
+                                    else "Demi-off hebdomadaire (équilibré)"
+                                )
+                                if not st.get("note"):
+                                    st["note"] = st[nk]
+                                off_cnt += 1
+                                freed = True
+                                break
+                            if freed:
                                 break
                         if freed:
                             break
@@ -3148,6 +3204,20 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             raise RuntimeError(f"ERREUR : Vacation obligatoire non couverte ({ph_p}) le {d_iso} ({h_chk})")
         rebuild_day_lists(day_obj)
 
+    for w_chk_idx, iso_chk_list in sorted(weeks_map.items()):
+        active_chk_isos = [d_iso for d_iso in iso_chk_list if not schedule[d_iso].get("holiday")]
+        for iid_chk in all_interne_ids:
+            w_off_cnt = sum(
+                1
+                for d_iso in active_chk_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_iso]["byInterne"][iid_chk][h_chk] == "1/2 journée libre"
+            )
+            if w_off_cnt > 2:
+                raise RuntimeError(
+                    f"ERREUR : L'interne {iid_chk} a {w_off_cnt} demi-offs (> 2 autorisés) sur la semaine du {iso_chk_list[0]}"
+                )
+
     return schedule
 
 
@@ -4170,7 +4240,40 @@ def build_full_dataset() -> dict:
             st_slot["preRgAm"] = raw_slot.get("am", st_slot.get("am"))
             st_slot["preRgPm"] = raw_slot.get("pm", st_slot.get("pm"))
 
-    schedule = generate_semester_schedule(active_absences_for_sched, chefs_planning)
+    def _mon_of_iso(d_str: str) -> str:
+        dt_d = datetime.date.fromisoformat(d_str)
+        return (dt_d - datetime.timedelta(days=dt_d.weekday())).isoformat()
+
+    schedule = json.loads(json.dumps(base_schedule))
+    rg_by_week: dict[str, list[dict]] = {}
+    for a in rg_absences:
+        if a.get("date"):
+            rg_by_week.setdefault(_mon_of_iso(a["date"]), []).append(a)
+    active_by_week: dict[str, list[dict]] = {}
+    for a in active_absences_for_sched:
+        if a.get("date"):
+            active_by_week.setdefault(_mon_of_iso(a["date"]), []).append(a)
+
+    all_mons = sorted({_mon_of_iso(d_iso) for d_iso in base_schedule})
+    for mon_iso in all_mons:
+        if isinstance(locked_weeks.get(mon_iso), dict) and locked_weeks[mon_iso].get("locked"):
+            continue
+        w_rg = {(a.get("date"), a.get("interneId")): a.get("type") for a in rg_by_week.get(mon_iso, [])}
+        w_act = {(a.get("date"), a.get("interneId")): a.get("type") for a in active_by_week.get(mon_iso, [])}
+        if w_rg != w_act:
+            isolated_abs = [a for a in rg_absences if _mon_of_iso(a["date"]) != mon_iso] + active_by_week.get(mon_iso, [])
+            w_sched = generate_semester_schedule(isolated_abs, chefs_planning)
+            for d_iso, d_val in w_sched.items():
+                if _mon_of_iso(d_iso) == mon_iso and d_iso in schedule:
+                    base_by_int = base_schedule.get(d_iso, {}).get("byInterne", {})
+                    for iid, sl in d_val.get("byInterne", {}).items():
+                        b_sl = base_by_int.get(iid, {})
+                        if "preRgAm" in b_sl:
+                            sl["preRgAm"] = b_sl["preRgAm"]
+                        if "preRgPm" in b_sl:
+                            sl["preRgPm"] = b_sl["preRgPm"]
+                    schedule[d_iso] = d_val
+
     presentations = build_initial_presentations(schedule)
     meetings = build_service_meetings()
     recurring_staffs = build_recurring_staffs()
@@ -4220,18 +4323,18 @@ def build_full_dataset() -> dict:
             "endDate": "2027-04-30",
             "secretariat": "Anne-Marie FORTIN (01 58 41 24 83 / poste 12483)",
             "horairesVacations": {
-                "IRM": "IRM Matin (3T / 1,5T) : 07h45 – 13h00 • IRM Après-midi (séparée) : 13h30 – 18h30 (max 1/semaine par interne)",
-                "ECHO": "Début à 09h00 (Matin : dès 09h00 • Après-midi : 13h30 – 18h00)",
-                "GESTES_C": "Début à 09h00 (Matin : dès 09h00 • Après-midi : 13h30 – 18h00)",
+                "IRM": "IRM Matin (3T / 1,5T) : dès 07h45 • IRM Après-midi (séparée) : dès 13h00 (max 1/semaine par interne)",
+                "ECHO": "Matin : dès 09h00 • Après-midi : dès 14h00",
+                "GESTES_C": "Matin : dès 09h00 • Après-midi : dès 14h00",
                 "TDM_SAU": "08h00 – 18h30 (Scanner des Urgences : début à 08h00, fin à 18h30)",
-                "CONSULTATION": "Consultation Internes le Mardi après-midi et le Vendredi après-midi (13h30 – 18h00)",
-                "LECTURE": "Lecture / Relecture le Mardi après-midi (Relecture systématique avec Pr Drapé) et le Vendredi après-midi (13h30 – 18h00)",
+                "CONSULTATION": "Consultation Internes le Mardi après-midi et le Vendredi après-midi (14h00 – 15h00)",
+                "LECTURE": "Lecture / Relecture le Mardi après-midi (Relecture systématique avec Pr Drapé) et le Vendredi après-midi (14h00 – 16h00)",
             },
             "rules": [
                 "Interdiction de faire le même poste toute la journée : un interne ne peut jamais être affecté au même poste le matin et l'après-midi d'une même journée.",
                 "IRM d'après-midi séparées des IRM du matin (3T / 1,5T) : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (sauf exception en cas de congés / RG).",
-                "Horaires des vacations : IRM du matin commence à 07h45 (IRM d'après-midi de 13h30 à 18h30) • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
-                "Séparation des vacations de Lecture (LECTURE) et de Consultation d'internes (CONSULTATION) : les consultations d'internes ont lieu le mardi après-midi et le vendredi après-midi (13h30 – 18h00), séparément des vacations de lecture/relecture.",
+                "Horaires des vacations : Matin — IRM à 07h45, Scanner des U (TDM SAU) de 08h00 à 18h30, Échographie (US) et Poste C (Gestes) à 09h00 • Après-midi — IRM à 13h00, Échographie (US) et Poste C (Gestes) à 14h00, Consultation (CS) de 14h00 à 15h00, Lecture / Relecture de 14h00 à 16h00.",
+                "Séparation des vacations de Lecture (LECTURE : 14h00 – 16h00) et de Consultation d'internes (CONSULTATION : 14h00 – 15h00) : les consultations d'internes ont lieu le mardi après-midi et le vendredi après-midi, séparément des vacations de lecture/relecture.",
                 "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
                 "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle : imposé en solo sans doublure exceptionnellement chaque mardi matin avec Dr Macil HAMADOUCHE, + 2 créneaux en binôme avec un co-interne senior sur le reste de la semaine) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
                 "Permanence Scanner SAU (un interne senior matin et après-midi, sauf le mardi matin assuré en solo par Noé avec Dr Macil HAMADOUCHE) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
