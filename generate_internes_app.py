@@ -2332,30 +2332,53 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         "IRM": "IRM",
         "ALLURA": "ALLURA"
       };
-      function isPhDocStr(docStr) {
-        if (!docStr) return false;
-        const tokens = String(docStr).toUpperCase().replace(/[\/,\-\(\)]/g, " ").split(/\s+/).filter(Boolean);
-        return tokens.some(t => phDocTokens.has(t));
+      const mandatoryWeeklyPostes = {
+        "1_am": ["ECHO"],
+        "1_pm": ["IRM"],
+        "2_am": ["GESTES (C)", "IRM 3T"],
+        "2_pm": ["LECTURE/CS"],
+        "3_am": [],
+        "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
+        "4_am": ["ECHO", "GESTES (C)"],
+        "4_pm": ["IRM"],
+        "5_am": ["IRM 3T"],
+        "5_pm": []
+      };
+      const fixedOffHalfDays = {
+        marwane: "1_pm", // Lundi après-midi
+        gabriel: "3_am", // Mercredi matin
+        oussama: "4_pm"  // Jeudi après-midi
+      };
+      function isProtectedFixedOff(iid, dIso, halfKey) {
+        if (!dIso || dIso < "2026-11-09") return false;
+        const target = fixedOffHalfDays[iid];
+        if (!target) return false;
+        const [yyF, mmF, ddF] = dIso.split("-").map(Number);
+        const jsDayF = new Date(yyF, mmF - 1, ddF).getDay();
+        return `${jsDayF}_${halfKey}` === target;
       }
       function getPhInternePostesForHalfDay(iso, halfKey, jsDay) {
         const noInterneTheveninNov = (halfKey === "am" && jsDay === 3 && iso.startsWith("2026-11"));
+        const baseReq = new Set(mandatoryWeeklyPostes[`${jsDay}_${halfKey}`] || []);
+        if (noInterneTheveninNov) baseReq.delete("ECHO");
         const chDay = (st.chefsPlanning || {})[iso];
+        if (!chDay || !Array.isArray(chDay[halfKey])) return baseReq;
+        const openPostes = new Set();
+        chDay[halfKey].forEach(entry => {
+          const docVal = String(entry.doc || "").trim();
+          const pChef = String(entry.poste || "").trim();
+          const isClosed = Boolean(entry.closed) || docVal.toUpperCase().startsWith("FERM") || docVal.toUpperCase() === "MAINTENANCE";
+          if (isClosed) return;
+          if (chefToInterneMap[pChef]) {
+            openPostes.add(chefToInterneMap[pChef]);
+          } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+            openPostes.add("LECTURE/CS");
+          }
+        });
         const phSet = new Set();
-        if (chDay && Array.isArray(chDay[halfKey])) {
-          chDay[halfKey].forEach(entry => {
-            const docVal = String(entry.doc || "").trim();
-            const pChef = String(entry.poste || "").trim();
-            const isClosed = Boolean(entry.closed) || docVal.toUpperCase().startsWith("FERM") || docVal.toUpperCase() === "MAINTENANCE";
-            if (isClosed || !isPhDocStr(docVal)) return;
-            if (chefToInterneMap[pChef]) {
-              const pInt = chefToInterneMap[pChef];
-              if (noInterneTheveninNov && pInt === "ECHO") return;
-              phSet.add(pInt);
-            } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
-              phSet.add("LECTURE/CS");
-            }
-          });
-        }
+        baseReq.forEach(p => {
+          if (openPostes.has(p)) phSet.add(p);
+        });
         return phSet;
       }
 
@@ -2422,8 +2445,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
 
           // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
-          // en prélevant d'abord sur une vacation de CCA / Assistant Spécialiste (hors PH)
-          const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "GESTES (C)", "SCAN ACHARD", "IRM 1,5T", "IRM 3T", "IRM", "ECHO"];
+          // en prélevant d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
+          const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM"];
           ["am", "pm"].forEach(hSau => {
             const hasSauSenior = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
             if (!hasSauSenior) {
@@ -2458,7 +2481,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
 
           // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE/CS
-          // en prélevant d'abord sur une vacation de CCA / Assistant Spécialiste (hors PH)
+          // en prélevant d'abord sur une vacation non obligatoire
           if (jsDay === 2) {
             const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE/CS");
             const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
@@ -2511,54 +2534,184 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         st.schedule[iso] = dayObj;
       });
 
-      // 2. Garantie hebdomadaire : si les demi-offs ne sont pas suffisants (< 2 demi-offs / sem pour un interne présent),
-      //    libérer en priorité les créneaux de CCA / Assistant Spécialiste (sans jamais démunir une vacation de PH, ni mardi PM, ni vendredi PM, ni TDM SAU)
+      // 2. Garantie hebdomadaire :
+      //    - Couverture stricte du TDM SAU permanent et des 13 vacations obligatoires prioritaires
+      //    - Pose des 2 demi-offs en fonction (avec demi-journée fixe pour Marwane Lundi PM, Gabriel Mercredi AM, Oussama Jeudi PM)
+      //    - Équilibrage automatique sur les semaines suivantes (carryOverOffs) si < 2 demi-offs possibles sur une semaine chargée
       const nonMandatoryPriority = [
         "ALLURA",
         "TDM OLLIER DIAG",
         "IRM 1,5T",
-        "ECHO",
-        "GESTES (C)",
         "SCAN ACHARD",
+        "GESTES (C)",
+        "ECHO",
         "IRM 3T",
-        "IRM"
+        "IRM",
+        "LECTURE/CS"
       ];
-      Object.keys(weeksMap).forEach(monIso => {
-        if (lockedWeeks[monIso] && lockedWeeks[monIso].locked) return; // Semaine fixée par le Chef : ne pas réattribuer automatiquement
+      const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
+      const carryOverOffs = {};
+      (st.internes || []).forEach(intObj => { carryOverOffs[intObj.id] = 0; });
+
+      Object.keys(weeksMap).sort().forEach(monIso => {
+        const isWeekLocked = Boolean(lockedWeeks[monIso] && lockedWeeks[monIso].locked);
         const activeIsos = weeksMap[monIso].filter(dIso => st.schedule[dIso] && !st.schedule[dIso].holiday && st.schedule[dIso].byInterne);
-        (st.internes || []).forEach(intObj => {
-          const iid = intObj.id;
-          let vacHalfDays = 0;
-          let offCnt = 0;
-          activeIsos.forEach(dIso => {
-            const slot = st.schedule[dIso].byInterne[iid];
-            if (!slot) return;
-            ["am", "pm"].forEach(h => {
-              if (slot[h] === "VACANCES" || slot[h] === "RG") vacHalfDays++;
-              else if (slot[h] === "1/2 journée libre") offCnt++;
-            });
+
+        // 2A. Couverture des vacations obligatoires (TDM SAU + 13 vacations) sur chaque jour de la semaine
+        activeIsos.forEach(iso => {
+          const dayObj = st.schedule[iso];
+          const [yy, mm, dd] = iso.split("-").map(Number);
+          const jsDay = new Date(yy, mm - 1, dd).getDay();
+          ["am", "pm"].forEach(h => {
+            const nk = h === "am" ? "noteAm" : "notePm";
+            const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
+            const hasSeniorSau = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
+            if (!hasSeniorSau) {
+              const finalSauDonors = [
+                ...nonMandatoryPriority.filter(d => !phSet.has(d)),
+                "1/2 journée libre",
+                ...nonMandatoryPriority.filter(d => phSet.has(d)),
+                "FORMATION / ACCUEIL"
+              ];
+              const orderedSeniors = [
+                ...seniorIds.filter(sId => !isProtectedFixedOff(sId, iso, h)),
+                ...seniorIds.filter(sId => isProtectedFixedOff(sId, iso, h))
+              ];
+              let replaced = false;
+              for (const allowCustomOverride of [false, true]) {
+                for (const donorP of finalSauDonors) {
+                  for (const sId of orderedSeniors) {
+                    const cKeySau = iso + "__" + sId;
+                    if (!allowCustomOverride && custom[cKeySau] && custom[cKeySau][h]) continue;
+                    const sl = dayObj.byInterne[sId];
+                    if (sl && sl[h] === donorP) {
+                      sl[h] = "TDM SAU";
+                      sl[nk] = "Remplacement TDM SAU (permanence obligatoire)";
+                      if (!sl.note) sl.note = sl[nk];
+                      replaced = true;
+                      break;
+                    }
+                  }
+                  if (replaced) break;
+                }
+                if (replaced) break;
+              }
+            }
+
+            if (!isWeekLocked && !(iso === "2026-11-02" && h === "am")) {
+              Array.from(phSet).forEach(phPoste => {
+                const allIds = Object.keys(dayObj.byInterne);
+                const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
+                if (isCovered) return;
+                let reassignedPh = false;
+                const candIids = phPoste !== "TDM SAU" ? [...seniorIds, "noe"] : [...seniorIds];
+                // A) Prélever sur une vacation non obligatoire
+                for (const donorP of nonMandatoryPriority) {
+                  if (phSet.has(donorP)) continue;
+                  for (const candId of candIids) {
+                    if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
+                    const sl = dayObj.byInterne[candId];
+                    if (sl && sl[h] === donorP) {
+                      sl[h] = phPoste;
+                      sl[nk] = `Vacation obligatoire (${phPoste})`;
+                      if (!sl.note) sl.note = sl[nk];
+                      reassignedPh = true;
+                      break;
+                    }
+                  }
+                  if (reassignedPh) break;
+                }
+                // B) Binôme au TDM SAU
+                if (!reassignedPh && phPoste !== "TDM SAU") {
+                  const sauSeniors = seniorIds.filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
+                  if (sauSeniors.length >= 2) {
+                    const donorSid = sauSeniors[sauSeniors.length - 1];
+                    dayObj.byInterne[donorSid][h] = phPoste;
+                    dayObj.byInterne[donorSid][nk] = `Vacation obligatoire (${phPoste})`;
+                    reassignedPh = true;
+                  } else if (sauSeniors.length >= 1 && dayObj.byInterne.noe && dayObj.byInterne.noe[h] === "TDM SAU") {
+                    if (["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG"].includes(phPoste)) {
+                      dayObj.byInterne.noe[h] = phPoste;
+                      dayObj.byInterne.noe[nk] = `Vacation obligatoire (${phPoste})`;
+                      reassignedPh = true;
+                    }
+                  }
+                }
+                // C) Demi-off disponible (en protégeant en priorité les demi-journées fixes)
+                if (!reassignedPh) {
+                  const orderedOffCands = [
+                    ...candIids.filter(cid => !isProtectedFixedOff(cid, iso, h)),
+                    ...candIids.filter(cid => isProtectedFixedOff(cid, iso, h))
+                  ];
+                  for (const candId of orderedOffCands) {
+                    if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
+                    const sl = dayObj.byInterne[candId];
+                    if (sl && sl[h] === "1/2 journée libre") {
+                      sl[h] = phPoste;
+                      sl[nk] = `Vacation obligatoire (${phPoste})`;
+                      if (!sl.note) sl.note = sl[nk];
+                      reassignedPh = true;
+                      break;
+                    }
+                  }
+                }
+              });
+            }
           });
-          if (vacHalfDays >= 6) return;
-          while (offCnt < 2) {
-            let freed = false;
-            // Passe 1 : libérer directement une vacation de CCA / Assistant Spécialiste (hors PH)
-            for (const candPoste of nonMandatoryPriority) {
+        });
+
+        // 2B. Ajustement des demi-offs et équilibrage multi-semaines (carry-over)
+        if (!isWeekLocked) {
+          (st.internes || []).forEach(intObj => {
+            const iid = intObj.id;
+            let vacHalfDays = 0;
+            let offCnt = 0;
+            activeIsos.forEach(dIso => {
+              const slot = st.schedule[dIso].byInterne[iid];
+              if (!slot) return;
+              ["am", "pm"].forEach(h => {
+                if (slot[h] === "VACANCES" || slot[h] === "RG") vacHalfDays++;
+                else if (slot[h] === "1/2 journée libre") offCnt++;
+              });
+            });
+            if (vacHalfDays >= 6) return;
+            const targetOffs = Math.min(3, 2 + (carryOverOffs[iid] || 0));
+
+            while (offCnt < targetOffs) {
+              let freed = false;
+              const isRattrapage = offCnt >= 2;
+              const fixedCands = [];
+              const regCands = [];
+              const friPmCands = [];
               for (let i = activeIsos.length - 1; i >= 0; i--) {
                 const dIso = activeIsos[i];
                 if (dIso === "2026-11-02") continue;
                 const [yy, mm, dd] = dIso.split("-").map(Number);
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
-                const cKey = dIso + "__" + iid;
                 for (const h of ["pm", "am"]) {
-                  if (h === "pm" && (jsDay === 2 || jsDay === 5)) continue;
-                  if (custom[cKey] && custom[cKey][h]) continue;
-                  const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
+                  if (h === "pm" && jsDay === 2) continue;
+                  if (isProtectedFixedOff(iid, dIso, h)) fixedCands.push([dIso, h, jsDay]);
+                  else if (h === "pm" && jsDay === 5) friPmCands.push([dIso, h, jsDay]);
+                  else regCands.push([dIso, h, jsDay]);
+                }
+              }
+              const slotCandidates = [...fixedCands, ...regCands, ...friPmCands];
+
+              // Passe 1 : libérer directement une vacation non obligatoire
+              for (const [dIso, h, jsDay] of slotCandidates) {
+                const cKey = dIso + "__" + iid;
+                if (custom[cKey] && custom[cKey][h]) continue;
+                const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
+                const slot = st.schedule[dIso].byInterne[iid];
+                if (!slot) continue;
+                for (const candPoste of nonMandatoryPriority) {
                   if (phSet.has(candPoste)) continue;
-                  const slot = st.schedule[dIso].byInterne[iid];
-                  if (slot && slot[h] === candPoste) {
+                  if (slot[h] === candPoste) {
                     const nk = h === "am" ? "noteAm" : "notePm";
                     slot[h] = "1/2 journée libre";
-                    slot[nk] = "Créneau CCA/Assistant libéré (quota 2 demi-offs / sem)";
+                    slot[nk] = isRattrapage
+                      ? "Demi-off de rattrapage (équilibrage semaine précédente)"
+                      : (isProtectedFixedOff(iid, dIso, h) ? "Demi-journée off fixe hebdomadaire" : "Demi-off hebdomadaire (hors vacations obligatoires)");
                     if (!slot.note) slot.note = slot[nk];
                     offCnt++;
                     freed = true;
@@ -2567,35 +2720,29 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 }
                 if (freed) break;
               }
-              if (freed) break;
-            }
-            if (freed) continue;
+              if (freed) continue;
 
-            // Passe 2 : échanger sur la même demi-journée avec un co-interne senior occupant une vacation de CCA (hors PH)
-            if (seniorIds.includes(iid)) {
-              for (let i = activeIsos.length - 1; i >= 0; i--) {
-                const dIso = activeIsos[i];
-                if (dIso === "2026-11-02") continue;
-                const [yy, mm, dd] = dIso.split("-").map(Number);
-                const jsDay = new Date(yy, mm - 1, dd).getDay();
-                const cKey = dIso + "__" + iid;
-                const byInt = st.schedule[dIso].byInterne;
-                for (const h of ["pm", "am"]) {
-                  if (h === "pm" && (jsDay === 2 || jsDay === 5)) continue;
+              // Passe 2 : échanger sur la même demi-journée avec un co-interne senior occupant une vacation non obligatoire
+              if (seniorIds.includes(iid)) {
+                for (const [dIso, h, jsDay] of slotCandidates) {
+                  const cKey = dIso + "__" + iid;
                   if (custom[cKey] && custom[cKey][h]) continue;
+                  const byInt = st.schedule[dIso].byInterne;
                   const mySlot = byInt[iid];
-                  if (!mySlot || ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"].includes(mySlot[h])) continue;
+                  if (!mySlot || nonActivePostes.includes(mySlot[h])) continue;
                   const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
-                  for (const candCca of nonMandatoryPriority) {
-                    if (phSet.has(candCca)) continue;
+                  for (const candNonMand of nonMandatoryPriority) {
+                    if (phSet.has(candNonMand)) continue;
                     for (const otherId of seniorIds) {
                       if (otherId === iid) continue;
                       if (custom[dIso + "__" + otherId] && custom[dIso + "__" + otherId][h]) continue;
-                      if (byInt[otherId] && byInt[otherId][h] === candCca) {
+                      if (byInt[otherId] && byInt[otherId][h] === candNonMand) {
                         const nk = h === "am" ? "noteAm" : "notePm";
                         byInt[otherId][h] = mySlot[h];
                         mySlot[h] = "1/2 journée libre";
-                        mySlot[nk] = "Créneau libéré (quota 2 demi-offs / sem)";
+                        mySlot[nk] = isRattrapage
+                          ? "Demi-off de rattrapage (équilibrage semaine précédente)"
+                          : (isProtectedFixedOff(iid, dIso, h) ? "Demi-journée off fixe hebdomadaire" : "Demi-off hebdomadaire (équilibré)");
                         if (!mySlot.note) mySlot.note = mySlot[nk];
                         offCnt++;
                         freed = true;
@@ -2606,113 +2753,49 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   }
                   if (freed) break;
                 }
-                if (freed) break;
               }
+              if (!freed) break;
             }
-            if (!freed) break;
-          }
-        });
-      });
 
-      // 2bis. Garantie stricte :
-      //       - TOUTES les vacations de PH ouvertes ont un interne (quitte à ne pas mettre d'interne avec un CCA / Assistant Spécialiste)
-      //       - Il y a TOUJOURS un interne senior au TDM SAU (Matin & Après-midi)
-      //       - Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
-      const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
-      const ccaDonorOrder = ["ALLURA", "TDM OLLIER DIAG", "GESTES (C)", "SCAN ACHARD", "IRM 1,5T", "IRM 3T", "IRM", "ECHO", "LECTURE/CS"];
-      Object.keys(st.schedule).sort().forEach(iso => {
-        const dayObj = st.schedule[iso];
-        if (!dayObj || dayObj.holiday || !dayObj.byInterne) return;
-        const [yy, mm, dd] = iso.split("-").map(Number);
-        const jsDay = new Date(yy, mm - 1, dd).getDay();
-        const monIso = getMondayOfWeek(iso);
-        const isWeekLocked = Boolean(lockedWeeks[monIso] && lockedWeeks[monIso].locked);
-        ["am", "pm"].forEach(h => {
-          const nk = h === "am" ? "noteAm" : "notePm";
-          const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
-          const hasSeniorSau = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
-          if (!hasSeniorSau) {
-            const finalSauDonors = [
-              ...ccaDonorOrder.filter(d => !phSet.has(d)),
-              ...ccaDonorOrder.filter(d => phSet.has(d)),
-              "1/2 journée libre",
-              "FORMATION / ACCUEIL"
-            ];
-            let replaced = false;
-            for (const allowCustomOverride of [false, true]) {
-              for (const donorP of finalSauDonors) {
-                for (const sId of seniorIds) {
-                  const cKeySau = iso + "__" + sId;
-                  if (!allowCustomOverride && custom[cKeySau] && custom[cKeySau][h]) continue;
-                  const sl = dayObj.byInterne[sId];
-                  if (sl && sl[h] === donorP) {
-                    sl[h] = "TDM SAU";
-                    sl[nk] = "Remplacement TDM SAU (permanence obligatoire)";
-                    if (!sl.note) sl.note = sl[nk];
-                    replaced = true;
-                    break;
-                  }
-                }
-                if (replaced) break;
-              }
-              if (replaced) break;
-            }
-          }
-
-          // Couverture prioritaire de toutes les vacations de PH ouvertes sur la demi-journée
-          if (!isWeekLocked && !(iso === "2026-11-02" && h === "am")) {
-            Array.from(phSet).forEach(phPoste => {
-              const allIds = Object.keys(dayObj.byInterne);
-              const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
-              if (isCovered) return;
-              let reassignedPh = false;
-              const candIids = phPoste !== "TDM SAU" ? [...seniorIds, "noe"] : [...seniorIds];
-              for (const donorP of ccaDonorOrder) {
-                if (phSet.has(donorP)) continue;
-                if (h === "pm" && jsDay === 2 && donorP === "LECTURE/CS") continue;
-                for (const candId of candIids) {
-                  if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
-                  const sl = dayObj.byInterne[candId];
-                  if (sl && sl[h] === donorP) {
-                    sl[h] = phPoste;
-                    sl[nk] = `Priorité vacation PH (${phPoste})`;
-                    if (!sl.note) sl.note = sl[nk];
-                    reassignedPh = true;
-                    break;
-                  }
-                }
-                if (reassignedPh) break;
-              }
-            });
-          }
-
-          if (!dayObj.byInterne.noe) return;
-          const noeSlot = dayObj.byInterne.noe;
-          const noeP = noeSlot[h];
-          if (!noeP || nonActivePostes.includes(noeP)) return;
-          if (noeP === "TDM SAU") {
-            const sauPartners = seniorIds
-              .filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU")
-              .map(sId => {
-                const iObj = (st.internes || []).find(x => x.id === sId);
-                return iObj ? iObj.shortName : sId;
-              });
-            if (sauPartners.length > 0) {
-              const pStr = sauPartners.join(" & ");
-              if (h === "am" && (jsDay === 2 || jsDay === 4)) {
-                noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec ${pStr}`;
-              } else {
-                noeSlot[nk] = `Posté Socle Urgences • Binôme SAU avec ${pStr}`;
-              }
-            }
-          }
-        });
-        if (dayObj.byInterne.noe) {
-          const noeSlot = dayObj.byInterne.noe;
-          if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm)) {
-            noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
-          }
+            carryOverOffs[iid] = Math.max(0, (carryOverOffs[iid] || 0) + (2 - offCnt));
+          });
         }
+
+        // 2C. Mise à jour des notes de binôme de Noé (Phase Socle)
+        activeIsos.forEach(iso => {
+          const dayObj = st.schedule[iso];
+          const [yy, mm, dd] = iso.split("-").map(Number);
+          const jsDay = new Date(yy, mm - 1, dd).getDay();
+          ["am", "pm"].forEach(h => {
+            const nk = h === "am" ? "noteAm" : "notePm";
+            if (!dayObj.byInterne.noe) return;
+            const noeSlot = dayObj.byInterne.noe;
+            const noeP = noeSlot[h];
+            if (!noeP || nonActivePostes.includes(noeP)) return;
+            if (noeP === "TDM SAU") {
+              const sauPartners = seniorIds
+                .filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU")
+                .map(sId => {
+                  const iObj = (st.internes || []).find(x => x.id === sId);
+                  return iObj ? iObj.shortName : sId;
+                });
+              if (sauPartners.length > 0) {
+                const pStr = sauPartners.join(" & ");
+                if (h === "am" && (jsDay === 2 || jsDay === 4)) {
+                  noeSlot[nk] = `Avec Dr Macil HAMADOUCHE (MH) • Binôme SAU avec ${pStr}`;
+                } else {
+                  noeSlot[nk] = `Posté Socle Urgences • Binôme SAU avec ${pStr}`;
+                }
+              }
+            }
+          });
+          if (dayObj.byInterne.noe) {
+            const noeSlot = dayObj.byInterne.noe;
+            if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm)) {
+              noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
+            }
+          }
+        });
       });
 
       // 3. Reconstruire dayObj.am, dayObj.pm et dayObj.slots
