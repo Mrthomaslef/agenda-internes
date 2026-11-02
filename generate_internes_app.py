@@ -2435,7 +2435,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const mandatoryWeeklyPostes = {
         "1_am": ["ECHO"],
         "1_pm": ["IRM"],
-        "2_am": ["GESTES (C)", "IRM 3T", "IRM 1,5T"],
+        "2_am": ["GESTES (C)", "IRM 3T"],
         "2_pm": ["LECTURE/CS"],
         "3_am": ["IRM 3T", "IRM 1,5T"],
         "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
@@ -2652,11 +2652,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       ];
       const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
       const carryOverOffs = {};
-      (st.internes || []).forEach(intObj => { carryOverOffs[intObj.id] = 0; });
+      const totalAmOffs = {};
+      const totalPmOffs = {};
+      (st.internes || []).forEach(intObj => {
+        carryOverOffs[intObj.id] = 0;
+        totalAmOffs[intObj.id] = 0;
+        totalPmOffs[intObj.id] = 0;
+      });
 
       Object.keys(weeksMap).sort().forEach(monIso => {
         const isWeekLocked = Boolean(lockedWeeks[monIso] && lockedWeeks[monIso].locked);
         const activeIsos = weeksMap[monIso].filter(dIso => st.schedule[dIso] && !st.schedule[dIso].holiday && st.schedule[dIso].byInterne);
+        const countWeekHalfOffsJs = (interneId, halfKey) => {
+          let cnt = 0;
+          activeIsos.forEach(dChk => {
+            const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+            if (sl && sl[halfKey] === "1/2 journée libre") cnt++;
+          });
+          return cnt;
+        };
 
         // 2A. Couverture des vacations obligatoires (TDM SAU + 13 vacations) sur chaque jour de la semaine
         activeIsos.forEach(iso => {
@@ -2700,7 +2714,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
 
             if (!isWeekLocked && !(iso === "2026-11-02" && h === "am")) {
-              Array.from(phSet).forEach(phPoste => {
+              Array.from(phSet).sort().forEach(phPoste => {
                 const allIds = Object.keys(dayObj.byInterne);
                 const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
                 if (isCovered) return;
@@ -2738,12 +2752,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }
                   }
                 }
-                // C) Demi-off disponible (en protégeant en priorité les demi-journées fixes)
+                // C) Demi-off disponible (en sollicitant d'abord un interne ayant >1 off sur cette période AM/PM ou 2 offs le même jour)
                 if (!reassignedPh) {
-                  const orderedOffCands = [
-                    ...candIids.filter(cid => !isProtectedFixedOff(cid, iso, h)),
-                    ...candIids.filter(cid => isProtectedFixedOff(cid, iso, h))
-                  ];
+                  const otherH = h === "am" ? "pm" : "am";
+                  const orderedOffCands = candIids
+                    .filter(cid => dayObj.byInterne[cid] && dayObj.byInterne[cid][h] === "1/2 journée libre")
+                    .sort((a, b) => {
+                      const pa = isProtectedFixedOff(a, iso, h) ? 1 : 0;
+                      const pb = isProtectedFixedOff(b, iso, h) ? 1 : 0;
+                      if (pa !== pb) return pa - pb;
+                      const sa = dayObj.byInterne[a][otherH] === "1/2 journée libre" ? 0 : 1;
+                      const sb = dayObj.byInterne[b][otherH] === "1/2 journée libre" ? 0 : 1;
+                      if (sa !== sb) return sa - sb;
+                      const diffA = countWeekHalfOffsJs(a, h) - countWeekHalfOffsJs(a, otherH);
+                      const diffB = countWeekHalfOffsJs(b, h) - countWeekHalfOffsJs(b, otherH);
+                      return diffB - diffA;
+                    });
                   for (const candId of orderedOffCands) {
                     if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
                     const sl = dayObj.byInterne[candId];
@@ -2761,7 +2785,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
         });
 
-        // 2B. Ajustement des demi-offs et équilibrage multi-semaines (carry-over)
+        // 2B. Ajustement des demi-offs (en alternant Matin / Après-midi : 1 AM + 1 PM par semaine) et équilibrage multi-semaines
         if (!isWeekLocked) {
           (st.internes || []).forEach(intObj => {
             const iid = intObj.id;
@@ -2781,9 +2805,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             while (offCnt < targetOffs) {
               let freed = false;
               const isRattrapage = offCnt >= 2;
-              const fixedCands = [];
-              const regCands = [];
-              const friPmCands = [];
+              const wAm = countWeekHalfOffsJs(iid, "am");
+              const wPm = countWeekHalfOffsJs(iid, "pm");
+              let preferredH = "pm";
+              if (wAm < wPm) preferredH = "am";
+              else if (wPm < wAm) preferredH = "pm";
+              else if ((totalAmOffs[iid] || 0) + wAm < (totalPmOffs[iid] || 0) + wPm) preferredH = "am";
+              else if ((totalPmOffs[iid] || 0) + wPm < (totalAmOffs[iid] || 0) + wAm) preferredH = "pm";
+              else preferredH = fixedOffHalfDays[iid] ? "am" : "pm";
+
+              const rawCands = [];
               for (let i = activeIsos.length - 1; i >= 0; i--) {
                 const dIso = activeIsos[i];
                 if (dIso === "2026-11-02") continue;
@@ -2791,20 +2822,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
                 for (const h of ["pm", "am"]) {
                   if (h === "pm" && jsDay === 2) continue;
-                  if (isProtectedFixedOff(iid, dIso, h)) fixedCands.push([dIso, h, jsDay]);
-                  else if (h === "pm" && jsDay === 5) friPmCands.push([dIso, h, jsDay]);
-                  else regCands.push([dIso, h, jsDay]);
+                  const slChk = st.schedule[dIso].byInterne[iid];
+                  if (!slChk || nonActivePostes.includes(slChk[h])) continue;
+                  rawCands.push([dIso, h, jsDay]);
                 }
               }
-              const slotCandidates = [...fixedCands, ...regCands, ...friPmCands];
 
-              // Passe 1 : libérer directement une vacation non obligatoire
+              const slotCandidates = rawCands.slice().sort((a, b) => {
+                const friA = (a[2] === 5 && a[1] === "pm") ? 1 : 0;
+                const friB = (b[2] === 5 && b[1] === "pm") ? 1 : 0;
+                if (friA !== friB) return friA - friB;
+                const othA = a[1] === "am" ? "pm" : "am";
+                const othB = b[1] === "am" ? "pm" : "am";
+                const sameDayA = st.schedule[a[0]].byInterne[iid][othA] === "1/2 journée libre" ? 1 : 0;
+                const sameDayB = st.schedule[b[0]].byInterne[iid][othB] === "1/2 journée libre" ? 1 : 0;
+                if (sameDayA !== sameDayB) return sameDayA - sameDayB;
+                const prefA = a[1] === preferredH ? 0 : 1;
+                const prefB = b[1] === preferredH ? 0 : 1;
+                if (prefA !== prefB) return prefA - prefB;
+                const fixA = isProtectedFixedOff(iid, a[0], a[1]) ? 0 : 1;
+                const fixB = isProtectedFixedOff(iid, b[0], b[1]) ? 0 : 1;
+                return fixA - fixB;
+              });
+
               for (const [dIso, h, jsDay] of slotCandidates) {
                 const cKey = dIso + "__" + iid;
                 if (custom[cKey] && custom[cKey][h]) continue;
                 const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
-                const slot = st.schedule[dIso].byInterne[iid];
-                if (!slot) continue;
+                const byInt = st.schedule[dIso].byInterne;
+                const slot = byInt[iid];
+                if (!slot || nonActivePostes.includes(slot[h])) continue;
+
+                // Passe 1 : libérer directement une vacation non obligatoire
                 for (const candPoste of nonMandatoryPriority) {
                   if (phSet.has(candPoste)) continue;
                   if (slot[h] === candPoste) {
@@ -2820,18 +2869,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   }
                 }
                 if (freed) break;
-              }
-              if (freed) continue;
 
-              // Passe 2 : échanger sur la même demi-journée avec un co-interne senior occupant une vacation non obligatoire
-              if (seniorIds.includes(iid)) {
-                for (const [dIso, h, jsDay] of slotCandidates) {
-                  const cKey = dIso + "__" + iid;
-                  if (custom[cKey] && custom[cKey][h]) continue;
-                  const byInt = st.schedule[dIso].byInterne;
-                  const mySlot = byInt[iid];
-                  if (!mySlot || nonActivePostes.includes(mySlot[h])) continue;
-                  const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
+                // Passe 2 : échanger sur la même demi-journée avec un co-interne senior occupant une vacation non obligatoire
+                if (seniorIds.includes(iid)) {
                   for (const candNonMand of nonMandatoryPriority) {
                     if (phSet.has(candNonMand)) continue;
                     for (const otherId of seniorIds) {
@@ -2839,12 +2879,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                       if (custom[dIso + "__" + otherId] && custom[dIso + "__" + otherId][h]) continue;
                       if (byInt[otherId] && byInt[otherId][h] === candNonMand) {
                         const nk = h === "am" ? "noteAm" : "notePm";
-                        byInt[otherId][h] = mySlot[h];
-                        mySlot[h] = "1/2 journée libre";
-                        mySlot[nk] = isRattrapage
+                        byInt[otherId][h] = slot[h];
+                        slot[h] = "1/2 journée libre";
+                        slot[nk] = isRattrapage
                           ? "Demi-off de rattrapage (équilibrage semaine précédente)"
                           : (isProtectedFixedOff(iid, dIso, h) ? "Demi-journée off fixe hebdomadaire" : "Demi-off hebdomadaire (équilibré)");
-                        if (!mySlot.note) mySlot.note = mySlot[nk];
+                        if (!slot.note) slot.note = slot[nk];
                         offCnt++;
                         freed = true;
                         break;
@@ -2852,12 +2892,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     }
                     if (freed) break;
                   }
-                  if (freed) break;
                 }
+                if (freed) break;
               }
               if (!freed) break;
             }
 
+            totalAmOffs[iid] = (totalAmOffs[iid] || 0) + countWeekHalfOffsJs(iid, "am");
+            totalPmOffs[iid] = (totalPmOffs[iid] || 0) + countWeekHalfOffsJs(iid, "pm");
             carryOverOffs[iid] = Math.max(0, (carryOverOffs[iid] || 0) + (2 - offCnt));
           });
 
@@ -3191,6 +3233,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         stats[i.id] = {
           activeHalfDays: 0,
           freeHalfDays: 0,
+          freeAmHalfDays: 0,
+          freePmHalfDays: 0,
           vacHalfDays: 0,
           rgHalfDays: 0,
           gardesCount: 0,
@@ -3227,6 +3271,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const up = String(p || "").toUpperCase();
             if (up.includes("LIBRE")) {
               stats[iid].freeHalfDays++;
+              if (hKey === "am") stats[iid].freeAmHalfDays++;
+              else stats[iid].freePmHalfDays++;
             } else if (up === "VACANCES") {
               stats[iid].vacHalfDays++;
             } else if (up === "RG") {
@@ -4804,7 +4850,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
         <div class="summary-stats">
           <span><strong>${st.activeHalfDays}</strong> postes</span>
-          <span><strong>${st.freeHalfDays}</strong> demi-offs</span>
+          <span><strong>${st.freeHalfDays}</strong> demi-offs (${st.freeAmHalfDays || 0} Mat / ${st.freePmHalfDays || 0} PM)</span>
           <span><strong>${st.gardesCount || 0}</strong> gardes (${Math.round((st.rgHalfDays || 0) / 2)} RG)</span>
           <span><strong>${Math.round(st.vacHalfDays / 2)}j</strong> congés</span>
           <span><strong>${st.casMardi + st.biblioVendredi + (st.coursInternes || 0)}</strong> cours</span>
@@ -5844,7 +5890,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <td><span class="offvac-pill ${irmPmClass}">${w.weekIrmPm || 0}/1 IRM PM</span></td>
             <td><span class="offvac-pill vac-count">${w.weekVac} vac.</span></td>
             <td><strong>${s.activeHalfDays}</strong></td>
-            <td><strong>${s.freeHalfDays}</strong></td>
+            <td><strong>${s.freeHalfDays}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.freeAmHalfDays || 0}M/${s.freePmHalfDays || 0}PM)</span></td>
             <td><strong>${s.byModality.TDM_SAU || 0}</strong></td>
             <td>${s.byModality.SCAN_ACHARD || 0}</td>
             <td>${s.byModality.TDM_OLLIER || 0}</td>

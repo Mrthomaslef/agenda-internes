@@ -1528,19 +1528,28 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     ),
                 )
 
-                # Passe 1 : libérer directement une vacation non obligatoire occupée par l'interne
+                # Pour chaque créneau candidat (dans l'ordre de priorité : hors Ven PM, jour différent,
+                # demi-journée AM/PM manquante, demi-journée fixe), tenter :
+                # - Passe 1 : libérer directement une vacation non obligatoire occupée par l'interne
+                # - Passe 2 : échanger sur la même demi-journée avec un co-interne qui occupe une vacation non obligatoire
                 cand_list = list(non_mandatory_priority) + (["TDM SAU"] if iid == "noe" else [])
                 for d_iso, h in slot_candidates:
                     wd_cur = datetime.date.fromisoformat(d_iso).weekday()
                     ch_day = (chefs_planning or {}).get(d_iso, {})
                     ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
-                    st = schedule[d_iso]["byInterne"][iid]
+                    by_int = schedule[d_iso]["byInterne"]
+                    st = by_int[iid]
+                    my_p = st[h]
+                    if my_p in non_active_codes:
+                        continue
+
+                    # Passe 1 : libération directe si le poste de l'interne est non obligatoire
                     for cand_poste in cand_list:
                         if iid == "noe" and cand_poste == "TDM SAU" and wd_cur == 1 and h == "am" and w_idx < 3:
                             continue
                         if cand_poste in ph_set and not (iid == "noe" and cand_poste == "TDM SAU"):
                             continue
-                        if st[h] == cand_poste:
+                        if my_p == cand_poste:
                             nk = "noteAm" if h == "am" else "notePm"
                             st[h] = "1/2 journée libre"
                             if is_rattrapage:
@@ -1556,20 +1565,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             break
                     if freed:
                         break
-                if freed:
-                    continue
 
-                # Passe 2 : si l'interne n'occupe que des postes obligatoires (13 vacations ou TDM SAU),
-                # échanger sur la même demi-journée avec un co-interne qui occupe une vacation non obligatoire :
-                # le co-interne reprend le poste obligatoire et l'interne prend son demi-off !
-                for d_iso, h in slot_candidates:
-                    wd_cur = datetime.date.fromisoformat(d_iso).weekday()
-                    ch_day = (chefs_planning or {}).get(d_iso, {})
-                    by_int = schedule[d_iso]["byInterne"]
-                    my_p = by_int[iid][h]
-                    if my_p in non_active_codes:
-                        continue
-                    ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
+                    # Passe 2 : échange sur la même demi-journée avec un co-interne occupant un poste non obligatoire
                     swap_partners = senior_interne_ids if iid in senior_interne_ids else [
                         s_id for s_id in senior_interne_ids if my_p != "TDM SAU"
                     ]
@@ -1582,15 +1579,15 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             if by_int[other_id][h] == cand_non_mand:
                                 nk = "noteAm" if h == "am" else "notePm"
                                 by_int[other_id][h] = my_p
-                                by_int[iid][h] = "1/2 journée libre"
+                                st[h] = "1/2 journée libre"
                                 if is_rattrapage:
-                                    by_int[iid][nk] = "Demi-off de rattrapage (équilibrage semaine précédente)"
+                                    st[nk] = "Demi-off de rattrapage (équilibrage semaine précédente)"
                                 elif is_protected_fixed_off(iid, d_iso, h):
-                                    by_int[iid][nk] = "Demi-journée off fixe hebdomadaire"
+                                    st[nk] = "Demi-journée off fixe hebdomadaire"
                                 else:
-                                    by_int[iid][nk] = "Demi-off hebdomadaire (équilibré)"
-                                if not by_int[iid].get("note"):
-                                    by_int[iid]["note"] = by_int[iid][nk]
+                                    st[nk] = "Demi-off hebdomadaire (équilibré)"
+                                if not st.get("note"):
+                                    st["note"] = st[nk]
                                 off_cnt += 1
                                 freed = True
                                 break
