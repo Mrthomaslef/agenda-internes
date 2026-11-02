@@ -2154,6 +2154,49 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const custom = st.customVacations || {};
       const lockedWeeks = st.lockedWeeks || {};
       const seniorIds = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
+      const phDocTokens = new Set([
+        "FEYDY", "DRAPE", "DRAPÉ", "MIHOUBI", "MD", "AL", "LAPORTE",
+        "AC", "COSTEA", "YANG", "RUBINI", "SEROR", "MOUTOUNET", "HAMMOUD"
+      ]);
+      const chefToInterneMap = {
+        "TDM OLLIER 4 (SAU)": "TDM SAU",
+        "TDM OLLIER 4": "TDM SAU",
+        "ECHO": "ECHO",
+        "GESTES (C)": "GESTES (C)",
+        "POSTE C": "GESTES (C)",
+        "TDM ACHARD 1": "SCAN ACHARD",
+        "TDM OLLIER 3": "TDM OLLIER DIAG",
+        "IRM 3T": "IRM 3T",
+        "IRM 1,5T": "IRM 1,5T",
+        "IRM": "IRM",
+        "ALLURA": "ALLURA"
+      };
+      function isPhDocStr(docStr) {
+        if (!docStr) return false;
+        const tokens = String(docStr).toUpperCase().replace(/[\/,\-\(\)]/g, " ").split(/\s+/).filter(Boolean);
+        return tokens.some(t => phDocTokens.has(t));
+      }
+      function getPhInternePostesForHalfDay(iso, halfKey, jsDay) {
+        const noInterneTheveninNov = (halfKey === "am" && jsDay === 3 && iso.startsWith("2026-11"));
+        const chDay = (st.chefsPlanning || {})[iso];
+        const phSet = new Set();
+        if (chDay && Array.isArray(chDay[halfKey])) {
+          chDay[halfKey].forEach(entry => {
+            const docVal = String(entry.doc || "").trim();
+            const pChef = String(entry.poste || "").trim();
+            const isClosed = Boolean(entry.closed) || docVal.toUpperCase().startsWith("FERM") || docVal.toUpperCase() === "MAINTENANCE";
+            if (isClosed || !isPhDocStr(docVal)) return;
+            if (chefToInterneMap[pChef]) {
+              const pInt = chefToInterneMap[pChef];
+              if (noInterneTheveninNov && pInt === "ECHO") return;
+              phSet.add(pInt);
+            } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+              phSet.add("LECTURE/CS");
+            }
+          });
+        }
+        return phSet;
+      }
 
       // 1. Appliquer customVacations et absences jour par jour
       const weeksMap = {};
@@ -2218,12 +2261,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
 
           // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
-          // en respectant en priorité les affectations manuelles validées par le Chef dans customVacations
-          const sauDonorOrder = ["ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "IRM 1,5T", "IRM 3T", "1/2 journée libre", "FORMATION / ACCUEIL"];
+          // en prélevant d'abord sur une vacation de CCA / Assistant Spécialiste (hors PH)
+          const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "GESTES (C)", "SCAN ACHARD", "IRM 1,5T", "IRM 3T", "IRM", "ECHO"];
           ["am", "pm"].forEach(hSau => {
             const hasSauSenior = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
             if (!hasSauSenior) {
               const nkSau = hSau === "am" ? "noteAm" : "notePm";
+              const phSauSet = getPhInternePostesForHalfDay(iso, hSau, jsDay);
+              const sauDonorOrder = [
+                ...baseSauDonors.filter(d => !phSauSet.has(d)),
+                ...baseSauDonors.filter(d => phSauSet.has(d)),
+                "1/2 journée libre",
+                "FORMATION / ACCUEIL"
+              ];
               let replacedSau = false;
               for (const allowCustomOverride of [false, true]) {
                 for (const donorP of sauDonorOrder) {
@@ -2247,12 +2297,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
 
           // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE/CS
+          // en prélevant d'abord sur une vacation de CCA / Assistant Spécialiste (hors PH)
           if (jsDay === 2) {
             const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE/CS");
             const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
             const anyVacToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "VACANCES");
             if (!hasTueCs && anyRgToday && !anyVacToday) {
-              for (const donorP of ["ECHO", "GESTES (C)", "SCAN ACHARD"]) {
+              const phTuePm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
+              const tueDonors = ["GESTES (C)", "ECHO", "SCAN ACHARD"];
+              const orderedTueDonors = [...tueDonors.filter(d => !phTuePm.has(d)), ...tueDonors.filter(d => phTuePm.has(d))];
+              for (const donorP of orderedTueDonors) {
                 let rep = false;
                 for (const sId of seniorIds) {
                   if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
@@ -2273,7 +2327,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const hasFriCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE/CS");
             const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
             if (!hasFriCs && anyRgToday) {
-              for (const donorP of ["GESTES (C)", "SCAN ACHARD", "IRM"]) {
+              const phFriPm = getPhInternePostesForHalfDay(iso, "pm", jsDay);
+              for (const donorP of ["GESTES (C)", "IRM", "SCAN ACHARD"]) {
+                if (phFriPm.has(donorP)) continue;
                 let rep = false;
                 for (const sId of seniorIds) {
                   if (custom[iso + "__" + sId] && custom[iso + "__" + sId].pm) continue;
@@ -2295,7 +2351,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
 
       // 2. Garantie hebdomadaire : si les demi-offs ne sont pas suffisants (< 2 demi-offs / sem pour un interne présent),
-      //    les autres créneaux ne sont pas obligatoires (hors mardi PM, hors vendredi PM et hors TDM SAU)
+      //    libérer en priorité les créneaux de CCA / Assistant Spécialiste (sans jamais démunir une vacation de PH, ni mardi PM, ni vendredi PM, ni TDM SAU)
       const nonMandatoryPriority = [
         "ALLURA",
         "TDM OLLIER DIAG",
@@ -2324,6 +2380,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (vacHalfDays >= 6) return;
           while (offCnt < 2) {
             let freed = false;
+            // Passe 1 : libérer directement une vacation de CCA / Assistant Spécialiste (hors PH)
             for (const candPoste of nonMandatoryPriority) {
               for (let i = activeIsos.length - 1; i >= 0; i--) {
                 const dIso = activeIsos[i];
@@ -2332,15 +2389,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
                 const cKey = dIso + "__" + iid;
                 for (const h of ["pm", "am"]) {
-                  // Interdiction stricte de demi-off le mardi après-midi (jsDay === 2) et le vendredi après-midi (jsDay === 5)
                   if (h === "pm" && (jsDay === 2 || jsDay === 5)) continue;
-                  // Respecter un choix manuel explicite dans customVacations
                   if (custom[cKey] && custom[cKey][h]) continue;
+                  const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
+                  if (phSet.has(candPoste)) continue;
                   const slot = st.schedule[dIso].byInterne[iid];
                   if (slot && slot[h] === candPoste) {
                     const nk = h === "am" ? "noteAm" : "notePm";
                     slot[h] = "1/2 journée libre";
-                    slot[nk] = "Créneau non obligatoire libéré (quota 2 demi-offs / sem)";
+                    slot[nk] = "Créneau CCA/Assistant libéré (quota 2 demi-offs / sem)";
                     if (!slot.note) slot.note = slot[nk];
                     offCnt++;
                     freed = true;
@@ -2351,24 +2408,75 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
               if (freed) break;
             }
+            if (freed) continue;
+
+            // Passe 2 : échanger sur la même demi-journée avec un co-interne senior occupant une vacation de CCA (hors PH)
+            if (seniorIds.includes(iid)) {
+              for (let i = activeIsos.length - 1; i >= 0; i--) {
+                const dIso = activeIsos[i];
+                if (dIso === "2026-11-02") continue;
+                const [yy, mm, dd] = dIso.split("-").map(Number);
+                const jsDay = new Date(yy, mm - 1, dd).getDay();
+                const cKey = dIso + "__" + iid;
+                const byInt = st.schedule[dIso].byInterne;
+                for (const h of ["pm", "am"]) {
+                  if (h === "pm" && (jsDay === 2 || jsDay === 5)) continue;
+                  if (custom[cKey] && custom[cKey][h]) continue;
+                  const mySlot = byInt[iid];
+                  if (!mySlot || ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"].includes(mySlot[h])) continue;
+                  const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
+                  for (const candCca of nonMandatoryPriority) {
+                    if (phSet.has(candCca)) continue;
+                    for (const otherId of seniorIds) {
+                      if (otherId === iid) continue;
+                      if (custom[dIso + "__" + otherId] && custom[dIso + "__" + otherId][h]) continue;
+                      if (byInt[otherId] && byInt[otherId][h] === candCca) {
+                        const nk = h === "am" ? "noteAm" : "notePm";
+                        byInt[otherId][h] = mySlot[h];
+                        mySlot[h] = "1/2 journée libre";
+                        mySlot[nk] = "Créneau libéré (quota 2 demi-offs / sem)";
+                        if (!mySlot.note) mySlot.note = mySlot[nk];
+                        offCnt++;
+                        freed = true;
+                        break;
+                      }
+                    }
+                    if (freed) break;
+                  }
+                  if (freed) break;
+                }
+                if (freed) break;
+              }
+            }
             if (!freed) break;
           }
         });
       });
 
-      // 2bis. Garantie stricte : il doit TOUJOURS y avoir un interne senior au TDM SAU (Matin & Après-midi)
-      //       et Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
+      // 2bis. Garantie stricte :
+      //       - TOUTES les vacations de PH ouvertes ont un interne (quitte à ne pas mettre d'interne avec un CCA / Assistant Spécialiste)
+      //       - Il y a TOUJOURS un interne senior au TDM SAU (Matin & Après-midi)
+      //       - Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
       const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
-      const finalSauDonors = ["ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "IRM 1,5T", "IRM 3T", "1/2 journée libre", "FORMATION / ACCUEIL"];
+      const ccaDonorOrder = ["ALLURA", "TDM OLLIER DIAG", "GESTES (C)", "SCAN ACHARD", "IRM 1,5T", "IRM 3T", "IRM", "ECHO", "LECTURE/CS"];
       Object.keys(st.schedule).sort().forEach(iso => {
         const dayObj = st.schedule[iso];
         if (!dayObj || dayObj.holiday || !dayObj.byInterne) return;
         const [yy, mm, dd] = iso.split("-").map(Number);
         const jsDay = new Date(yy, mm - 1, dd).getDay();
+        const monIso = getMondayOfWeek(iso);
+        const isWeekLocked = Boolean(lockedWeeks[monIso] && lockedWeeks[monIso].locked);
         ["am", "pm"].forEach(h => {
           const nk = h === "am" ? "noteAm" : "notePm";
+          const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
           const hasSeniorSau = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
           if (!hasSeniorSau) {
+            const finalSauDonors = [
+              ...ccaDonorOrder.filter(d => !phSet.has(d)),
+              ...ccaDonorOrder.filter(d => phSet.has(d)),
+              "1/2 journée libre",
+              "FORMATION / ACCUEIL"
+            ];
             let replaced = false;
             for (const allowCustomOverride of [false, true]) {
               for (const donorP of finalSauDonors) {
@@ -2389,6 +2497,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               if (replaced) break;
             }
           }
+
+          // Couverture prioritaire de toutes les vacations de PH ouvertes sur la demi-journée
+          if (!isWeekLocked && !(iso === "2026-11-02" && h === "am")) {
+            Array.from(phSet).forEach(phPoste => {
+              const allIds = Object.keys(dayObj.byInterne);
+              const isCovered = allIds.some(anyId => dayObj.byInterne[anyId] && dayObj.byInterne[anyId][h] === phPoste);
+              if (isCovered) return;
+              let reassignedPh = false;
+              const candIids = phPoste !== "TDM SAU" ? [...seniorIds, "noe"] : [...seniorIds];
+              for (const donorP of ccaDonorOrder) {
+                if (phSet.has(donorP)) continue;
+                if (h === "pm" && jsDay === 2 && donorP === "LECTURE/CS") continue;
+                for (const candId of candIids) {
+                  if (custom[iso + "__" + candId] && custom[iso + "__" + candId][h]) continue;
+                  const sl = dayObj.byInterne[candId];
+                  if (sl && sl[h] === donorP) {
+                    sl[h] = phPoste;
+                    sl[nk] = `Priorité vacation PH (${phPoste})`;
+                    if (!sl.note) sl.note = sl[nk];
+                    reassignedPh = true;
+                    break;
+                  }
+                }
+                if (reassignedPh) break;
+              }
+            });
+          }
+
           if (!dayObj.byInterne.noe) return;
           const noeSlot = dayObj.byInterne.noe;
           const noeP = noeSlot[h];
