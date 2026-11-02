@@ -1347,6 +1347,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
     # Suivi cumulé des TDM SAU Matin (AM) vs Après-midi (PM) sur le semestre pour équilibrer dans la mesure du possible
     total_sau_am_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     total_sau_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    # Suivi cumulé des vacations de Poste C (GESTES (C) / RI) Matin (AM) et Après-midi (PM) sur le semestre pour équilibrer entre internes
+    total_gestes_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_ri_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_gestes_am_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_gestes_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
 
     for w_idx, iso_list in sorted(weeks_map.items()):
         active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
@@ -2829,11 +2834,234 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             if not swapped_am_pm_sau:
                 break
 
-        # Mettre à jour les compteurs cumulés d'IRM PM et de TDM SAU (AM/PM) du semestre
+        # G) ÉQUILIBRAGE DES VACATIONS DE POSTE C (GESTES (C) / RI) ENTRE LES INTERNES :
+        #    1. Sur chaque semaine : éviter les semaines à 3 Postes C pour un même interne et limiter Noé (Socle) à max 1 Poste C / semaine
+        #    2. Sur le cumul du semestre : équilibrer le total de Poste C (et l'équilibre Matin / Après-midi) entre les 5 internes seniors
+        def count_week_gestes(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] == "GESTES (C)"
+            )
+
+        def count_week_ri(interne_id: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                for h_chk in ("am", "pm")
+                if schedule[d_chk]["byInterne"][interne_id][h_chk] in ("GESTES (C)", "ALLURA")
+            )
+
+        def count_week_gestes_half(interne_id: str, half_k: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if schedule[d_chk]["byInterne"][interne_id][half_k] == "GESTES (C)"
+            )
+
+        def can_swap_gestes_on_slot(d_slot: str, h_slot: str, from_sid: str, to_sid: str, strict_irm: bool = True) -> bool:
+            if d_slot == "2026-11-02":
+                return False
+            by_s = schedule[d_slot]["byInterne"]
+            if by_s[from_sid][h_slot] != "GESTES (C)":
+                return False
+            p_und = by_s[to_sid][h_slot]
+            if p_und in non_active_codes or p_und in ("TDM SAU", "GESTES (C)", "ALLURA"):
+                return False
+            other_h_s = "pm" if h_slot == "am" else "am"
+            if is_same_poste_am_pm(p_und, by_s[from_sid][other_h_s], avoid_irm_both=strict_irm):
+                return False
+            if is_same_poste_am_pm("GESTES (C)", by_s[to_sid][other_h_s], avoid_irm_both=strict_irm):
+                return False
+            if h_slot == "pm" and p_und == "IRM" and count_week_irm_pm(from_sid) >= 1:
+                return False
+            return True
+
+        def execute_gestes_swap(d_slot: str, h_slot: str, from_sid: str, to_sid: str):
+            by_s = schedule[d_slot]["byInterne"]
+            nk_s = "noteAm" if h_slot == "am" else "notePm"
+            p_und = by_s[to_sid][h_slot]
+            n_over = by_s[from_sid].get(nk_s, "")
+            n_und = by_s[to_sid].get(nk_s, "")
+            by_s[from_sid][h_slot] = p_und
+            by_s[from_sid][nk_s] = n_und
+            by_s[to_sid][h_slot] = "GESTES (C)"
+            by_s[to_sid][nk_s] = n_over
+
+        # G-0) Si Noé (Phase Socle) a >= 2 GESTES (C) dans la même semaine (ou >14 sur le semestre quand un senior est à 0 sur la semaine),
+        #      transférer 1 GESTES (C) vers un interne senior ayant <= 1 GESTES (C) cette semaine
+        for _ in range(15):
+            swapped_noe_g = False
+            w_noe_g = count_week_gestes("noe")
+            if w_noe_g >= 1:
+                s_cands_g = sorted(
+                    [s for s in senior_interne_ids if count_week_gestes(s) <= 1],
+                    key=lambda s: (
+                        count_week_gestes(s),
+                        total_ri_counts[s] + count_week_ri(s),
+                        total_gestes_counts[s] + count_week_gestes(s),
+                    ),
+                )
+                for strict_irm in (True, False):
+                    for sid_to in s_cands_g:
+                        w_to_g = count_week_gestes(sid_to)
+                        if not (w_noe_g >= 2 or (w_noe_g == 1 and w_to_g == 0 and total_gestes_counts["noe"] + w_noe_g > 14)):
+                            continue
+                        for h_g in ("pm", "am"):
+                            for d_iso in active_isos:
+                                if d_iso == "2026-11-02":
+                                    continue
+                                by_s = schedule[d_iso]["byInterne"]
+                                if by_s["noe"][h_g] != "GESTES (C)":
+                                    continue
+                                p_sen = by_s[sid_to][h_g]
+                                if p_sen not in ("ECHO", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 1,5T", "IRM 3T", "CONSULTATION", "LECTURE"):
+                                    continue
+                                other_h_g = "pm" if h_g == "am" else "am"
+                                if is_same_poste_am_pm(p_sen, by_s["noe"][other_h_g], avoid_irm_both=strict_irm):
+                                    continue
+                                if is_same_poste_am_pm("GESTES (C)", by_s[sid_to][other_h_g], avoid_irm_both=strict_irm):
+                                    continue
+                                nk_g = "noteAm" if h_g == "am" else "notePm"
+                                n_sen = by_s[sid_to].get(nk_g, "")
+                                by_s["noe"][h_g] = p_sen
+                                by_s["noe"][nk_g] = n_sen or f"Phase Socle ({p_sen})"
+                                by_s[sid_to][h_g] = "GESTES (C)"
+                                by_s[sid_to][nk_g] = ""
+                                swapped_noe_g = True
+                                break
+                            if swapped_noe_g:
+                                break
+                        if swapped_noe_g:
+                            break
+                    if swapped_noe_g:
+                        break
+            if not swapped_noe_g:
+                break
+
+        # G-1) Équilibrer le nombre hebdomadaire et cumulé de GESTES (C) / RI entre les 5 internes seniors
+        for _ in range(45):
+            swapped_g = False
+            s_sorted_g = sorted(
+                senior_interne_ids,
+                key=lambda s: (
+                    1 if count_week_gestes(s) >= 2 else 0,
+                    total_ri_counts[s] + count_week_ri(s),
+                    total_gestes_counts[s] + count_week_gestes(s),
+                    count_week_gestes(s),
+                ),
+                reverse=True,
+            )
+            for strict_irm in (True, False):
+                for sid_over in s_sorted_g:
+                    w_over = count_week_gestes(sid_over)
+                    if w_over == 0:
+                        continue
+                    c_over = total_ri_counts[sid_over] + count_week_ri(sid_over)
+                    for sid_under in reversed(s_sorted_g):
+                        if sid_under == sid_over:
+                            continue
+                        w_under = count_week_gestes(sid_under)
+                        c_under = total_ri_counts[sid_under] + count_week_ri(sid_under)
+                        if not (
+                            (w_over >= 2 and w_under == 0 and c_over >= c_under)
+                            or (w_over >= 3 and w_under <= 1)
+                            or (c_over >= c_under + 2 and w_under + 1 <= max(2, w_over))
+                        ):
+                            continue
+                        over_am_diff = (total_gestes_am_counts[sid_over] + count_week_gestes_half(sid_over, "am")) - (
+                            total_gestes_pm_counts[sid_over] + count_week_gestes_half(sid_over, "pm")
+                        )
+                        under_am_diff = (total_gestes_am_counts[sid_under] + count_week_gestes_half(sid_under, "am")) - (
+                            total_gestes_pm_counts[sid_under] + count_week_gestes_half(sid_under, "pm")
+                        )
+                        pref_halves_g = ("am", "pm") if over_am_diff >= under_am_diff else ("pm", "am")
+                        for h_g in pref_halves_g:
+                            for d_iso in active_isos:
+                                if can_swap_gestes_on_slot(d_iso, h_g, sid_over, sid_under, strict_irm=strict_irm):
+                                    execute_gestes_swap(d_iso, h_g, sid_over, sid_under)
+                                    swapped_g = True
+                                    break
+                            if swapped_g:
+                                break
+                        if swapped_g:
+                            break
+                    if swapped_g:
+                        break
+                if swapped_g:
+                    break
+            if not swapped_g:
+                break
+
+        # G-2) Équilibrer la répartition Matin (AM) vs Après-midi (PM) des GESTES (C) entre les seniors (sans modifier leur total hebdo)
+        for _ in range(30):
+            swapped_g_ampm = False
+            s_am_sorted_g = sorted(
+                senior_interne_ids,
+                key=lambda s: (total_gestes_am_counts[s] + count_week_gestes_half(s, "am"))
+                - (total_gestes_pm_counts[s] + count_week_gestes_half(s, "pm")),
+                reverse=True,
+            )
+            for strict_irm in (True, False):
+                for sid_a in s_am_sorted_g:
+                    if count_week_gestes_half(sid_a, "am") == 0:
+                        continue
+                    diff_a = (total_gestes_am_counts[sid_a] + count_week_gestes_half(sid_a, "am")) - (
+                        total_gestes_pm_counts[sid_a] + count_week_gestes_half(sid_a, "pm")
+                    )
+                    for sid_b in reversed(s_am_sorted_g):
+                        if sid_b == sid_a:
+                            continue
+                        if count_week_gestes_half(sid_b, "pm") == 0:
+                            continue
+                        diff_b = (total_gestes_am_counts[sid_b] + count_week_gestes_half(sid_b, "am")) - (
+                            total_gestes_pm_counts[sid_b] + count_week_gestes_half(sid_b, "pm")
+                        )
+                        if diff_a - diff_b < 3:
+                            continue
+                        d_am_g = next(
+                            (d for d in active_isos if can_swap_gestes_on_slot(d, "am", sid_a, sid_b, strict_irm=strict_irm)),
+                            None,
+                        )
+                        if not d_am_g:
+                            continue
+                        snap_g = {
+                            d_s: {k_s: dict(v_s) for k_s, v_s in schedule[d_s]["byInterne"].items()}
+                            for d_s in active_isos
+                        }
+                        execute_gestes_swap(d_am_g, "am", sid_a, sid_b)
+                        d_pm_g = next(
+                            (
+                                d
+                                for d in active_isos
+                                if d != d_am_g and can_swap_gestes_on_slot(d, "pm", sid_b, sid_a, strict_irm=strict_irm)
+                            ),
+                            None,
+                        )
+                        if d_pm_g:
+                            execute_gestes_swap(d_pm_g, "pm", sid_b, sid_a)
+                            swapped_g_ampm = True
+                            break
+                        else:
+                            for d_s in active_isos:
+                                schedule[d_s]["byInterne"] = snap_g[d_s]
+                    if swapped_g_ampm:
+                        break
+                if swapped_g_ampm:
+                    break
+            if not swapped_g_ampm:
+                break
+
+        # Mettre à jour les compteurs cumulés d'IRM PM, de TDM SAU (AM/PM) et de Poste C (GESTES (C) / RI) du semestre
         for iid in all_interne_ids:
             total_irm_pm_counts[iid] += count_week_irm_pm(iid)
             total_sau_am_counts[iid] += count_week_sau_half(iid, "am")
             total_sau_pm_counts[iid] += count_week_sau_half(iid, "pm")
+            total_gestes_counts[iid] += count_week_gestes(iid)
+            total_ri_counts[iid] += count_week_ri(iid)
+            total_gestes_am_counts[iid] += count_week_gestes_half(iid, "am")
+            total_gestes_pm_counts[iid] += count_week_gestes_half(iid, "pm")
 
         # 5C. Mise à jour des notes de binôme de Noé (Phase Socle) et des remplacements exceptionnels (TDM SAU / IRM PM)
         final_senior_sau = {s_id: count_week_sau(s_id) for s_id in senior_interne_ids}
