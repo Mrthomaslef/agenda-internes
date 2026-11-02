@@ -988,44 +988,109 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     by_interne[iid]["note"] = by_interne[iid]["noteAm"] or by_interne[iid]["notePm"]
 
         # 2. Attribution pour Noé (Phase Socle — 3 TDM SAU / semaine, systématiquement en binôme avec un co-interne au TDM SAU)
-        #    En S1 (week_idx == 0, lundi matin = Formation), les 3 TDM SAU de Noé sont : Mardi AM, Jeudi AM, Vendredi PM.
-        #    À partir de S2 (week_idx >= 1), les 3 TDM SAU de Noé sont : Lundi AM, Mardi AM (avec Dr M. Hamadouche) et Jeudi AM (avec Dr M. Hamadouche).
-        if wd == 0:
-            noe_am = "TDM SAU"
-            noe_note_am = "Posté Socle Urgences"
-            if week_idx % 3 == 0:
-                noe_pm = "TDM OLLIER DIAG"
-                noe_note_pm = "Scanner Ollier 3 (TDM3)"
-            elif week_idx % 3 == 1:
+        #    - 1er mois (Novembre, week_idx < 4) :
+        #      * S1 (week_idx == 0, lundi matin = Formation) : Mardi AM, Jeudi AM, Vendredi PM.
+        #      * S2 à S4 (1 <= week_idx < 4) : Lundi AM, Mardi AM (avec Dr M. Hamadouche) et Jeudi AM (avec Dr M. Hamadouche).
+        #    - À partir du 2e mois (Décembre à Avril, week_idx >= 4) :
+        #      * Toujours 3 TDM SAU / semaine en binôme, mais les créneaux de TDM SAU (jours et Matin/Après-midi)
+        #        ainsi que les demi-offs (1 AM + 1 PM) et les autres postes varient chaque semaine (cycle sur 5 semaines).
+        if week_idx < 4:
+            if wd == 0:
+                noe_am = "TDM SAU"
+                noe_note_am = "Posté Socle Urgences (1er mois)"
+                if week_idx % 3 == 0:
+                    noe_pm = "TDM OLLIER DIAG"
+                    noe_note_pm = "Scanner Ollier 3 (TDM3)"
+                elif week_idx % 3 == 1:
+                    noe_pm = "ECHO"
+                    noe_note_pm = "Échographie (Phase Socle)"
+                else:
+                    noe_pm = "GESTES (C)"
+                    noe_note_pm = "Salle C — Gestes (Phase Socle)"
+            elif wd == 1:
+                noe_am = "TDM SAU"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
+                noe_pm = "SCAN ACHARD" if (week_idx % 2 == 0) else "ECHO"
+                noe_note_pm = "Scanner Achard 1" if noe_pm == "SCAN ACHARD" else "Échographie"
+            elif wd == 2:
+                noe_am = "1/2 journée libre"
+                noe_note_am = "Demi-off hebdomadaire"
                 noe_pm = "ECHO"
-                noe_note_pm = "Échographie (Phase Socle)"
-            else:
-                noe_pm = "GESTES (C)"
-                noe_note_pm = "Salle C — Gestes (Phase Socle)"
-        elif wd == 1:
-            noe_am = "TDM SAU"
-            noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
-            noe_pm = "SCAN ACHARD" if (week_idx % 2 == 0) else "ECHO"
-            noe_note_pm = "Scanner Achard 1" if noe_pm == "SCAN ACHARD" else "Échographie"
-        elif wd == 2:
-            noe_am = "1/2 journée libre"
-            noe_note_am = "Demi-off hebdomadaire"
-            noe_pm = "ECHO"
-            noe_note_pm = "Échographie (avec Dr Mihoubi)"
-        elif wd == 3:
-            noe_am = "TDM SAU"
-            noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
-            noe_pm = "1/2 journée libre"
-            noe_note_pm = "Demi-off hebdomadaire"
-        else:  # wd == 4 (Vendredi)
-            noe_am = "IRM 3T"
-            noe_note_am = "IRM 3T (Vendredi matin)"
-            if week_idx == 0:
-                noe_pm = "TDM SAU"
-                noe_note_pm = "Posté Socle Urgences"
-            else:
-                noe_pm = "LECTURE/CS" if (week_idx % 2 == 1) else "SCAN ACHARD"
-                noe_note_pm = "Consultation Internes (Vendredi PM)" if noe_pm == "LECTURE/CS" else "Scanner Achard 1"
+                noe_note_pm = "Échographie (avec Dr Mihoubi)"
+            elif wd == 3:
+                noe_am = "TDM SAU"
+                noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Posté Socle Urgences"
+                noe_pm = "1/2 journée libre"
+                noe_note_pm = "Demi-off hebdomadaire"
+            else:  # wd == 4 (Vendredi)
+                noe_am = "IRM 3T"
+                noe_note_am = "IRM 3T (Vendredi matin)"
+                if week_idx == 0:
+                    noe_pm = "TDM SAU"
+                    noe_note_pm = "Posté Socle Urgences"
+                else:
+                    noe_pm = "LECTURE/CS" if (week_idx % 2 == 1) else "SCAN ACHARD"
+                    noe_note_pm = "Consultation Internes (Vendredi PM)" if noe_pm == "LECTURE/CS" else "Scanner Achard 1"
+        else:
+            rot_noe = (week_idx - 4) % 5
+            if rot_noe == 0:
+                # SAU : Lun PM, Mer AM, Ven AM (2 AM + 1 PM) • Offs : Mar AM, Jeu PM
+                noe_week_plan = {
+                    0: ("ECHO", "TDM SAU"),
+                    1: ("1/2 journée libre", "SCAN ACHARD"),
+                    2: ("TDM SAU", "TDM OLLIER DIAG"),
+                    3: ("GESTES (C)", "1/2 journée libre"),
+                    4: ("TDM SAU", "LECTURE/CS"),
+                }
+            elif rot_noe == 1:
+                # SAU : Mar PM, Jeu AM, Ven PM (1 AM + 2 PM) • Offs : Lun AM, Mer PM
+                noe_week_plan = {
+                    0: ("1/2 journée libre", "TDM OLLIER DIAG"),
+                    1: ("IRM 1,5T", "TDM SAU"),
+                    2: ("IRM 3T", "1/2 journée libre"),
+                    3: ("TDM SAU", "IRM"),
+                    4: ("ECHO", "TDM SAU"),
+                }
+            elif rot_noe == 2:
+                # SAU : Lun AM, Mer PM, Jeu PM (1 AM + 2 PM) • Offs : Lun PM, Jeu AM
+                noe_week_plan = {
+                    0: ("TDM SAU", "1/2 journée libre"),
+                    1: ("GESTES (C)", "ECHO"),
+                    2: ("TDM OLLIER DIAG", "TDM SAU"),
+                    3: ("1/2 journée libre", "TDM SAU"),
+                    4: ("IRM 3T", "SCAN ACHARD"),
+                }
+            elif rot_noe == 3:
+                # SAU : Mar AM, Mer PM, Ven AM (2 AM + 1 PM) • Offs : Mer AM, Lun PM
+                noe_week_plan = {
+                    0: ("GESTES (C)", "1/2 journée libre"),
+                    1: ("TDM SAU", "LECTURE/CS"),
+                    2: ("1/2 journée libre", "TDM SAU"),
+                    3: ("ECHO", "SCAN ACHARD"),
+                    4: ("TDM SAU", "IRM" if (week_idx % 2 == 0) else "SCAN ACHARD"),
+                }
+            else:  # rot_noe == 4
+                # SAU : Lun PM, Mar AM, Jeu PM (1 AM + 2 PM) • Offs : Mer PM, Ven AM
+                noe_week_plan = {
+                    0: ("ECHO", "TDM SAU"),
+                    1: ("TDM SAU", "SCAN ACHARD"),
+                    2: ("IRM 1,5T", "1/2 journée libre"),
+                    3: ("GESTES (C)", "TDM SAU"),
+                    4: ("1/2 journée libre", "LECTURE/CS"),
+                }
+            noe_am, noe_pm = noe_week_plan[wd]
+
+            def _noe_slot_note(poste_code: str, weekday_i: int, half_s: str) -> str:
+                if poste_code == "TDM SAU":
+                    return "Posté Socle Urgences"
+                if poste_code == "1/2 journée libre":
+                    return "Demi-off hebdomadaire"
+                if poste_code == "LECTURE/CS":
+                    return "Relecture avec Pr Drapé" if weekday_i == 1 else "Consultation Internes (Vendredi PM)"
+                return f"Phase Socle ({poste_code})"
+
+            noe_note_am = _noe_slot_note(noe_am, wd, "am")
+            noe_note_pm = _noe_slot_note(noe_pm, wd, "pm")
 
         by_interne["noe"] = {
             "am": noe_am,
@@ -2629,229 +2694,126 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
 
 def build_service_meetings() -> list[dict]:
     """
-    Réunions du service, formations obligatoires, accueils, Bone Club, CRA et annonces officielles
-    envoyées par Anne-Marie Fortin et Sandrine Camblong (secrétariats du Pr A. Feydy & Pr J-L. Drapé).
+    Calendrier simplifié des réunions majeures du service :
+    - Bone Club Cochin (Mercredis 18h00 – 20h00, Amphithéâtre Luton)
+    - CRA : Confrontations Radio-Anatomo-Pathologiques (Vendredis 14h00/14h15 – 16h00, Salle de Staff Radio B)
     """
     return [
-        {
-            "id": "reunion-2026-11-02-cafe",
-            "date": "2026-11-02",
-            "horaire": "08h15 – 08h45",
-            "title": "Café d'accueil & Visite du Service de Radiologie B",
-            "category": "Accueil & Vie du service",
-            "sender": "Anne-Marie FORTIN / Dr M-P. TALABARD & les Chefs",
-            "location": "Bâtiment Albarran (-1) — Salle de Staff Radio B",
-            "description": "Accueil de la nouvelle promotion d'internes Hiver 2026–2027 autour d'un café à 8h15, suivi de la visite des différents secteurs (TDM Ollier, Achard, IRM 1.5T/3T, Écho, Salle C & Allura).",
-            "mandatory": True,
-        },
-        {
-            "id": "reunion-2026-11-02-formation",
-            "date": "2026-11-02",
-            "horaire": "09h00 – 11h45",
-            "title": "Demi-journée de Formation obligatoire des nouveaux arrivants",
-            "category": "Formation obligatoire",
-            "sender": "Anne-Marie FORTIN (Secrétariat Pr A. Feydy)",
-            "location": "Salle de Staff Radio B (Albarran -1 / Salle Chevrot)",
-            "description": (
-                "Programme officiel transmis par Anne-Marie Fortin :\n"
-                "• 09h00 – 09h45 : Radioprotection (Mme Sophie LE GALL)\n"
-                "• 10h00 – 10h45 : Règles d'hygiène en imagerie & interventionnel (Dr Véronique FARAUT DEROUIN)\n"
-                "• 11h00 – 11h45 : Utilisation des anesthésiants locaux (Pr Anthony DOHAN / Dr Raphaël DAUTRY)"
-            ),
-            "mandatory": True,
-        },
-        {
-            "id": "reunion-2026-11-04-accueil",
-            "date": "2026-11-04",
-            "horaire": "17h00 – 18h30",
-            "title": "Réunion d'accueil Internes & Chefs de Clinique",
-            "category": "Réunion Service",
-            "sender": "Dr Fadila MIHOUBI BOUVIER, Dr Amandine LAPORTE & Anne-Marie FORTIN",
-            "location": "Salle de Staff Radio B (Albarran -1)",
-            "description": "Présentation du fonctionnement du service, des gardes, des règles de congés (max 2 absents simultanés, éviter mardi/vendredi), de la trame des vacations et du programme des présentations du mardi (cas) et vendredi (biblio).",
-            "mandatory": True,
-        },
-        {
-            "id": "reunion-2026-11-09-externes",
-            "date": "2026-11-09",
-            "horaire": "09h00 – 12h00",
-            "title": "Arrivée des nouveaux externes & Lancement des Cours Externes Nov–Déc",
-            "category": "Enseignement",
-            "sender": "Anne-Marie FORTIN",
-            "location": "Salle de réunion Albarran -1",
-            "description": "Accueil des externes du stage de Novembre–Décembre 2026 (du 09/11/2026 au 03/01/2027) et début du planning des cours externes assurés par les CCA et internes.",
-            "mandatory": False,
-        },
-        {
-            "id": "reunion-2026-11-19-ecos",
-            "date": "2026-11-19",
-            "horaire": "09h00 – 12h00",
-            "title": "Session ECOS Externes — Radiologie B",
-            "category": "Enseignement",
-            "sender": "Anne-Marie FORTIN",
-            "location": "Salle de réunion Albarran -1",
-            "description": "Entraînement ECOS pour les externes du service (encadrement CCA / Internes).",
-            "mandatory": False,
-        },
-        {
-            "id": "reunion-2026-11-24-dmu",
-            "date": "2026-11-24",
-            "horaire": "09h00 – 17h00",
-            "title": "Séminaire DMU Imagina",
-            "category": "Séminaire / Congrès",
-            "sender": "Anne-Marie FORTIN / Direction DMU Imagina",
-            "location": "Hôpital Necker-Enfants Malades",
-            "description": "Journée annuelle du DMU Imagina (présentations institutionnelles et projets du DMU).",
-            "mandatory": False,
-        },
         {
             "id": "reunion-2026-11-25-boneclub",
             "date": "2026-11-25",
             "horaire": "18h00 – 20h00",
-            "title": "BONE CLUB Cochin — Session de Novembre",
+            "title": "Bone Club Cochin — Novembre",
             "category": "Bone Club",
-            "sender": "Dr Fadila MIHOUBI BOUVIER / Sandrine CAMBLONG",
-            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques)",
-            "description": "Réunion de radiologie ostéo-articulaire : présentation et discussion de dossiers de pathologies de l'appareil locomoteur. Entrée libre.",
+            "sender": "Pr J-L. Drapé & Pr A. Feydy",
+            "location": "Amphithéâtre Luton (Cochin)",
+            "description": "Session de Novembre — Dossiers d'imagerie ostéo-articulaire",
             "mandatory": True,
         },
         {
             "id": "reunion-2026-11-27-anapath",
             "date": "2026-11-27",
             "horaire": "14h00 – 16h00",
-            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #1)",
-            "category": "Staff Multidisciplinaire",
-            "sender": "Sandrine CAMBLONG (Enseignement Radio B — 01 58 41 24 81)",
-            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
-            "description": "Réunion mensuelle de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Service d'Anapath Pr B. Terris / Dr V. Audard / Dr F. Larousserie & Service de Radiologie B Prs J-L. Drapé et A. Feydy).",
-            "mandatory": True,
-        },
-        {
-            "id": "reunion-2026-12-18-vaccin",
-            "date": "2026-12-18",
-            "horaire": "Toute la journée",
-            "title": "Campagne de vaccination Grippe & Covid — Cochin Port-Royal",
-            "category": "Infos AP-HP",
-            "sender": "Anne-Marie FORTIN",
-            "location": "Hôpital Cochin",
-            "description": "Date limite de la campagne de vaccination annuelle pour le personnel médical et les internes du site Cochin.",
-            "mandatory": False,
-        },
-        {
-            "id": "reunion-2026-12-21-noel",
-            "date": "2026-12-21",
-            "horaire": "Semaines du 21/12 et 28/12/2026",
-            "title": "Organisation des Congés de Fin d'Année (Noël / Nouvel An)",
-            "category": "Congés & Effectifs",
-            "sender": "Anne-Marie FORTIN & les Chefs",
-            "location": "Service de Radiologie B",
-            "description": "Répartition équitable des internes entre la semaine de Noël (21/12–25/12) et la semaine du Jour de l'An (28/12–01/01) afin d'assurer la continuité des postes prioritaires (TDM SAU, IRM, Gestes).",
+            "title": "CRA #1 — Confrontation Radio-Anapath (Novembre)",
+            "category": "CRA",
+            "sender": "Radio B & Anapath (Pr B. Terris, Dr F. Larousserie, Dr V. Audard)",
+            "location": "Salle de Staff Radio B (Albarran -1)",
+            "description": "Corrélation radio-histologique de l'appareil locomoteur",
             "mandatory": True,
         },
         {
             "id": "reunion-2027-01-15-anapath",
             "date": "2027-01-15",
             "horaire": "14h15 – 16h00",
-            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #2)",
-            "category": "Staff Multidisciplinaire",
-            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
-            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
-            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "title": "CRA #2 — Confrontation Radio-Anapath (Janvier)",
+            "category": "CRA",
+            "sender": "Radio B & Anapath (Dr F. Larousserie, Dr V. Audard)",
+            "location": "Salle de Staff Radio B (Albarran -1)",
+            "description": "Corrélation radio-histologique de l'appareil locomoteur",
             "mandatory": True,
         },
         {
             "id": "reunion-2027-01-20-boneclub",
             "date": "2027-01-20",
             "horaire": "18h00 – 20h00",
-            "title": "BONE CLUB Cochin — Session de Janvier",
+            "title": "Bone Club Cochin — Janvier",
             "category": "Bone Club",
-            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
-            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
-            "description": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France (Modération : Dr M. Lacroix & Pr J-L. Drapé). Entrée libre.",
+            "sender": "Dr M. Lacroix & Pr J-L. Drapé",
+            "location": "Amphithéâtre Luton (Cochin)",
+            "description": "Modération : Dr M. Lacroix (HEGP) & Pr J-L. Drapé (Cochin)",
             "mandatory": True,
-        },
-        {
-            "id": "reunion-2027-02-26-seminaire-cochin",
-            "date": "2027-02-26",
-            "horaire": "26 & 27 février 2027",
-            "title": "XLIIIe Séminaire de Radiologie Ostéo-Articulaire de Cochin — Bassin & Hanche",
-            "category": "Séminaire / Congrès",
-            "sender": "Sandrine CAMBLONG / Pr A. Feydy & Pr J-L. Drapé",
-            "location": "Institut Imagine (24 boulevard du Montparnasse, 75015 Paris)",
-            "description": "40 problèmes au quotidien, solutions par l'exemple sur le thème Bassin / Hanche (quiz interactifs et cas cliniques commentés par l'équipe de Radio B Cochin).",
-            "mandatory": False,
         },
         {
             "id": "reunion-2027-03-24-boneclub",
             "date": "2027-03-24",
             "horaire": "18h00 – 20h00",
-            "title": "BONE CLUB Cochin — Session de Mars",
+            "title": "Bone Club Cochin — Mars",
             "category": "Bone Club",
-            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
-            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
-            "description": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France (Modération : Pr É. Dion & Dr M. Crézé / Pr A. Feydy). Entrée libre.",
+            "sender": "Pr É. Dion, Dr M. Crézé & Pr A. Feydy",
+            "location": "Amphithéâtre Luton (Cochin)",
+            "description": "Modération : Pr É. Dion, Dr M. Crézé & Pr A. Feydy",
             "mandatory": True,
         },
         {
             "id": "reunion-2027-03-26-anapath",
             "date": "2027-03-26",
             "horaire": "14h15 – 16h00",
-            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #3)",
-            "category": "Staff Multidisciplinaire",
-            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
-            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
-            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "title": "CRA #3 — Confrontation Radio-Anapath (Mars)",
+            "category": "CRA",
+            "sender": "Radio B & Anapath (Dr F. Larousserie, Dr V. Audard)",
+            "location": "Salle de Staff Radio B (Albarran -1)",
+            "description": "Corrélation radio-histologique de l'appareil locomoteur",
             "mandatory": True,
         },
         {
             "id": "reunion-2027-05-14-anapath",
             "date": "2027-05-14",
             "horaire": "14h15 – 16h00",
-            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #4)",
-            "category": "Staff Multidisciplinaire",
-            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
-            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
-            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "title": "CRA #4 — Confrontation Radio-Anapath (Mai)",
+            "category": "CRA",
+            "sender": "Radio B & Anapath",
+            "location": "Salle de Staff Radio B (Albarran -1)",
+            "description": "Corrélation radio-histologique de l'appareil locomoteur",
             "mandatory": False,
         },
         {
             "id": "reunion-2027-05-26-boneclub",
             "date": "2027-05-26",
             "horaire": "18h00 – 20h00",
-            "title": "BONE CLUB Cochin — Session de Mai",
+            "title": "Bone Club Cochin — Mai",
             "category": "Bone Club",
-            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
-            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
-            "description": "Présentation et discussion de dossiers de pathologies de l'appareil locomoteur par les équipes hospitalières d'Île-de-France (Modération : Pr A. Feydy & Dr M. Lacroix). Entrée libre.",
+            "sender": "Pr A. Feydy & Dr M. Lacroix",
+            "location": "Amphithéâtre Luton (Cochin)",
+            "description": "Modération : Pr A. Feydy & Dr M. Lacroix",
             "mandatory": False,
         },
         {
             "id": "reunion-2027-06-18-anapath",
             "date": "2027-06-18",
             "horaire": "14h15 – 16h00",
-            "title": "Confrontations Radio-Anatomo-Pathologiques (CRA #5)",
-            "category": "Staff Multidisciplinaire",
-            "sender": "Sandrine CAMBLONG (Enseignement Radio B)",
-            "location": "Salle de réunion Radio B (Pavillon Albarran - 1er sous-sol)",
-            "description": "Réunion de corrélation radio-histologique dans les maladies de l'appareil locomoteur (Calendrier CRA V3).",
+            "title": "CRA #5 — Confrontation Radio-Anapath (Juin)",
+            "category": "CRA",
+            "sender": "Radio B & Anapath",
+            "location": "Salle de Staff Radio B (Albarran -1)",
+            "description": "Corrélation radio-histologique de l'appareil locomoteur",
             "mandatory": False,
         },
         {
             "id": "reunion-2027-06-30-boneclub",
             "date": "2027-06-30",
             "horaire": "18h00 – 20h00",
-            "title": "BONE CLUB Cochin × APRAMEN — Session Jumelée de Juin",
+            "title": "Bone Club Cochin × APRAMEN — Juin",
             "category": "Bone Club",
-            "sender": "Sandrine CAMBLONG (Secrétariat d'enseignement Pr J-L. Drapé & Pr A. Feydy)",
-            "location": "Amphithéâtre LUTON — RDC UFR de Médecine Site Cochin (24 rue du Fg St-Jacques, Paris 14e)",
-            "description": "Réunion annuelle jumelée Bone Club & APRAMEN (Association des Praticiens de Médecine Nucléaire d'Île-de-France — Modération : Pr A. Feydy & Dr F. Paycha). Entrée libre.",
+            "sender": "Pr A. Feydy & Dr F. Paycha",
+            "location": "Amphithéâtre Luton (Cochin)",
+            "description": "Session jumelée annuelle Bone Club & APRAMEN (Pr A. Feydy & Dr F. Paycha)",
             "mandatory": False,
         },
     ]
 
 
 def build_recurring_staffs() -> list[dict]:
-    """Staffs hebdomadaires récurrents du service de Radiologie B."""
+    """Staffs médico-chirurgicaux et multidisciplinaires hebdomadaires du service de Radiologie B."""
     return [
         {
             "day": "Lundi",
@@ -2865,8 +2827,6 @@ def build_recurring_staffs() -> list[dict]:
             "day": "Mardi",
             "weekday": 1,
             "items": [
-                {"horaire": "12h30 – 13h30", "title": "Staff Internes : Cas Clinique du Mardi + Cours des Chefs", "referent": "Dr F. Mihoubi Bouvier & Tous les Chefs"},
-                {"horaire": "Après-midi (13h30–18h00)", "title": "Consultation & Relecture systématique avec Pr Jean-Luc Drapé", "referent": "Pr J-L. Drapé & Interne de Consultation"},
                 {"horaire": "Après-midi", "title": "Staff RCP Sarcomes des Tissus Mous", "referent": "Dr A. Laporte & Chefs"},
             ],
         },
@@ -2874,15 +2834,7 @@ def build_recurring_staffs() -> list[dict]:
             "day": "Mercredi",
             "weekday": 2,
             "items": [
-                {"horaire": "Matin", "title": "Accueil stagiaires / Enseignement externes", "referent": "CCA / Internes"},
                 {"horaire": "Après-midi", "title": "Staff Rachis / Rhumatologie Osseuse", "referent": "Dr Yang"},
-            ],
-        },
-        {
-            "day": "Jeudi",
-            "weekday": 3,
-            "items": [
-                {"horaire": "Matin / PM", "title": "Vacations Interventionnelles lourdes (Scanner Achard & Salle Allura)", "referent": "Équipe RI"},
             ],
         },
         {
@@ -2890,8 +2842,6 @@ def build_recurring_staffs() -> list[dict]:
             "weekday": 4,
             "items": [
                 {"horaire": "Matin", "title": "Staff Prothèses & Imagerie Orthopédique", "referent": "Dr H. Guérini"},
-                {"horaire": "12h30 – 13h30", "title": "Biblio du Vendredi (Article scientifique par un interne)", "referent": "Internes & Chefs"},
-                {"horaire": "Après-midi (13h30–18h00)", "title": "Consultation Internes du Vendredi après-midi", "referent": "Dr M. Hamadouche / Seniors & Internes"},
                 {"horaire": "Après-midi", "title": "Staff MPR / Rhumatologie", "referent": "Dr F. Mihoubi Bouvier"},
             ],
         },

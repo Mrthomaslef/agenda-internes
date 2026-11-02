@@ -710,6 +710,42 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     table.planning-table.week-5col th.col-poste {
       width: 140px;
+      vertical-align: middle;
+    }
+
+    table.planning-table.week-5col th.th-day-col {
+      padding: 4px;
+      background: #F1F5F9;
+      vertical-align: middle;
+      text-transform: none;
+    }
+
+    table.planning-table.week-5col th.th-day-col .day-pill {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      box-sizing: border-box;
+      transition: all 0.12s ease;
+    }
+
+    table.planning-table.week-5col th.th-day-col .day-pill:hover {
+      border-color: var(--primary);
+      background: #F0F9FF;
+    }
+
+    table.planning-table.week-5col th.th-day-col .day-pill.active:hover {
+      background: #E0F2FE;
+    }
+
+    .weekend-garde-mini:hover {
+      border-color: #F87171;
+      background: #FFF1F2;
+    }
+
+    .weekend-garde-mini.active {
+      background: #E0F2FE;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
     }
 
     table.planning-table th,
@@ -863,6 +899,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
       table.planning-table.week-5col th.col-poste {
         width: 54px;
+      }
+      table.planning-table.week-5col th.th-day-col {
+        padding: 2px 1.5px;
       }
       table.planning-table.week-5col th,
       table.planning-table.week-5col td {
@@ -1897,28 +1936,36 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <div class="card-title">Nouvelle réunion</div>
         <button class="btn btn-sm" onclick="closeModal('modalMeeting')">Fermer</button>
       </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;">
+        <div class="form-group">
+          <label>Type</label>
+          <select id="meetCategory" class="form-control" onchange="onMeetCategoryChange(this.value)">
+            <option value="Bone Club">Bone Club</option>
+            <option value="CRA">CRA (Anapath)</option>
+            <option value="Autre">Autre réunion</option>
+          </select>
+        </div>
         <div class="form-group">
           <label>Date</label>
-          <input type="date" id="meetDate" class="form-control" value="2026-11-04" />
+          <input type="date" id="meetDate" class="form-control" value="2026-11-25" />
         </div>
         <div class="form-group">
           <label>Horaire</label>
-          <input type="text" id="meetHoraire" class="form-control" placeholder="17h00 – 18h00" />
+          <input type="text" id="meetHoraire" class="form-control" placeholder="18h00 – 20h00" />
         </div>
       </div>
       <div class="form-group">
-        <label>Titre</label>
-        <input type="text" id="meetTitle" class="form-control" placeholder="Ex: Réunion Internes / Chefs" />
+        <label>Titre / Session</label>
+        <input type="text" id="meetTitle" class="form-control" placeholder="Ex: Bone Club Cochin — Session..." />
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
-          <label>Organisateur</label>
-          <input type="text" id="meetSender" class="form-control" value="Anne-Marie FORTIN" />
+          <label>Modération / Intervenants</label>
+          <input type="text" id="meetSender" class="form-control" value="Pr J-L. Drapé & Pr A. Feydy" />
         </div>
         <div class="form-group">
           <label>Salle</label>
-          <input type="text" id="meetLocation" class="form-control" value="Salle de Staff Radio B" />
+          <input type="text" id="meetLocation" class="form-control" value="Amphithéâtre Luton (Cochin)" />
         </div>
       </div>
       <div class="form-group">
@@ -2002,6 +2049,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let planningMode = "week";      // 'day' | 'week' | 'month'
     let currentDateIso = "2026-11-02";
     let presFilter = "cas_mardi"; // 'cas_mardi' | 'biblio_vendredi' | 'cours_internes'
+    let reunionsFilter = "bone_cra"; // 'bone_cra' | 'staffs_hebdo'
     let annuaireSearch = "";
     let annuaireCategory = "all";
     let vacFilter = "all"; // 'all' | 'conges' | 'rg' | 'gardes'
@@ -2048,10 +2096,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function mergeMeetingsList(baseList, savedList) {
       const obsoleteTitles = new Set(["Bone Club — Novembre", "Bone Club — Janvier", "Confrontation Radio-Anatomo-Pathologique (Janvier)", "BONE CLUB Cochin — Session de Décembre"]);
+      const legacyRemovedIds = new Set([
+        "reunion-2026-11-02-cafe",
+        "reunion-2026-11-02-formation",
+        "reunion-2026-11-04-accueil",
+        "reunion-2026-11-09-externes",
+        "reunion-2026-11-19-ecos",
+        "reunion-2026-11-24-dmu",
+        "reunion-2026-12-02-boneclub",
+        "reunion-2026-12-18-vaccin",
+        "reunion-2026-12-21-noel",
+        "reunion-2027-02-26-seminaire-cochin"
+      ]);
       const map = {};
       (baseList || []).forEach(m => { if (m && m.id) map[m.id] = Object.assign({}, m); });
       (savedList || []).forEach(m => {
-        if (!m || !m.id || obsoleteTitles.has(m.title) || m.id === "reunion-2026-12-02-boneclub") return;
+        if (!m || !m.id || obsoleteTitles.has(m.title) || legacyRemovedIds.has(m.id)) return;
         if (!map[m.id]) map[m.id] = m;
       });
       return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
@@ -6433,75 +6493,214 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* =========================================================================
-     * ONGLET 4 : RÉUNIONS
+     * ONGLET 4 : RÉUNIONS (BONE CLUB & CRA / STAFFS MÉDICO-HEBDOMADAIRES)
      * ========================================================================= */
+    function setReunionsFilter(f) {
+      reunionsFilter = f;
+      renderTabContent();
+    }
+
     function renderReunionsTab() {
       const meets = (STATE.meetings || []).slice().sort((a, b) => a.date.localeCompare(b.date));
       const recurring = STATE.recurringStaffs || [];
 
-      let meetsHtml = meets.map(m => `
-        <div class="card" style="background:#F8FAFC; margin-bottom:8px; padding:11px;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
-            <div>
-              <span class="poste-pill ${m.mandatory ? 'poste-gestes' : 'poste-echo'}" style="margin-right:6px;">
-                ${m.mandatory ? 'Obligatoire' : m.category}
-              </span>
-              <strong>${m.title}</strong>
-            </div>
-            <div style="font-weight:700; color:var(--primary); font-size:12px;">
-              ${formatDateFr(m.date, true)} • ${m.horaire}
-            </div>
-          </div>
-          <div style="font-size:12px; color:#334155; margin-bottom:4px;">${m.description}</div>
-          <div style="font-size:11.5px; color:var(--text-muted);">
-            Lieu : ${m.location} • Par ${m.sender}
-          </div>
+      const pageTabsHtml = `
+        <div class="main-tabs" style="grid-template-columns:repeat(2, 1fr); margin-bottom:10px;">
+          <button class="tab-btn ${reunionsFilter === 'bone_cra' ? 'active' : ''}" onclick="setReunionsFilter('bone_cra')">Bone Club & CRA</button>
+          <button class="tab-btn ${reunionsFilter === 'staffs_hebdo' ? 'active' : ''}" onclick="setReunionsFilter('staffs_hebdo')">Staffs médico-hebdomadaires</button>
         </div>
+      `;
+
+      if (reunionsFilter === "staffs_hebdo") {
+        let staffRowsHtml = "";
+        recurring.forEach(r => {
+          (r.items || []).forEach((it, idx) => {
+            const isAm = String(it.horaire || "").toLowerCase().includes("matin");
+            staffRowsHtml += `
+              <tr>
+                <td style="font-weight:800; color:var(--primary); white-space:nowrap;">${idx === 0 ? r.day : ""}</td>
+                <td style="white-space:nowrap;">
+                  <span class="poste-pill ${isAm ? 'poste-irm' : 'poste-echo'}">${it.horaire}</span>
+                </td>
+                <td><strong>${it.title}</strong></td>
+                <td style="font-weight:600; color:#334155; white-space:nowrap;">${it.referent || "—"}</td>
+              </tr>
+            `;
+          });
+        });
+
+        return `
+          ${pageTabsHtml}
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">Staffs médico-hebdomadaires — Radiologie B</div>
+            </div>
+            <div class="week-table-wrap">
+              <table class="planning-table">
+                <thead>
+                  <tr>
+                    <th style="width:110px;">Jour</th>
+                    <th style="width:120px;">Créneau</th>
+                    <th>Staff médico-hebdomadaire</th>
+                    <th style="width:200px;">Référent Radio B</th>
+                  </tr>
+                </thead>
+                <tbody>${staffRowsHtml}</tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      }
+
+      const boneClubList = meets.filter(m =>
+        m.category === "Bone Club" || String(m.title || "").toLowerCase().includes("bone club")
+      );
+      const craList = meets.filter(m =>
+        m.category === "CRA" ||
+        String(m.title || "").toLowerCase().includes("cra") ||
+        String(m.title || "").toLowerCase().includes("anapath") ||
+        String(m.title || "").toLowerCase().includes("anatomo")
+      );
+      const otherList = meets.filter(m => !boneClubList.includes(m) && !craList.includes(m));
+
+      const boneRowsHtml = boneClubList.map(m => `
+        <tr>
+          <td style="font-weight:700; white-space:nowrap;">${formatDateFr(m.date, true)}</td>
+          <td style="white-space:nowrap;"><span class="poste-pill poste-irm">${m.horaire}</span></td>
+          <td><strong>${m.title}</strong></td>
+          <td style="color:#475569; font-size:12px;">${m.sender || "Pr J-L. Drapé & Pr A. Feydy"}</td>
+          <td style="color:var(--text-muted); font-size:12px; white-space:nowrap;">${m.location || "Amphithéâtre Luton"}</td>
+        </tr>
       `).join("");
 
-      let recHtml = recurring.map(r => `
-        <div class="card" style="margin:0; padding:10px; background:#F8FAFC;">
-          <div style="font-weight:800; color:var(--primary); font-size:12.5px; margin-bottom:6px;">${r.day}</div>
-          ${r.items.map(it => `
-            <div style="margin-bottom:5px; font-size:12px;">
-              <strong>${it.horaire} :</strong> ${it.title}
-              <div style="font-size:11px; color:var(--text-muted);">${it.referent}</div>
-            </div>
-          `).join("")}
-        </div>
+      const craRowsHtml = craList.map(m => `
+        <tr>
+          <td style="font-weight:700; white-space:nowrap;">${formatDateFr(m.date, true)}</td>
+          <td style="white-space:nowrap;"><span class="poste-pill poste-gestes">${m.horaire}</span></td>
+          <td><strong>${m.title}</strong></td>
+          <td style="color:#475569; font-size:12px;">${m.sender || "Radio B & Anapath"}</td>
+          <td style="color:var(--text-muted); font-size:12px; white-space:nowrap;">${m.location || "Salle Staff Albarran -1"}</td>
+        </tr>
       `).join("");
+
+      const otherCardHtml = otherList.length ? `
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Autres réunions</div>
+          </div>
+          <div class="week-table-wrap">
+            <table class="planning-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Horaire</th>
+                  <th>Réunion</th>
+                  <th>Intervenants</th>
+                  <th>Lieu</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${otherList.map(m => `
+                  <tr>
+                    <td style="font-weight:700; white-space:nowrap;">${formatDateFr(m.date, true)}</td>
+                    <td style="white-space:nowrap;"><span class="poste-pill poste-echo">${m.horaire}</span></td>
+                    <td><strong>${m.title}</strong></td>
+                    <td style="color:#475569; font-size:12px;">${m.sender || "—"}</td>
+                    <td style="color:var(--text-muted); font-size:12px;">${m.location || "—"}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ` : "";
 
       return `
+        ${pageTabsHtml}
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Réunions du service</div>
-            <button class="btn btn-sm btn-primary" onclick="openMeetingModal()">+ Réunion</button>
+            <div>
+              <div class="card-title">Bone Club Cochin</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Mercredi 18h00 – 20h00 • Amphithéâtre Luton (RDC UFR Médecine Site Cochin)</div>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openMeetingModal('Bone Club')">+ Réunion</button>
           </div>
-          ${meetsHtml}
+          <div class="week-table-wrap">
+            <table class="planning-table">
+              <thead>
+                <tr>
+                  <th style="width:130px;">Date</th>
+                  <th style="width:125px;">Horaire</th>
+                  <th>Session</th>
+                  <th>Modération</th>
+                  <th style="width:180px;">Lieu</th>
+                </tr>
+              </thead>
+              <tbody>${boneRowsHtml}</tbody>
+            </table>
+          </div>
         </div>
 
         <div class="card">
           <div class="card-header">
-            <div class="card-title">Staffs hebdomadaires</div>
+            <div>
+              <div class="card-title">CRA — Confrontations Radio-Anatomo-Pathologiques</div>
+              <div style="font-size:11.5px; color:var(--text-muted);">Vendredi 14h00 / 14h15 – 16h00 • Salle de Staff Radio B (Pavillon Albarran -1)</div>
+            </div>
+            <button class="btn btn-sm" onclick="openMeetingModal('CRA')">+ CRA</button>
           </div>
-          <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:8px;">${recHtml}</div>
+          <div class="week-table-wrap">
+            <table class="planning-table">
+              <thead>
+                <tr>
+                  <th style="width:130px;">Date</th>
+                  <th style="width:125px;">Horaire</th>
+                  <th>Session</th>
+                  <th>Intervenants</th>
+                  <th style="width:180px;">Lieu</th>
+                </tr>
+              </thead>
+              <tbody>${craRowsHtml}</tbody>
+            </table>
+          </div>
         </div>
+        ${otherCardHtml}
       `;
     }
 
-    function openMeetingModal() {
+    function onMeetCategoryChange(cat) {
+      if (cat === "Bone Club") {
+        document.getElementById("meetHoraire").value = "18h00 – 20h00";
+        document.getElementById("meetSender").value = "Pr J-L. Drapé & Pr A. Feydy";
+        document.getElementById("meetLocation").value = "Amphithéâtre Luton (Cochin)";
+      } else if (cat === "CRA") {
+        document.getElementById("meetHoraire").value = "14h15 – 16h00";
+        document.getElementById("meetSender").value = "Radio B & Anapath";
+        document.getElementById("meetLocation").value = "Salle de Staff Radio B (Albarran -1)";
+      } else {
+        document.getElementById("meetHoraire").value = "17h00 – 18h00";
+        document.getElementById("meetSender").value = "Service de Radiologie B";
+        document.getElementById("meetLocation").value = "Salle de Staff Radio B (Albarran -1)";
+      }
+    }
+
+    function openMeetingModal(defaultCat) {
+      const cat = defaultCat || "Bone Club";
+      const catEl = document.getElementById("meetCategory");
+      if (catEl) catEl.value = cat;
       document.getElementById("meetDate").value = currentDateIso;
-      document.getElementById("meetHoraire").value = "17h00 – 18h00";
       document.getElementById("meetTitle").value = "";
       document.getElementById("meetDesc").value = "";
+      onMeetCategoryChange(cat);
       document.getElementById("modalMeeting").classList.add("open");
     }
 
     function saveMeetingForm() {
+      const category = document.getElementById("meetCategory") ? document.getElementById("meetCategory").value : "Bone Club";
       const date = document.getElementById("meetDate").value;
-      const horaire = document.getElementById("meetHoraire").value.trim() || "Journée";
+      const horaire = document.getElementById("meetHoraire").value.trim() || "18h00 – 20h00";
       const title = document.getElementById("meetTitle").value.trim();
-      const sender = document.getElementById("meetSender").value.trim() || "Anne-Marie FORTIN";
+      const sender = document.getElementById("meetSender").value.trim() || "Service de Radiologie B";
       const location = document.getElementById("meetLocation").value.trim() || "Salle de Staff Radio B";
       const description = document.getElementById("meetDesc").value.trim();
 
@@ -6515,7 +6714,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         date,
         horaire,
         title,
-        category: "Réunion",
+        category,
         sender,
         location,
         description,
