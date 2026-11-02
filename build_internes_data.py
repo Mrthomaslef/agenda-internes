@@ -389,8 +389,8 @@ def build_balanced_trame() -> dict:
                 1: "1/2 journée libre",
                 2: "GESTES (C)",
                 3: "ECHO",
-                4: "1/2 journée libre",
-                "socle": "TDM SAU",  # Posté au TDM SAU (sauf matinée d'accueil du 02/11)
+                4: "TDM SAU",
+                "socle": "TDM SAU",  # Posté au TDM SAU en binôme
             },
             "pm": {
                 0: "TDM OLLIER DIAG",  # S1: Gabriel en TDM3 (avec Noé le 02/11 PM, puis alterne TDM3 / TDM SAU)
@@ -689,9 +689,14 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             for i_obj in INTERNES_LIST:
                 iid = i_obj["id"]
                 pm_poste, pm_note = monnier_pm_base[iid]
-                am_note = "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
+                if iid == "oussama":
+                    am_poste = "TDM SAU"
+                    am_note = "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)"
+                else:
+                    am_poste = "FORMATION / ACCUEIL"
+                    am_note = "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
                 by_interne[iid] = {
-                    "am": "FORMATION / ACCUEIL",
+                    "am": am_poste,
                     "pm": pm_poste,
                     "note": f"Matin : {am_note} • PM : {pm_note}",
                     "noteAm": am_note,
@@ -1224,20 +1229,19 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if not freed:
                     break
 
-        # 5C. Garantie STRICTE que Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
+        # 5C. Garantie STRICTE qu'il y a TOUJOURS un interne hors socle au TDM SAU (Matin & Après-midi)
+        #     et que Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
         #     (jamais seul au TDM SAU), tout en gardant ses postes propres hors TDM SAU (IRM, Écho, TDM3).
         non_active_codes = ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL")
         for d_iso in active_isos:
             wd_cur = datetime.date.fromisoformat(d_iso).weekday()
             by_int = schedule[d_iso]["byInterne"]
             for h in ("am", "pm"):
-                if d_iso == "2026-11-02" and h == "am":
-                    continue
                 nk = "noteAm" if h == "am" else "notePm"
                 # S'assurer qu'au moins un co-interne hors socle couvre SYSTÉMATIQUEMENT le TDM SAU
                 has_senior_sau = any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids)
                 if not has_senior_sau:
-                    for donor_p in ("ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "IRM 1,5T", "IRM 3T"):
+                    for donor_p in ("ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "IRM 1,5T", "IRM 3T", "1/2 journée libre", "FORMATION / ACCUEIL"):
                         replaced_s = False
                         for s_id in senior_interne_ids:
                             if by_int[s_id][h] == donor_p:
@@ -1266,6 +1270,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 by_int["noe"]["note"] = " • ".join(notes_combined)
 
     for d_iso, day_obj in schedule.items():
+        if not day_obj.get("holiday"):
+            for h_chk in ("am", "pm"):
+                if not any(day_obj["byInterne"][s_id][h_chk] == "TDM SAU" for s_id in senior_interne_ids):
+                    raise RuntimeError(f"ERREUR : Aucun interne senior au TDM SAU le {d_iso} ({h_chk})")
         rebuild_day_lists(day_obj)
 
     return schedule

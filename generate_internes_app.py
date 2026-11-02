@@ -3037,6 +3037,59 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }).join("");
       }
 
+      const monIso = getMondayOfWeek(currentDateIso);
+      const friIso = addDaysIso(monIso, 4);
+      const weekDays = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
+      const weekLock = getWeekLockInfo(monIso);
+      const weekBlocksCount = blocking.issues.filter(iss => weekDays.includes(iss.date)).length;
+      const weekPendingAbsCount = (STATE.absences || []).filter(a => a && a.status === "pending" && weekDays.includes(a.date)).length;
+
+      let weekFixBarHtml = "";
+      if (weekLock) {
+        const valDateLabel = weekLock.validatedAt
+          ? new Date(weekLock.validatedAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+          : "";
+        weekFixBarHtml = `
+          <div class="chef-week-fix-bar is-locked">
+            <div>
+              <div class="chef-week-fix-title">
+                <span>📌 Semaine du ${formatDateFr(monIso)} au ${formatDateFr(friIso, true)}</span>
+                <span class="status-pill-approved">✓ Planning validé & fixé</span>
+              </div>
+              <div class="chef-week-fix-sub">
+                Les affectations Matin/PM des 6 internes sont figées sur toute la semaine${valDateLabel ? ` (validé le ${valDateLabel})` : ""}. Les internes ne peuvent plus modifier cette semaine sans validation Chef.
+              </div>
+            </div>
+            <div class="chef-mode-actions">
+              <button class="btn btn-sm" onclick="shiftPlanningDate(-1)" title="Semaine précédente">◀ Sem. préc.</button>
+              <button class="btn btn-sm" onclick="shiftPlanningDate(1)" title="Semaine suivante">Sem. suiv. ▶</button>
+              <button class="btn-unfix-week" onclick="unfixWeekPlanning('${monIso}')">🔓 Débloquer / Modifier la semaine</button>
+            </div>
+          </div>
+        `;
+      } else {
+        weekFixBarHtml = `
+          <div class="chef-week-fix-bar">
+            <div>
+              <div class="chef-week-fix-title">
+                <span>📅 Semaine du ${formatDateFr(monIso)} au ${formatDateFr(friIso, true)}</span>
+                <span class="status-pill-pending">En attente de validation hebdomadaire</span>
+              </div>
+              <div class="chef-week-fix-sub">
+                ${weekBlocksCount === 0 && weekPendingAbsCount === 0
+                  ? "Aucun blocage ni congé en attente sur cette semaine. Vous pouvez valider et fixer définitivement le planning de la semaine."
+                  : `Cette semaine comporte ${weekBlocksCount} blocage(s) et ${weekPendingAbsCount} jour(s) de congé en attente — valider fixera tous les postes affichés et validera la semaine.`}
+              </div>
+            </div>
+            <div class="chef-mode-actions">
+              <button class="btn btn-sm" onclick="shiftPlanningDate(-1)" title="Semaine précédente">◀ Sem. préc.</button>
+              <button class="btn btn-sm" onclick="shiftPlanningDate(1)" title="Semaine suivante">Sem. suiv. ▶</button>
+              <button class="btn-fix-week" onclick="validateAndFixWeekPlanning('${monIso}')">✓ Valider & Fixer le planning de la semaine</button>
+            </div>
+          </div>
+        `;
+      }
+
       banner.style.display = "block";
       banner.innerHTML = `
         <div class="chef-dashboard-panel">
@@ -3060,6 +3113,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
           </div>
 
+          ${weekFixBarHtml}
+
           <div class="chef-notif-grid">
             <div class="chef-notif-section">
               <div class="chef-notif-section-title">
@@ -3077,6 +3132,94 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
         </div>
       `;
+    }
+
+    function isWeekLocked(monIso) {
+      const m = monIso || getMondayOfWeek(currentDateIso);
+      return Boolean(STATE.lockedWeeks && STATE.lockedWeeks[m] && STATE.lockedWeeks[m].locked);
+    }
+
+    function getWeekLockInfo(monIso) {
+      const m = monIso || getMondayOfWeek(currentDateIso);
+      return (STATE.lockedWeeks && STATE.lockedWeeks[m] && STATE.lockedWeeks[m].locked)
+        ? STATE.lockedWeeks[m]
+        : null;
+    }
+
+    function validateAndFixWeekPlanning(monIso) {
+      requireChefUnlockThen(() => {
+        const targetMon = monIso || getMondayOfWeek(currentDateIso);
+        const days = [0, 1, 2, 3, 4].map(off => addDaysIso(targetMon, off));
+        pushChefHistorySnapshot();
+
+        // S'assurer que le planning courant est à jour avant de figer chaque case
+        recomputeScheduleInPlace();
+        if (!STATE.customVacations) STATE.customVacations = {};
+
+        days.forEach(dIso => {
+          const dObj = STATE.schedule[dIso];
+          if (!dObj || dObj.holiday || !dObj.byInterne) return;
+          STATE.internes.forEach(i => {
+            const curSlot = dObj.byInterne[i.id];
+            if (!curSlot) return;
+            STATE.customVacations[dIso + "__" + i.id] = {
+              am: curSlot.am,
+              pm: curSlot.pm,
+              note: curSlot.note || ""
+            };
+          });
+        });
+
+        // Valider également les demandes d'absence en attente sur cette semaine
+        let approvedAbs = 0;
+        (STATE.absences || []).forEach(a => {
+          if (a && days.includes(a.date) && a.status === "pending") {
+            a.status = "approved";
+            a.validatedAt = new Date().toISOString();
+            approvedAbs++;
+          }
+        });
+
+        // Marquer les alertes bloquantes de cette semaine comme arbitrées/validées
+        const blocking = computeBlockingDays(STATE);
+        if (!STATE.chefDecisions) STATE.chefDecisions = {};
+        blocking.issues.forEach(iss => {
+          if (days.includes(iss.date)) {
+            STATE.chefDecisions[iss.id] = {
+              resolvedAt: new Date().toISOString(),
+              status: "validated_week",
+              note: "Planning de la semaine validé et fixé par le Chef"
+            };
+          }
+        });
+
+        if (!STATE.lockedWeeks) STATE.lockedWeeks = {};
+        STATE.lockedWeeks[targetMon] = {
+          locked: true,
+          validatedAt: new Date().toISOString(),
+          validatedBy: isChefId(selectedInterneId) ? getChefById(selectedInterneId).fullName : "Chef de clinique"
+        };
+
+        selectedForMove = null;
+        saveStateLocal();
+        renderAll();
+        const friIso = addDaysIso(targetMon, 4);
+        showToast(`📌 Semaine du ${formatDateFr(targetMon)} au ${formatDateFr(friIso)} validée et fixée !`);
+        pushStateToCloud({ syncAbsenceSheet: approvedAbs > 0 });
+      });
+    }
+
+    function unfixWeekPlanning(monIso) {
+      requireChefUnlockThen(() => {
+        const targetMon = monIso || getMondayOfWeek(currentDateIso);
+        if (STATE.lockedWeeks && STATE.lockedWeeks[targetMon]) {
+          delete STATE.lockedWeeks[targetMon];
+        }
+        saveStateLocal();
+        renderAll();
+        showToast(`🔓 Semaine du ${formatDateFr(targetMon)} débloquée pour modification`);
+        pushStateToCloud({});
+      });
     }
 
     function cancelSelectedForMove() {
@@ -3109,6 +3252,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           delete STATE.customVacations[dIso + "__" + i.id];
         });
       });
+      if (STATE.lockedWeeks && STATE.lockedWeeks[monIso]) {
+        delete STATE.lockedWeeks[monIso];
+      }
       selectedForMove = null;
       saveStateLocal();
       renderAll();
@@ -3639,6 +3785,40 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       `;
 
+      const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
+      const weekLock = getWeekLockInfo(monIso);
+      let weekValidationStripHtml = "";
+      if (planningMode !== "month") {
+        if (weekLock) {
+          const valDateLabel = weekLock.validatedAt
+            ? new Date(weekLock.validatedAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })
+            : "";
+          weekValidationStripHtml = `
+            <div class="week-status-strip locked">
+              <div>
+                <strong>📌 Planning de la semaine (${formatDateFr(monIso)} – ${formatDateFr(friIso)}) validé & fixé par le Chef</strong>
+                ${valDateLabel ? `<span style="font-weight:500; opacity:0.85; margin-left:6px;">(le ${valDateLabel})</span>` : ""}
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <span class="status-pill-approved">✓ Semaine fixée</span>
+                ${inChefSpace ? `<button class="btn-unfix-week" style="padding:3px 9px; font-size:11px;" onclick="unfixWeekPlanning('${monIso}')">🔓 Débloquer</button>` : ""}
+              </div>
+            </div>
+          `;
+        } else if (inChefSpace) {
+          weekValidationStripHtml = `
+            <div class="week-status-strip unlocked">
+              <div>
+                <span>📅 Semaine du <strong>${formatDateFr(monIso)} au ${formatDateFr(friIso)}</strong> : planning non encore fixé</span>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                <button class="btn-fix-week" style="padding:4px 11px; font-size:11.5px;" onclick="validateAndFixWeekPlanning('${monIso}')">✓ Valider & Fixer la semaine</button>
+              </div>
+            </div>
+          `;
+        }
+      }
+
       let bodyHtml = "";
       if (planningScope === "chefs") {
         bodyHtml = renderChefsPlanningView(monIso);
@@ -3677,6 +3857,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         ${dayStripHtml}
+        ${weekValidationStripHtml}
         ${horairesStripHtml}
         ${bodyHtml}
         ${renderBalanceSummaryCard()}
@@ -5215,6 +5396,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function openVacationEditModal(iso, iid) {
       const targetIso = STATE.schedule[iso] ? iso : "2026-11-02";
       const targetIid = getInterneById(iid).id;
+      const monIso = getMondayOfWeek(targetIso);
+
+      if (isWeekLocked(monIso) && !isChefPlanningMode) {
+        showToast("🔒 Ce planning hebdomadaire est validé et fixé par le Chef. Déverrouillez avec le code Chef pour modifier.");
+        requireChefUnlockThen(() => openVacationEditModal(targetIso, targetIid));
+        return;
+      }
 
       document.getElementById("vacEditDate").value = targetIso;
       const intSelect = document.getElementById("vacEditInterneId");
@@ -5245,6 +5433,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const pm = document.getElementById("vacEditPm").value;
       const note = document.getElementById("vacEditNote").value.trim();
 
+      const monIso = getMondayOfWeek(iso);
+      if (isWeekLocked(monIso) && !isChefPlanningMode) {
+        alert("Ce planning hebdomadaire a été validé et fixé par le Chef. Déverrouillez l'Espace Chef pour le modifier.");
+        return;
+      }
+
       // Vérification stricte : pas de demi-off le mardi après-midi ni le vendredi après-midi
       const [yyV, mmV, ddV] = iso.split("-").map(Number);
       const jsDayV = new Date(yyV, mmV - 1, ddV).getDay();
@@ -5254,7 +5448,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       // Vérification stricte : maximum 2 demi-offs ('1/2 journée libre') par semaine par interne
-      const monIso = getMondayOfWeek(iso);
       let weekDemiOffs = 0;
       for (let d = 0; d < 5; d++) {
         const curIso = addDaysIso(monIso, d);
@@ -5287,6 +5480,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function resetSingleVacation() {
       const iso = document.getElementById("vacEditDate").value;
       const iid = document.getElementById("vacEditInterneId").value;
+      const monIso = getMondayOfWeek(iso);
+      if (isWeekLocked(monIso) && !isChefPlanningMode) {
+        alert("Ce planning hebdomadaire a été validé et fixé par le Chef. Déverrouillez l'Espace Chef pour le réinitialiser.");
+        return;
+      }
       if (STATE.customVacations) delete STATE.customVacations[iso + "__" + iid];
       saveStateLocal();
       closeModal("modalVacationEdit");
@@ -5311,6 +5509,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         absences: STATE.absences || [],
         customVacations: STATE.customVacations || {},
         chefDecisions: STATE.chefDecisions || {},
+        lockedWeeks: STATE.lockedWeeks || {},
         presentations: STATE.presentations || [],
         meetings: STATE.meetings || [],
         phoneDirectory: STATE.phoneDirectory || []
@@ -5421,6 +5620,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             if (remote.chefDecisions) {
               STATE.chefDecisions = Object.assign({}, STATE.chefDecisions || {}, remote.chefDecisions);
+            }
+            if (remote.lockedWeeks) {
+              STATE.lockedWeeks = Object.assign({}, STATE.lockedWeeks || {}, remote.lockedWeeks);
             }
             if (Array.isArray(remote.presentations) && remote.presentations.length > 0) {
               STATE.presentations = mergePresentationsList(INITIAL_DATA.presentations, remote.presentations);

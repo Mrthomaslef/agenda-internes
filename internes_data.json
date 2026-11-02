@@ -1,6 +1,6 @@
 {
   "version": "1.6.0",
-  "updatedAt": "2026-11-02T13:37:29.121509+00:00",
+  "updatedAt": "2026-11-02T13:40:13.801562+00:00",
   "semester": {
     "title": "Semestre d'Hiver 2026–2027",
     "hospital": "Hôpital Cochin (AP-HP) — Service de Radiologie B (Pr A. Feydy)",
@@ -579,12 +579,12 @@
           "note": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
         },
         {
-          "poste": "FORMATION / ACCUEIL",
+          "poste": "TDM SAU",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
+          "note": "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)"
         },
         {
           "poste": "GESTES (C)",
@@ -708,10 +708,10 @@
           "notePm": "Planning Dr H. Monnier (Scanner des U)"
         },
         "oussama": {
-          "am": "FORMATION / ACCUEIL",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Matin : Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot) • PM : Poste C (Gestes) fermé",
-          "noteAm": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)",
+          "note": "Matin : Permanence Scanner des Urgences (pendant la matinée d'accueil des internes) • PM : Poste C (Gestes) fermé",
+          "noteAm": "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)",
           "notePm": "Poste C (Gestes) fermé"
         }
       },
@@ -752,10 +752,10 @@
           "notePm": "Planning Dr H. Monnier (Scanner des U)"
         },
         "oussama": {
-          "am": "FORMATION / ACCUEIL",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Matin : Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot) • PM : Poste C (Gestes) fermé",
-          "noteAm": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)",
+          "note": "Matin : Permanence Scanner des Urgences (pendant la matinée d'accueil des internes) • PM : Poste C (Gestes) fermé",
+          "noteAm": "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)",
           "notePm": "Poste C (Gestes) fermé"
         }
       }
@@ -25674,12 +25674,12 @@
           "note": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
         },
         {
-          "poste": "FORMATION / ACCUEIL",
+          "poste": "TDM SAU",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
+          "note": "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)"
         },
         {
           "poste": "GESTES (C)",
@@ -25803,10 +25803,10 @@
           "notePm": "Planning Dr H. Monnier (Scanner des U)"
         },
         "oussama": {
-          "am": "FORMATION / ACCUEIL",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Matin : Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot) • PM : Poste C (Gestes) fermé",
-          "noteAm": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)",
+          "note": "Matin : Permanence Scanner des Urgences (pendant la matinée d'accueil des internes) • PM : Poste C (Gestes) fermé",
+          "noteAm": "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)",
           "notePm": "Poste C (Gestes) fermé"
         }
       },
@@ -25847,10 +25847,10 @@
           "notePm": "Planning Dr H. Monnier (Scanner des U)"
         },
         "oussama": {
-          "am": "FORMATION / ACCUEIL",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
-          "note": "Matin : Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot) • PM : Poste C (Gestes) fermé",
-          "noteAm": "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)",
+          "note": "Matin : Permanence Scanner des Urgences (pendant la matinée d'accueil des internes) • PM : Poste C (Gestes) fermé",
+          "noteAm": "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)",
           "notePm": "Poste C (Gestes) fermé"
         }
       }
