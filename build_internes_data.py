@@ -1279,17 +1279,20 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
     return schedule
 
 
-def build_initial_presentations() -> list[dict]:
+def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
     """
     Génère le calendrier complet des présentations du semestre Hiver 2026-2027 :
     - Tous les Mardis (Cas clinique des internes + Cours des chefs)
     - Tous les Vendredis (Bibliographie des internes)
     - Les séances Bone Club & Confrontations Radio-Anatomopathologiques
-    Avec répartition initiale équilibrée par roulement (modifiable en 1 clic par les internes).
+    Avec répartition initiale équilibrée par roulement (en évitant systématiquement
+    les jours de Repos de garde RG ou congés de l'interne).
     """
     start_date = datetime.date(2026, 11, 2)
     end_date = datetime.date(2027, 4, 30)
     main_ids = ["gabriel", "noe", "marwane", "milan", "nathanael", "oussama"]
+    tue_counts = {k: 0 for k in main_ids}
+    fri_counts = {k: 0 for k in main_ids}
 
     items = []
     tuesday_idx = 0
@@ -1303,10 +1306,21 @@ def build_initial_presentations() -> list[dict]:
             cur += datetime.timedelta(days=1)
             continue
 
-        pool = main_ids
+        day_by_int = (schedule or {}).get(iso, {}).get("byInterne", {})
+        present_ids = [
+            iid for iid in main_ids
+            if day_by_int.get(iid, {}).get("am") not in ("RG", "VACANCES")
+            and day_by_int.get(iid, {}).get("pm") not in ("RG", "VACANCES")
+        ]
+        pool = present_ids if present_ids else main_ids
 
         if wd == 1:  # MARDI : Cas clinique + Cours des chefs
-            assigned_id = pool[tuesday_idx % len(pool)]
+            cands = sorted(
+                pool,
+                key=lambda x: (tue_counts[x], (main_ids.index(x) - tuesday_idx) % len(main_ids)),
+            )
+            assigned_id = cands[0]
+            tue_counts[assigned_id] += 1
             assigned_obj = next(x for x in INTERNES_LIST if x["id"] == assigned_id)
             chef_nom, chef_sujet = CHEFS_TUESDAY_COURS[tuesday_idx % len(CHEFS_TUESDAY_COURS)]
             cours_programme = CURRICULUM_COURS[tuesday_idx % len(CURRICULUM_COURS)]
@@ -1330,7 +1344,12 @@ def build_initial_presentations() -> list[dict]:
             tuesday_idx += 1
 
         elif wd == 4:  # VENDREDI : Biblio du vendredi
-            assigned_id = pool[(friday_idx + 3) % len(pool)]
+            cands = sorted(
+                pool,
+                key=lambda x: (fri_counts[x], (main_ids.index(x) - (friday_idx + 3)) % len(main_ids)),
+            )
+            assigned_id = cands[0]
+            fri_counts[assigned_id] += 1
             assigned_obj = next(x for x in INTERNES_LIST if x["id"] == assigned_id)
             items.append({
                 "id": f"biblio-{iso}",
@@ -1771,12 +1790,47 @@ def build_recurring_staffs() -> list[dict]:
     ]
 
 
-def get_initial_absences() -> list[dict]:
+def get_rg_absences_from_gardes(interne_gardes: dict | None = None) -> list[dict]:
     """
-    Absences déjà inscrites sur le Google Sheet officiel 'Planning Interne CCH - Hiver 26'
-    (ex: Milan KORSEC du 22/03/2027 au 28/03/2027 en CA 1).
+    Génère les Repos de garde (RG) obligatoires le lendemain de chaque garde
+    des internes de Radiologie B lorsque le lendemain est un jour ouvré du semestre
+    (Lundi à Vendredi, hors jours fériés).
     """
-    absences = []
+    if not interne_gardes:
+        return []
+    full_name_by_id = {i["id"]: f"{i['prenom']} {i['nom']}" for i in INTERNES_LIST}
+    rg_list = []
+    for g_iso, g in sorted(interne_gardes.items()):
+        iid = g.get("interneId")
+        if not iid or iid not in full_name_by_id:
+            continue
+        d_garde = datetime.date.fromisoformat(g_iso)
+        d_next = d_garde + datetime.timedelta(days=1)
+        next_iso = d_next.isoformat()
+        if d_next.weekday() < 5 and "2026-11-02" <= next_iso <= "2027-04-30" and next_iso not in JOURS_FERIES_HIVER:
+            rg_list.append({
+                "id": f"abs-{iid}-{next_iso}",
+                "date": next_iso,
+                "gardeDate": g_iso,
+                "interneId": iid,
+                "interneName": full_name_by_id[iid],
+                "type": "Repos de garde",
+                "status": "approved",
+                "validatedBy": "Planning Garde Officiel",
+                "isOfficialGardeRg": True,
+                "comment": f"Repos de garde (lendemain de garde du {g_iso[8:10]}/{g_iso[5:7]}/{g_iso[0:4]})",
+                "createdAt": "2026-11-02T14:31:00Z",
+            })
+    return rg_list
+
+
+def get_initial_absences(interne_gardes: dict | None = None) -> list[dict]:
+    """
+    Absences inscrites sur le Google Sheet officiel 'Planning Interne CCH - Hiver 26'
+    (ex: Milan KORSEC du 22/03/2027 au 28/03/2027 en CA 1) + Repos de garde (RG)
+    issus du planning officiel des gardes des internes Hiver 2026-2027.
+    """
+    absences = get_rg_absences_from_gardes(interne_gardes)
     for day in range(22, 29):
         iso = f"2027-03-{day:02d}"
         absences.append({
@@ -1789,7 +1843,7 @@ def get_initial_absences() -> list[dict]:
             "comment": "Congés annuels posés sur le Google Sheet Hiver 26-27",
             "createdAt": "2026-11-01T10:00:00Z",
         })
-    return absences
+    return sorted(absences, key=lambda x: (x["date"], x["interneId"]))
 
 
 def build_phone_directory() -> list[dict]:
@@ -2340,40 +2394,158 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
     return out
 
 
+def fetch_existing_cloud_state() -> dict | None:
+    """
+    Récupère l'état actuellement synchronisé dans le Cloud (PropertiesService)
+    afin de ne jamais écraser les modifications et validations faites dans l'Espace Chef.
+    """
+    eval_code = f"""
+    var props = PropertiesService.getScriptProperties();
+    var raw = props.getProperty('{CLOUD_PROP_KEY}');
+    return raw ? JSON.parse(raw) : null;
+    """
+    try:
+        req = urllib.request.Request(
+            WEBHOOK_URL,
+            data=json.dumps({"eval_code": eval_code}).encode("utf-8"),
+            headers={"Content-Type": "text/plain;charset=utf-8"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, context=ssl._create_unverified_context(), timeout=10) as resp:
+            res = json.loads(resp.read().decode("utf-8"))
+            if isinstance(res, dict) and isinstance(res.get("evalResult"), dict):
+                return res["evalResult"]
+    except Exception:
+        pass
+    return None
+
+
 def build_full_dataset() -> dict:
     chefs_gardes = {}
     chefs_planning = {}
+    interne_gardes = {}
     if (BASE_DIR / "chefs_gardes.json").exists():
         chefs_gardes = json.loads((BASE_DIR / "chefs_gardes.json").read_text(encoding="utf-8"))
     if (BASE_DIR / "chefs_planning.json").exists():
         chefs_planning = json.loads((BASE_DIR / "chefs_planning.json").read_text(encoding="utf-8"))
+    if (BASE_DIR / "internes_gardes.json").exists():
+        raw_ig = json.loads((BASE_DIR / "internes_gardes.json").read_text(encoding="utf-8"))
+        for g_iso, g_val in sorted(raw_ig.items()):
+            d_next = datetime.date.fromisoformat(g_iso) + datetime.timedelta(days=1)
+            next_iso = d_next.isoformat()
+            rg_working = (
+                d_next.weekday() < 5
+                and "2026-11-02" <= next_iso <= "2027-04-30"
+                and next_iso not in JOURS_FERIES_HIVER
+            )
+            entry = dict(g_val)
+            entry["rgDate"] = next_iso
+            entry["rgIsWorkingDay"] = rg_working
+            interne_gardes[g_iso] = entry
     chefs_planning = expand_chefs_planning_full_semester(chefs_planning)
 
-    absences = get_initial_absences()
+    rg_absences = get_rg_absences_from_gardes(interne_gardes)
+    rg_pairs = {(a["date"], a["interneId"]) for a in rg_absences}
+    absences = get_initial_absences(interne_gardes)
+    custom_vacations = {}
+    chef_decisions = {}
+    locked_weeks = {}
+    deleted_absence_ids = []
+    chef_validated_at = None
+    chef_revision = 0
+
+    saved_sources = []
     if DATA_FILE.exists():
         try:
-            old = json.loads(DATA_FILE.read_text(encoding="utf-8"))
-            if old.get("absences"):
-                abs_map = {a["id"]: a for a in absences}
-                for a in old["absences"]:
-                    if a.get("id"):
-                        if not a.get("status"):
-                            a["status"] = "pending"
-                        abs_map[a["id"]] = a
-                absences = sorted(abs_map.values(), key=lambda x: (x["date"], x["interneId"]))
+            saved_sources.append(json.loads(DATA_FILE.read_text(encoding="utf-8")))
         except Exception:
             pass
+    cloud_existing = fetch_existing_cloud_state()
+    if isinstance(cloud_existing, dict):
+        saved_sources.append(cloud_existing)
 
-    base_schedule = generate_semester_schedule([], chefs_planning)
-    schedule = generate_semester_schedule(absences, chefs_planning)
-    presentations = build_initial_presentations()
+    abs_map = {a["id"]: a for a in absences}
+    for src in saved_sources:
+        if not isinstance(src, dict):
+            continue
+        if isinstance(src.get("deletedAbsenceIds"), list):
+            for did in src["deletedAbsenceIds"]:
+                if did and did not in deleted_absence_ids:
+                    deleted_absence_ids.append(did)
+        if isinstance(src.get("absences"), list):
+            for a in src["absences"]:
+                if isinstance(a, dict) and a.get("id"):
+                    aid = a["id"]
+                    if not a.get("status"):
+                        a["status"] = "pending"
+                    prev = abs_map.get(aid)
+                    if prev and prev.get("isOfficialGardeRg"):
+                        continue
+                    if prev and prev.get("status") in ("approved", "rejected") and a.get("status") == "pending":
+                        continue
+                    abs_map[aid] = a
+        if isinstance(src.get("customVacations"), dict):
+            custom_vacations.update(src["customVacations"])
+        if isinstance(src.get("chefDecisions"), dict):
+            chef_decisions.update(src["chefDecisions"])
+        if isinstance(src.get("lockedWeeks"), dict):
+            locked_weeks.update(src["lockedWeeks"])
+        if src.get("chefValidatedAt"):
+            chef_validated_at = src["chefValidatedAt"]
+        if src.get("chefRevision"):
+            try:
+                chef_revision = max(chef_revision, int(src["chefRevision"]))
+            except Exception:
+                pass
+
+    for did in deleted_absence_ids:
+        abs_map.pop(did, None)
+    absences = sorted(abs_map.values(), key=lambda x: (x.get("date", ""), x.get("interneId", "")))
+
+    active_absences_for_sched = [a for a in absences if a.get("status") != "rejected"]
+    raw_schedule = generate_semester_schedule([], chefs_planning)
+    base_schedule = generate_semester_schedule(rg_absences, chefs_planning)
+    for d_iso, day_obj in base_schedule.items():
+        if day_obj.get("holiday") or "byInterne" not in day_obj:
+            continue
+        raw_day_int = raw_schedule.get(d_iso, {}).get("byInterne", {})
+        for iid, st_slot in day_obj["byInterne"].items():
+            raw_slot = raw_day_int.get(iid, {})
+            st_slot["preRgAm"] = raw_slot.get("am", st_slot.get("am"))
+            st_slot["preRgPm"] = raw_slot.get("pm", st_slot.get("pm"))
+
+    schedule = generate_semester_schedule(active_absences_for_sched, chefs_planning)
+    presentations = build_initial_presentations(schedule)
     meetings = build_service_meetings()
     recurring_staffs = build_recurring_staffs()
     phone_directory = build_phone_directory()
 
+    # Préserver les modifications de présentations (intervenant, sujet, format) depuis le cloud/fichier
+    pres_map = {p["id"]: p for p in presentations if p.get("id")}
+    for src in saved_sources:
+        if isinstance(src, dict) and isinstance(src.get("presentations"), list):
+            for sv in src["presentations"]:
+                if isinstance(sv, dict) and sv.get("id") in pres_map:
+                    bp = pres_map[sv["id"]]
+                    if bp.get("type") in ("bone_club", "confrontation_anapath"):
+                        if sv.get("sujet"):
+                            bp["sujet"] = sv["sujet"]
+                        if sv.get("interneId"):
+                            bp["interneId"] = sv["interneId"]
+                        if sv.get("interneName"):
+                            bp["interneName"] = sv["interneName"]
+                    else:
+                        if (bp.get("date"), sv.get("interneId")) in rg_pairs and not sv.get("sujet"):
+                            continue
+                        pres_map[sv["id"]] = {**bp, **sv}
+    presentations = sorted(pres_map.values(), key=lambda x: x.get("date", ""))
+
     return {
-        "version": "1.6.0",
+        "version": "1.8.0",
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        "chefValidatedAt": chef_validated_at,
+        "chefRevision": chef_revision,
+        "deletedAbsenceIds": deleted_absence_ids,
         "semester": {
             "title": "Semestre d'Hiver 2026–2027",
             "hospital": "Hôpital Cochin (AP-HP) — Service de Radiologie B (Pr A. Feydy)",
@@ -2390,6 +2562,7 @@ def build_full_dataset() -> dict:
             "rules": [
                 "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
                 "Consultation pour les internes uniquement le Mardi après-midi et le Vendredi après-midi : Relecture avec Pr Drapé le Mardi après-midi systématique.",
+                "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et de la Relecture du mardi PM).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne (jamais le mardi PM ni le vendredi PM). À partir du 09/11/2026 : journée off fixe (2 demi-offs groupés Matin + PM) le Lundi pour Marwane, le Mercredi pour Gabriel et le Jeudi pour Oussama.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
@@ -2403,10 +2576,10 @@ def build_full_dataset() -> dict:
         "postesMeta": POSTES_META,
         "curriculumCours": CURRICULUM_COURS,
         "absences": absences,
-        "customVacations": {},
-        "chefDecisions": {},
-        "lockedWeeks": {},
-        "interneGardes": {},
+        "customVacations": custom_vacations,
+        "chefDecisions": chef_decisions,
+        "lockedWeeks": locked_weeks,
+        "interneGardes": interne_gardes,
         "baseSchedule": base_schedule,
         "schedule": schedule,
         "presentations": presentations,
@@ -2421,10 +2594,15 @@ def build_full_dataset() -> dict:
 def sync_initial_state_to_cloud(dataset: dict):
     """
     Sauvegarde l'état initial de l'application des internes dans PropertiesService
-    sous la clé dédiée 'cochin_internes_state_v1' (sans toucher aux clés des autres applications).
+    sous la clé dédiée 'cochin_internes_state_v1' en préservant impérativement toutes
+    les validations et modifications effectuées par le Chef dans l'Espace Chef,
+    et met à jour la colonne 'Repos de garde' du Google Sheet officiel.
     """
     compact_state = {
         "updatedAt": dataset["updatedAt"],
+        "chefValidatedAt": dataset.get("chefValidatedAt"),
+        "chefRevision": dataset.get("chefRevision", 0),
+        "deletedAbsenceIds": dataset.get("deletedAbsenceIds", []),
         "absences": dataset["absences"],
         "customVacations": dataset["customVacations"],
         "chefDecisions": dataset.get("chefDecisions", {}),
@@ -2439,34 +2617,87 @@ def sync_initial_state_to_cloud(dataset: dict):
     var props = PropertiesService.getScriptProperties();
     var existingRaw = props.getProperty('{CLOUD_PROP_KEY}');
     var incoming = {safe_json};
+    var rgPairs = {{}};
+    (incoming.absences || []).forEach(function(a) {{
+      if (a && a.type === 'Repos de garde') rgPairs[a.date + '__' + a.interneId] = true;
+    }});
     if (!existingRaw) {{
       props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(incoming));
-      return {{ status: 'initialized_cloud', presentations: incoming.presentations.length, meetings: incoming.meetings.length }};
-    }}
-    var cur = JSON.parse(existingRaw);
-    var savedMap = {{}};
-    if (Array.isArray(cur.presentations)) {{
-      cur.presentations.forEach(function(p) {{ if (p && p.id) savedMap[p.id] = p; }});
-    }}
-    cur.presentations = incoming.presentations.map(function(baseP) {{
-      var sv = savedMap[baseP.id];
-      if (!sv) return baseP;
-      if (baseP.type === 'bone_club' || baseP.type === 'confrontation_anapath') {{
-        var merged = Object.assign({{}}, baseP);
-        if (sv.sujet) merged.sujet = sv.sujet;
-        if (sv.interneId) merged.interneId = sv.interneId;
-        if (sv.interneName) merged.interneName = sv.interneName;
-        return merged;
+    }} else {{
+      var cur = JSON.parse(existingRaw);
+      var savedMap = {{}};
+      if (Array.isArray(cur.presentations)) {{
+        cur.presentations.forEach(function(p) {{ if (p && p.id) savedMap[p.id] = p; }});
       }}
-      return Object.assign({{}}, baseP, sv);
-    }});
-    cur.meetings = incoming.meetings;
-    cur.phoneDirectory = incoming.phoneDirectory;
-    cur.lockedWeeks = cur.lockedWeeks || {{}};
-    cur.chefDecisions = cur.chefDecisions || {{}};
-    if (!cur.absences || cur.absences.length === 0) cur.absences = incoming.absences;
-    props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(cur));
-    return {{ status: 'verified_cloud', presentations: cur.presentations.length, absences: cur.absences.length }};
+      cur.presentations = incoming.presentations.map(function(baseP) {{
+        var sv = savedMap[baseP.id];
+        if (!sv) return baseP;
+        if (baseP.type === 'bone_club' || baseP.type === 'confrontation_anapath') {{
+          var merged = Object.assign({{}}, baseP);
+          if (sv.sujet) merged.sujet = sv.sujet;
+          if (sv.interneId) merged.interneId = sv.interneId;
+          if (sv.interneName) merged.interneName = sv.interneName;
+          return merged;
+        }}
+        if (sv.interneId && rgPairs[baseP.date + '__' + sv.interneId] && !sv.sujet) {{
+          return baseP;
+        }}
+        return Object.assign({{}}, baseP, sv);
+      }});
+      cur.meetings = incoming.meetings;
+      cur.phoneDirectory = incoming.phoneDirectory;
+      cur.interneGardes = incoming.interneGardes;
+      cur.customVacations = Object.assign({{}}, incoming.customVacations || {{}}, cur.customVacations || {{}});
+      cur.lockedWeeks = Object.assign({{}}, incoming.lockedWeeks || {{}}, cur.lockedWeeks || {{}});
+      cur.chefDecisions = Object.assign({{}}, incoming.chefDecisions || {{}}, cur.chefDecisions || {{}});
+      cur.deletedAbsenceIds = Array.isArray(cur.deletedAbsenceIds) ? cur.deletedAbsenceIds : (incoming.deletedAbsenceIds || []);
+      var delSet = {{}};
+      cur.deletedAbsenceIds.forEach(function(id) {{ delSet[id] = true; }});
+      var absMap = {{}};
+      (incoming.absences || []).forEach(function(a) {{
+        if (a && a.id && !delSet[a.id]) {{
+          if (!a.status) a.status = 'pending';
+          absMap[a.id] = a;
+        }}
+      }});
+      (cur.absences || []).forEach(function(a) {{
+        if (a && a.id && !delSet[a.id]) {{
+          if (absMap[a.id] && absMap[a.id].isOfficialGardeRg) return;
+          if (!a.status) a.status = (absMap[a.id] && absMap[a.id].status) ? absMap[a.id].status : 'pending';
+          absMap[a.id] = a;
+        }}
+      }});
+      cur.absences = Object.keys(absMap).map(function(k) {{ return absMap[k]; }}).sort(function(a, b) {{
+        return String(a.date || '').localeCompare(String(b.date || ''));
+      }});
+      props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(cur));
+    }}
+    var sheetUpdated = 0;
+    try {{
+      var ssInt = SpreadsheetApp.openById('{INTERNES_SHEET_ID}');
+      var shAbs = ssInt.getSheetByName('Planning Absence');
+      if (shAbs) {{
+        var data = shAbs.getDataRange().getDisplayValues();
+        var rowByDate = {{}};
+        for (var r = 1; r < data.length; r++) {{
+          var dStr = String(data[r][0] || '').trim();
+          if (dStr) rowByDate[dStr] = r + 1;
+        }}
+        (incoming.absences || []).forEach(function(a) {{
+          if (!a || a.type !== 'Repos de garde') return;
+          var p = a.date.split('-');
+          var k = p[2] + '/' + p[1] + '/' + p[0].slice(2);
+          if (rowByDate[k]) {{
+            var curVal = String(data[rowByDate[k] - 1][1] || '').trim();
+            if (curVal !== a.interneName) {{
+              shAbs.getRange(rowByDate[k], 2).setValue(a.interneName);
+              sheetUpdated++;
+            }}
+          }}
+        }});
+      }}
+    }} catch (e) {{}}
+    return {{ status: 'verified_cloud', presentations: incoming.presentations.length, absences: incoming.absences.length, gardes: Object.keys(incoming.interneGardes || {{}}).length, sheetRgUpdated: sheetUpdated }};
     """
     req = urllib.request.Request(
         WEBHOOK_URL,
@@ -2474,7 +2705,7 @@ def sync_initial_state_to_cloud(dataset: dict):
         headers={"Content-Type": "text/plain;charset=utf-8"},
         method="POST",
     )
-    with urllib.request.urlopen(req, context=ssl._create_unverified_context(), timeout=10) as resp:
+    with urllib.request.urlopen(req, context=ssl._create_unverified_context(), timeout=25) as resp:
         return json.loads(resp.read().decode("utf-8"))
 
 
