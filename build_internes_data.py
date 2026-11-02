@@ -5262,11 +5262,11 @@ def build_full_dataset() -> dict:
         lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
         ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
         swapped_l = False
-        over_l = sorted([i for i in all_iids_global if lec_c[i] >= 9], key=lambda x: (-lec_c[x], ach_c[x]))
+        over_l = sorted([i for i in all_iids_global if lec_c[i] >= (10 if i == "noe" else 9)], key=lambda x: (-lec_c[x], ach_c[x]))
         under_l = sorted([i for i in all_iids_global if lec_c[i] <= 7], key=lambda x: (lec_c[x], -ach_c[x]))
         for o_id in over_l:
             for u_id in under_l:
-                if lec_c[o_id] - lec_c[u_id] < 2:
+                if lec_c[o_id] - lec_c[u_id] < 1 or (lec_c[o_id] - lec_c[u_id] == 1 and not (o_id != "noe" and lec_c[o_id] >= 9 and lec_c[u_id] <= 7)):
                     continue
                 for donor_p in ("SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"):
                     for mon_iso in unlocked_mons_global:
@@ -5384,11 +5384,11 @@ def build_full_dataset() -> dict:
         lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
         ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
         swapped_l = False
-        over_l = sorted([i for i in all_iids_global if lec_c[i] >= 9], key=lambda x: (-lec_c[x], ach_c[x]))
+        over_l = sorted([i for i in all_iids_global if lec_c[i] >= (10 if i == "noe" else 9)], key=lambda x: (-lec_c[x], ach_c[x]))
         under_l = sorted([i for i in all_iids_global if lec_c[i] <= 8], key=lambda x: (lec_c[x], -ach_c[x]))
         for o_id in over_l:
             for u_id in under_l:
-                if lec_c[o_id] - lec_c[u_id] < 2:
+                if lec_c[o_id] - lec_c[u_id] < 1 or (lec_c[o_id] - lec_c[u_id] == 1 and not (o_id != "noe" and lec_c[o_id] >= 9 and lec_c[u_id] <= 7)):
                     continue
                 for donor_p in ("SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"):
                     for mon_iso in unlocked_mons_global:

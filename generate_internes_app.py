@@ -5342,7 +5342,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const lecC = {}, achC = {};
           allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
           let swappedL = false;
-          const overL = allIidsGlobal.filter(i => lecC[i] >= 9).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
+          const overL = allIidsGlobal.filter(i => lecC[i] >= (i === "noe" ? 10 : 9)).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
           const underL = allIidsGlobal.filter(i => lecC[i] <= 7).sort((a, b) => (lecC[a] - lecC[b]) || (achC[b] - achC[a]));
           for (const oId of overL) {
             for (const uId of underL) {
@@ -5466,7 +5466,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const lecC = {}, achC = {};
           allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
           let swappedL = false;
-          const overL = allIidsGlobal.filter(i => lecC[i] >= 9).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
+          const overL = allIidsGlobal.filter(i => lecC[i] >= (i === "noe" ? 10 : 9)).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
           const underL = allIidsGlobal.filter(i => lecC[i] <= 8).sort((a, b) => (lecC[a] - lecC[b]) || (achC[b] - achC[a]));
           for (const oId of overL) {
             for (const uId of underL) {
