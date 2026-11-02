@@ -6461,7 +6461,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
 
         if (swapWarnings.length > 0) {
-          const okSwap = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${swapWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+          const okSwap = confirm(`⚠️ Attention — Modification hors des règles du service :\\n\\n${swapWarnings.join("\\n")}\\n\\nVoulez-vous appliquer cette modification quand même ?`);
           if (!okSwap) {
             selectedForMove = null;
             renderAll();
@@ -6514,7 +6514,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       if (moveWarnings.length > 0) {
-        const okMove = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${moveWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+        const okMove = confirm(`⚠️ Attention — Modification hors des règles du service :\\n\\n${moveWarnings.join("\\n")}\\n\\nVoulez-vous appliquer cette modification quand même ?`);
         if (!okMove) {
           selectedForMove = null;
           renderAll();
@@ -9087,7 +9087,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         chefWarnings.push(`• ${weekIrmPmCnt} IRM d'après-midi sur cette semaine (max 1 IRM PM / semaine).`);
       }
       if (chefWarnings.length > 0) {
-        const okChef = confirm(`⚠️ Attention — Modification hors des règles du service :\n\n${chefWarnings.join("\n")}\n\nVoulez-vous appliquer cette modification quand même ?`);
+        const okChef = confirm(`⚠️ Attention — Modification hors des règles du service :\\n\\n${chefWarnings.join("\\n")}\\n\\nVoulez-vous appliquer cette modification quand même ?`);
         if (!okChef) return;
       }
 
