@@ -1,11 +1,11 @@
 {
-  "name": "Cochin Radio B — Espace Internes (Hiver 2026–2027)",
-  "short_name": "Internes Radio B",
-  "description": "Planning des vacations, espace personnel, congés, cas du mardi, biblio du vendredi et réunions du service de Radiologie B (Hôpital Cochin).",
+  "name": "Radio B Cochin — Planning Internes & Chefs",
+  "short_name": "Radio B Cochin",
+  "description": "Planning des internes et chefs de Radiologie B à Cochin.",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0B1120",
-  "theme_color": "#0B1120",
+  "background_color": "#F8FAFC",
+  "theme_color": "#F8FAFC",
   "icons": [
     {
       "src": "icon.svg",

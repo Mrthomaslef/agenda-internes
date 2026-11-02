@@ -1,0 +1,1519 @@
+{
+  "2026-11-02": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "HAMMOUD"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "YA"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "TL méta OS"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "YA"
+      },
+      {
+        "poste": "IRM",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "HM"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "HM(Cirtal/Ewing)"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-03": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "YA"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "SL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "HM"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MH"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "INTERNES"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "YA"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Chef et AL sarcomes"
+      }
+    ]
+  },
+  "2026-11-04": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "THEVENIN ET SL"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "TL/SL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "YA"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "MH"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "MOUTOUNET"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "DRAPE"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH/SL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "SEROR/YA"
+      },
+      {
+        "poste": "IRM",
+        "doc": "SL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "YANG(Rachis/Rhumato OS)"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-05": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "AC"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "RUBINI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "SL"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM/MH"
+      },
+      {
+        "poste": "IRM",
+        "doc": "AC"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "ALLURA",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-06": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "TL/YANG"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "AC"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "HM"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "YA"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "YA"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AC/SL"
+      },
+      {
+        "poste": "IRM",
+        "doc": "TL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "MH/INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Mihoubi MPR Rhumato"
+      }
+    ]
+  },
+  "2026-11-09": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "YA"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "TL méta OS"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "YA"
+      },
+      {
+        "poste": "IRM",
+        "doc": "TL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "HM"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "HM(Cirtal/Ewing)"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-10": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "YA"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "AL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "HM"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "HM"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "YA"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MH"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "INTERNES"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "YA"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Chef et AL Sarcomes"
+      }
+    ]
+  },
+  "2026-11-11": {
+    "am": [
+      {
+        "poste": "FÉRIÉ",
+        "doc": "Armistice 1918"
+      }
+    ],
+    "pm": []
+  },
+  "2026-11-12": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "AL/AC"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "RUBINI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "SL"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AL/MH"
+      },
+      {
+        "poste": "IRM",
+        "doc": "AC"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "ALLURA",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-13": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "TL/YANG"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "AC"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "HM"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "YA"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "YA"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AC/SL"
+      },
+      {
+        "poste": "IRM",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "MH/INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "MIHOUBI (MPR RHUMATO)"
+      }
+    ]
+  },
+  "2026-11-16": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "HAMMOUD"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "YA"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "TL méta OS"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "YA"
+      },
+      {
+        "poste": "IRM",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "HM"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "HM Cirtal /Ewing"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-17": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "YA"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL(à partir de 11h)"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "AL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "HM"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "HM"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MH"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "INTERNES"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "YA"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Chef et AL Sarcomes"
+      }
+    ]
+  },
+  "2026-11-18": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "THEVENIN"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "YA"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "MH"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "MOUTOUNET"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "DRAPE"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "SEROR/YA"
+      },
+      {
+        "poste": "IRM",
+        "doc": "MH"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "YANG(Rachis/Rhumato OS)"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-19": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "AL/AC"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "RUBINI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM/MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AL"
+      },
+      {
+        "poste": "IRM",
+        "doc": "AC"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "ALLURA",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-20": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "TL/YANG"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "AC"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "HM"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "YA"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "YA"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM/AC"
+      },
+      {
+        "poste": "IRM",
+        "doc": "TL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "MH/INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Mihoubi MPR Rhumato"
+      }
+    ]
+  },
+  "2026-11-23": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "HAMMOUD"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "TL"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "TL"
+      },
+      {
+        "poste": "IRM",
+        "doc": "HM"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "STAFF",
+        "doc": "HM"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-24": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "SL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "HM"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Chef et AL Sarcomes"
+      }
+    ]
+  },
+  "2026-11-25": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "THEVENIN ET SL"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "MH"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "MOUTOUNET"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "DRAPE"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "SEROR"
+      },
+      {
+        "poste": "IRM",
+        "doc": "SL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "YANG(Rachis/Rhumato OS)"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-26": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "AL/AC"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "RUBINI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "SL"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AL/MH"
+      },
+      {
+        "poste": "IRM",
+        "doc": "AC"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "ALLURA",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-11-27": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "TL/YANG"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "SL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "AC"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "HM"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "MH"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "GUERINI (prothèse)"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AC/SL"
+      },
+      {
+        "poste": "IRM",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "MH/INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Mihoubi MPR Rhumato"
+      }
+    ]
+  },
+  "2026-11-30": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "HAMMOUD"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "TL"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "TL"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "TL"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "TL"
+      },
+      {
+        "poste": "IRM",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "HM"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "HM"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "SL/MH",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-12-01": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "YANG"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "AL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "HM"
+      },
+      {
+        "poste": "UCSA",
+        "doc": "HM"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "HM"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM/MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "TL"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MH"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Chef et AL Sarcomes"
+      }
+    ]
+  },
+  "2026-12-02": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "THEVENIN"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL/MH"
+      },
+      {
+        "poste": "TDM OLLIER 3",
+        "doc": "MH"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "DRAPE/YANG"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "MOUTOUNET"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "DRAPE"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "TL"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "SEROR"
+      },
+      {
+        "poste": "IRM",
+        "doc": "MH"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MIHOUBI"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "YANG(Rachis/Rhumato OS)"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "HM",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-12-03": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "AL/AC"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "RUBINI"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "FERMÉ",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "HM/MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "AL/MH"
+      },
+      {
+        "poste": "IRM",
+        "doc": "AC"
+      },
+      {
+        "poste": "ECHO",
+        "doc": "MD"
+      },
+      {
+        "poste": "ALLURA",
+        "doc": "HM"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "FEYDY"
+      },
+      {
+        "poste": "1/2 journée libre",
+        "doc": "TL/YA",
+        "demiOff": true
+      }
+    ]
+  },
+  "2026-12-04": {
+    "am": [
+      {
+        "poste": "ECHO",
+        "doc": "TL/YANG"
+      },
+      {
+        "poste": "GESTES (C)",
+        "doc": "MAINTENANCE",
+        "closed": true
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "AC"
+      },
+      {
+        "poste": "IRM 3T",
+        "doc": "HM"
+      },
+      {
+        "poste": "IRM 1,5T",
+        "doc": "MH"
+      }
+    ],
+    "pm": [
+      {
+        "poste": "GESTES (C)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM OLLIER 4 (SAU)",
+        "doc": "MH"
+      },
+      {
+        "poste": "TDM ACHARD 1",
+        "doc": "HM/AC"
+      },
+      {
+        "poste": "IRM",
+        "doc": "TL"
+      },
+      {
+        "poste": "CONSULTATION",
+        "doc": "INTERNES"
+      },
+      {
+        "poste": "STAFF",
+        "doc": "Mihoubi MPR Rhumato"
+      }
+    ]
+  }
+}
