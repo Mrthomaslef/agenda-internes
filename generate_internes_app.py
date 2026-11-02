@@ -3383,6 +3383,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       pushChefHistorySnapshot();
+      const daySlotsMove = (STATE.schedule[source.dIso] && STATE.schedule[source.dIso].byInterne) || {};
+      const seniorListMove = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
+      if (source.fromPoste === "TDM SAU" && target.toPoste !== "TDM SAU" && seniorListMove.includes(source.interneId)) {
+        const otherSauSeniors = seniorListMove.filter(sId => sId !== source.interneId && daySlotsMove[sId] && daySlotsMove[sId][source.periodKey] === "TDM SAU");
+        if (otherSauSeniors.length === 0) {
+          const swapSenior = seniorListMove.find(sId => sId !== source.interneId && daySlotsMove[sId] && daySlotsMove[sId][source.periodKey] === target.toPoste);
+          if (swapSenior) {
+            applyInterneSlotChange(source.dIso, source.periodKey, swapSenior, "TDM SAU");
+          }
+        }
+      }
       applyInterneSlotChange(source.dIso, source.periodKey, source.interneId, target.toPoste);
       selectedForMove = null;
       saveStateLocal();
@@ -5509,6 +5520,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       if (!STATE.customVacations) STATE.customVacations = {};
+      const seniorListVac = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
+      const daySlotsVac = (STATE.schedule[iso] && STATE.schedule[iso].byInterne) || {};
+      if (seniorListVac.includes(iid) && daySlotsVac[iid]) {
+        [["am", am], ["pm", pm]].forEach(([pKey, newVal]) => {
+          if (daySlotsVac[iid][pKey] === "TDM SAU" && newVal !== "TDM SAU") {
+            const otherSau = seniorListVac.filter(sId => sId !== iid && daySlotsVac[sId] && daySlotsVac[sId][pKey] === "TDM SAU");
+            if (otherSau.length === 0) {
+              const swapCand = seniorListVac.find(sId => sId !== iid && daySlotsVac[sId] && daySlotsVac[sId][pKey] === newVal);
+              if (swapCand) {
+                applyInterneSlotChange(iso, pKey, swapCand, "TDM SAU");
+              }
+            }
+          }
+        });
+      }
       STATE.customVacations[iso + "__" + iid] = { am, pm, note };
 
       saveStateLocal();
