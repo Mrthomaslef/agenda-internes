@@ -5122,14 +5122,14 @@ def build_full_dataset() -> dict:
         irm_tot = [irm_am[i] + irm_pm[i] for i in all_iids_global]
         if phase_two:
             return (
-                28.0 * _var_g(echo_tot)
-                + 28.0 * _var_g(irm_tot)
-                + 14.0 * _var_g(list(irm_am.values()))
-                + 14.0 * _var_g(list(irm_pm.values()))
-                + 3.0 * _var_g(list(echo_am.values()))
-                + 3.0 * _var_g(list(echo_pm.values()))
-                + 2.0 * _var_g(list(irm_3t.values()))
-                + 2.0 * _var_g(list(irm_15t.values()))
+                80.0 * _var_g(echo_tot)
+                + 80.0 * _var_g(irm_tot)
+                + 25.0 * _var_g(list(irm_am.values()))
+                + 25.0 * _var_g(list(irm_pm.values()))
+                + 4.0 * _var_g(list(echo_am.values()))
+                + 4.0 * _var_g(list(echo_pm.values()))
+                + 3.0 * _var_g(list(irm_3t.values()))
+                + 3.0 * _var_g(list(irm_15t.values()))
                 + 12.0 * _var_g(list(achard.values()))
                 + 12.0 * _var_g(list(ollier.values()))
                 + 4.0 * _var_g([achard[i] + ollier[i] for i in all_iids_global])
@@ -5331,6 +5331,105 @@ def build_full_dataset() -> dict:
                                 else:
                                     _exec_swap_diag_global(d_iso, h_k, i1, i2)
         if not improved_g2:
+            break
+
+    # 4ter-bis) Second passage LECTURE <-> SCAN ACHARD après le lissage diagnostique :
+    for _ in range(15):
+        lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
+        ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
+        if lec_c["noe"] >= 9:
+            break
+        best_cand = None
+        best_score = -999999.0
+        for mon_iso in unlocked_mons_global:
+            if _week_lec_cnt(mon_iso, "noe") >= 1:
+                continue
+            noe_w_ach = _week_ach_cnt(mon_iso, "noe")
+            for d_iso in weeks_by_mon_global[mon_iso]:
+                if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+                    continue
+                if datetime.date.fromisoformat(d_iso).weekday() not in (1, 4):
+                    continue
+                if isinstance(custom_vacations.get(f"{d_iso}__noe"), dict) and custom_vacations[f"{d_iso}__noe"].get("pm"):
+                    continue
+                if _effective_slot_post(d_iso, "noe", "pm") != "SCAN ACHARD":
+                    continue
+                if _is_same_poste_day_global(_effective_slot_post(d_iso, "noe", "am"), "LECTURE"):
+                    continue
+                for s_id in senior_iids_global:
+                    if isinstance(custom_vacations.get(f"{d_iso}__{s_id}"), dict) and custom_vacations[f"{d_iso}__{s_id}"].get("pm"):
+                        continue
+                    if _effective_slot_post(d_iso, s_id, "pm") != "LECTURE":
+                        continue
+                    if _is_same_poste_day_global(_effective_slot_post(d_iso, s_id, "am"), "SCAN ACHARD"):
+                        continue
+                    if any(_effective_slot_post(d_iso, o_id, "pm") == "SCAN ACHARD" for o_id in senior_iids_global if o_id != s_id):
+                        continue
+                    sc = 10.0 * lec_c[s_id] - 6.0 * ach_c[s_id] + 3.0 * noe_w_ach - 2.0 * _week_ach_cnt(mon_iso, s_id)
+                    if sc > best_score:
+                        best_score = sc
+                        best_cand = (d_iso, s_id)
+        if not best_cand:
+            break
+        d_sw, s_sw = best_cand
+        by_s = schedule[d_sw]["byInterne"]
+        by_s["noe"]["pm"] = "LECTURE"
+        by_s["noe"]["notePm"] = _format_pm_note_global(d_sw, "noe", "LECTURE")
+        by_s["noe"]["note"] = " • ".join(x for x in (by_s["noe"].get("noteAm", ""), by_s["noe"].get("notePm", "")) if x)
+        by_s[s_sw]["pm"] = "SCAN ACHARD"
+        by_s[s_sw]["notePm"] = _format_pm_note_global(d_sw, s_sw, "SCAN ACHARD")
+        by_s[s_sw]["note"] = " • ".join(x for x in (by_s[s_sw].get("noteAm", ""), by_s[s_sw].get("notePm", "")) if x)
+
+    for _ in range(30):
+        lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
+        ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
+        swapped_l = False
+        over_l = sorted([i for i in all_iids_global if lec_c[i] >= 9], key=lambda x: (-lec_c[x], ach_c[x]))
+        under_l = sorted([i for i in all_iids_global if lec_c[i] <= 8], key=lambda x: (lec_c[x], -ach_c[x]))
+        for o_id in over_l:
+            for u_id in under_l:
+                if lec_c[o_id] - lec_c[u_id] < 2:
+                    continue
+                for donor_p in ("SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"):
+                    for mon_iso in unlocked_mons_global:
+                        if _week_lec_cnt(mon_iso, u_id) >= 1:
+                            continue
+                        for d_iso in weeks_by_mon_global[mon_iso]:
+                            if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+                                continue
+                            if datetime.date.fromisoformat(d_iso).weekday() not in (1, 4):
+                                continue
+                            if isinstance(custom_vacations.get(f"{d_iso}__{o_id}"), dict) and custom_vacations[f"{d_iso}__{o_id}"].get("pm"):
+                                continue
+                            if isinstance(custom_vacations.get(f"{d_iso}__{u_id}"), dict) and custom_vacations[f"{d_iso}__{u_id}"].get("pm"):
+                                continue
+                            if _effective_slot_post(d_iso, o_id, "pm") != "LECTURE" or _effective_slot_post(d_iso, u_id, "pm") != donor_p:
+                                continue
+                            if _is_same_poste_day_global(_effective_slot_post(d_iso, o_id, "am"), donor_p):
+                                continue
+                            if _is_same_poste_day_global(_effective_slot_post(d_iso, u_id, "am"), "LECTURE"):
+                                continue
+                            if "noe" in (o_id, u_id):
+                                if any(_effective_slot_post(d_iso, k, "pm") == donor_p for k in all_iids_global if k not in (o_id, u_id)):
+                                    continue
+                            by_s = schedule[d_iso]["byInterne"]
+                            by_s[o_id]["pm"] = donor_p
+                            by_s[o_id]["notePm"] = _format_pm_note_global(d_iso, o_id, donor_p)
+                            by_s[o_id]["note"] = " • ".join(x for x in (by_s[o_id].get("noteAm", ""), by_s[o_id].get("notePm", "")) if x)
+                            by_s[u_id]["pm"] = "LECTURE"
+                            by_s[u_id]["notePm"] = _format_pm_note_global(d_iso, u_id, "LECTURE")
+                            by_s[u_id]["note"] = " • ".join(x for x in (by_s[u_id].get("noteAm", ""), by_s[u_id].get("notePm", "")) if x)
+                            swapped_l = True
+                            break
+                        if swapped_l:
+                            break
+                    if swapped_l:
+                        break
+                if swapped_l:
+                    break
+            if swapped_l:
+                break
+        if not swapped_l:
             break
 
     # 4quater) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2 :
