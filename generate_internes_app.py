@@ -4934,7 +4934,156 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (!swappedTF) break;
         }
 
-        // 3bis) Équilibrage global des vacations de LECTURE et de SCAN ACHARD (notamment pour Noé)
+        // 4) Équilibrage global des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM 3T, IRM 1,5T, IRM PM)
+        const diagPostesGlobal = ["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG"];
+        const getWeekIrmPmCntGlobal = (monIso, iid) => {
+          let c = 0;
+          (weeksMap[monIso] || []).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (sl && sl.pm === "IRM") c++;
+          });
+          return c;
+        };
+        const canSwapDiagGlobal = (monIso, dIso, hKey, i1, i2) => {
+          if (dIso === "2026-11-02" || !st.schedule[dIso] || st.schedule[dIso].holiday) return false;
+          if (custom[dIso + "__" + i1] && custom[dIso + "__" + i1][hKey]) return false;
+          if (custom[dIso + "__" + i2] && custom[dIso + "__" + i2][hKey]) return false;
+          const byS = st.schedule[dIso].byInterne;
+          if (!byS[i1] || !byS[i2]) return false;
+          const p1 = byS[i1][hKey], p2 = byS[i2][hKey];
+          if (!p1 || !p2 || p1 === p2 || !diagPostesGlobal.includes(p1) || !diagPostesGlobal.includes(p2)) return false;
+          if (i1 === "noe" || i2 === "noe") {
+            const senId = i1 === "noe" ? i2 : i1;
+            const pNoe = i1 === "noe" ? p1 : p2;
+            if (seniorIidsGlobal.some(sOth => sOth !== senId && byS[sOth] && byS[sOth][hKey] === pNoe)) return false;
+          }
+          const othH = hKey === "am" ? "pm" : "am";
+          if (isSamePosteDayGlobal(p2, byS[i1][othH]) || isSamePosteDayGlobal(p1, byS[i2][othH])) return false;
+          if (hKey === "pm") {
+            if (p2 === "IRM" && p1 !== "IRM" && getWeekIrmPmCntGlobal(monIso, i1) >= 1) return false;
+            if (p1 === "IRM" && p2 !== "IRM" && getWeekIrmPmCntGlobal(monIso, i2) >= 1) return false;
+          }
+          return true;
+        };
+        const execSwapDiagGlobal = (dIso, hKey, i1, i2) => {
+          const byS = st.schedule[dIso].byInterne;
+          const nk = hKey === "am" ? "noteAm" : "notePm";
+          const p1 = byS[i1][hKey], p2 = byS[i2][hKey];
+          byS[i1][hKey] = p2;
+          byS[i1][nk] = i1 === "noe" ? `Phase Socle (${p2})` : "";
+          if (!(custom[dIso + "__" + i1] && custom[dIso + "__" + i1].note)) {
+            byS[i1].note = [byS[i1].noteAm, byS[i1].notePm].filter(Boolean).join(" • ");
+          }
+          byS[i2][hKey] = p1;
+          byS[i2][nk] = i2 === "noe" ? `Phase Socle (${p1})` : "";
+          if (!(custom[dIso + "__" + i2] && custom[dIso + "__" + i2].note)) {
+            byS[i2].note = [byS[i2].noteAm, byS[i2].notePm].filter(Boolean).join(" • ");
+          }
+        };
+        const evalGlobalDiagScore = (phaseTwo = false) => {
+          const echoAm = {}, echoPm = {}, irmAm = {}, irm3t = {}, irm15t = {}, irmPm = {}, ach = {}, oll = {};
+          allIidsGlobal.forEach(i => { echoAm[i] = 0; echoPm[i] = 0; irmAm[i] = 0; irm3t[i] = 0; irm15t[i] = 0; irmPm[i] = 0; ach[i] = 0; oll[i] = 0; });
+          let wPen = 0;
+          Object.keys(weeksMap).forEach(monIso => {
+            const we = {}, wi = {};
+            allIidsGlobal.forEach(i => { we[i] = 0; wi[i] = 0; });
+            (weeksMap[monIso] || []).forEach(dIso => {
+              if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+              const byS = st.schedule[dIso].byInterne;
+              ["am", "pm"].forEach(hK => {
+                allIidsGlobal.forEach(i => {
+                  const v = byS[i] && byS[i][hK];
+                  if (v === "ECHO") {
+                    if (hK === "am") echoAm[i]++; else echoPm[i]++;
+                    we[i]++;
+                  } else if ((v === "IRM 3T" || v === "IRM 1,5T") && hK === "am") {
+                    irmAm[i]++;
+                    if (v === "IRM 3T") irm3t[i]++; else irm15t[i]++;
+                    wi[i]++;
+                  } else if (v === "IRM" && hK === "pm") {
+                    irmPm[i]++;
+                    wi[i]++;
+                  } else if (v === "SCAN ACHARD") {
+                    ach[i]++;
+                  } else if (v === "TDM OLLIER DIAG") {
+                    oll[i]++;
+                  }
+                });
+              });
+            });
+            const n = allIidsGlobal.length || 1;
+            const me = allIidsGlobal.reduce((s, i) => s + we[i], 0) / n;
+            const mi = allIidsGlobal.reduce((s, i) => s + wi[i], 0) / n;
+            allIidsGlobal.forEach(i => { wPen += (we[i] - me) ** 2 + (wi[i] - mi) ** 2; });
+          });
+          const varArr = (arr) => {
+            const m = arr.reduce((s, x) => s + x, 0) / (arr.length || 1);
+            return arr.reduce((s, x) => s + (x - m) ** 2, 0);
+          };
+          const echoTot = allIidsGlobal.map(i => echoAm[i] + echoPm[i]);
+          const irmTot = allIidsGlobal.map(i => irmAm[i] + irmPm[i]);
+          if (phaseTwo) {
+            return (
+              28 * varArr(echoTot) +
+              28 * varArr(irmTot) +
+              14 * varArr(allIidsGlobal.map(i => irmAm[i])) +
+              14 * varArr(allIidsGlobal.map(i => irmPm[i])) +
+              3 * varArr(allIidsGlobal.map(i => echoAm[i])) +
+              3 * varArr(allIidsGlobal.map(i => echoPm[i])) +
+              2 * varArr(allIidsGlobal.map(i => irm3t[i])) +
+              2 * varArr(allIidsGlobal.map(i => irm15t[i])) +
+              12 * varArr(allIidsGlobal.map(i => ach[i])) +
+              12 * varArr(allIidsGlobal.map(i => oll[i])) +
+              4 * varArr(allIidsGlobal.map(i => ach[i] + oll[i])) +
+              1.5 * wPen
+            );
+          }
+          return (
+            16 * varArr(echoTot) +
+            16 * varArr(irmTot) +
+            10 * varArr(allIidsGlobal.map(i => irmAm[i])) +
+            10 * varArr(allIidsGlobal.map(i => irmPm[i])) +
+            3 * varArr(allIidsGlobal.map(i => echoAm[i])) +
+            3 * varArr(allIidsGlobal.map(i => echoPm[i])) +
+            2 * varArr(allIidsGlobal.map(i => irm3t[i])) +
+            2 * varArr(allIidsGlobal.map(i => irm15t[i])) +
+            4 * varArr(seniorIidsGlobal.map(s => ach[s])) +
+            4 * varArr(seniorIidsGlobal.map(s => oll[s])) +
+            1.5 * varArr(allIidsGlobal.map(i => ach[i])) +
+            1.5 * varArr(allIidsGlobal.map(i => oll[i])) +
+            1.5 * wPen
+          );
+        };
+        for (let iterD = 0; iterD < 80; iterD++) {
+          let impD = false;
+          let curScoreD = evalGlobalDiagScore(false);
+          for (const monIso of unlockedWeekMons) {
+            for (const dIso of (weeksMap[monIso] || [])) {
+              if (!st.schedule[dIso] || st.schedule[dIso].holiday) continue;
+              for (const hK of ["am", "pm"]) {
+                for (let idx1 = 0; idx1 < allIidsGlobal.length; idx1++) {
+                  for (let idx2 = idx1 + 1; idx2 < allIidsGlobal.length; idx2++) {
+                    const i1 = allIidsGlobal[idx1], i2 = allIidsGlobal[idx2];
+                    if (canSwapDiagGlobal(monIso, dIso, hK, i1, i2)) {
+                      execSwapDiagGlobal(dIso, hK, i1, i2);
+                      const newScoreD = evalGlobalDiagScore(false);
+                      if (newScoreD < curScoreD - 1e-6) {
+                        curScoreD = newScoreD;
+                        impD = true;
+                      } else {
+                        execSwapDiagGlobal(dIso, hK, i1, i2);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          if (!impD) break;
+        }
+
+        // 4bis) Équilibrage global des vacations de LECTURE et de SCAN ACHARD (notamment pour Noé)
         const getTotalLecCountGlobal = (iid) => {
           let c = 0;
           Object.keys(st.schedule).forEach(dIso => {
@@ -5073,113 +5222,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (!swappedL) break;
         }
 
-        // 4) Équilibrage global final des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM 3T, IRM 1,5T, IRM PM)
-        const diagPostesGlobal = ["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG"];
-        const getWeekIrmPmCntGlobal = (monIso, iid) => {
-          let c = 0;
-          (weeksMap[monIso] || []).forEach(dIso => {
-            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
-            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
-            if (sl && sl.pm === "IRM") c++;
-          });
-          return c;
-        };
-        const canSwapDiagGlobal = (monIso, dIso, hKey, i1, i2) => {
-          if (dIso === "2026-11-02" || !st.schedule[dIso] || st.schedule[dIso].holiday) return false;
-          if (custom[dIso + "__" + i1] && custom[dIso + "__" + i1][hKey]) return false;
-          if (custom[dIso + "__" + i2] && custom[dIso + "__" + i2][hKey]) return false;
-          const byS = st.schedule[dIso].byInterne;
-          if (!byS[i1] || !byS[i2]) return false;
-          const p1 = byS[i1][hKey], p2 = byS[i2][hKey];
-          if (!p1 || !p2 || p1 === p2 || !diagPostesGlobal.includes(p1) || !diagPostesGlobal.includes(p2)) return false;
-          if (i1 === "noe" || i2 === "noe") {
-            const senId = i1 === "noe" ? i2 : i1;
-            const pNoe = i1 === "noe" ? p1 : p2;
-            if (seniorIidsGlobal.some(sOth => sOth !== senId && byS[sOth] && byS[sOth][hKey] === pNoe)) return false;
-          }
-          const othH = hKey === "am" ? "pm" : "am";
-          if (isSamePosteDayGlobal(p2, byS[i1][othH]) || isSamePosteDayGlobal(p1, byS[i2][othH])) return false;
-          if (hKey === "pm") {
-            if (p2 === "IRM" && p1 !== "IRM" && getWeekIrmPmCntGlobal(monIso, i1) >= 1) return false;
-            if (p1 === "IRM" && p2 !== "IRM" && getWeekIrmPmCntGlobal(monIso, i2) >= 1) return false;
-          }
-          return true;
-        };
-        const execSwapDiagGlobal = (dIso, hKey, i1, i2) => {
-          const byS = st.schedule[dIso].byInterne;
-          const nk = hKey === "am" ? "noteAm" : "notePm";
-          const p1 = byS[i1][hKey], p2 = byS[i2][hKey];
-          byS[i1][hKey] = p2;
-          byS[i1][nk] = i1 === "noe" ? `Phase Socle (${p2})` : "";
-          if (!(custom[dIso + "__" + i1] && custom[dIso + "__" + i1].note)) {
-            byS[i1].note = [byS[i1].noteAm, byS[i1].notePm].filter(Boolean).join(" • ");
-          }
-          byS[i2][hKey] = p1;
-          byS[i2][nk] = i2 === "noe" ? `Phase Socle (${p1})` : "";
-          if (!(custom[dIso + "__" + i2] && custom[dIso + "__" + i2].note)) {
-            byS[i2].note = [byS[i2].noteAm, byS[i2].notePm].filter(Boolean).join(" • ");
-          }
-        };
-        const evalGlobalDiagScore = () => {
-          const echoAm = {}, echoPm = {}, irmAm = {}, irm3t = {}, irm15t = {}, irmPm = {}, ach = {}, oll = {};
-          allIidsGlobal.forEach(i => { echoAm[i] = 0; echoPm[i] = 0; irmAm[i] = 0; irm3t[i] = 0; irm15t[i] = 0; irmPm[i] = 0; ach[i] = 0; oll[i] = 0; });
-          let wPen = 0;
-          Object.keys(weeksMap).forEach(monIso => {
-            const we = {}, wi = {};
-            allIidsGlobal.forEach(i => { we[i] = 0; wi[i] = 0; });
-            (weeksMap[monIso] || []).forEach(dIso => {
-              if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
-              const byS = st.schedule[dIso].byInterne;
-              ["am", "pm"].forEach(hK => {
-                allIidsGlobal.forEach(i => {
-                  const v = byS[i] && byS[i][hK];
-                  if (v === "ECHO") {
-                    if (hK === "am") echoAm[i]++; else echoPm[i]++;
-                    we[i]++;
-                  } else if ((v === "IRM 3T" || v === "IRM 1,5T") && hK === "am") {
-                    irmAm[i]++;
-                    if (v === "IRM 3T") irm3t[i]++; else irm15t[i]++;
-                    wi[i]++;
-                  } else if (v === "IRM" && hK === "pm") {
-                    irmPm[i]++;
-                    wi[i]++;
-                  } else if (v === "SCAN ACHARD") {
-                    ach[i]++;
-                  } else if (v === "TDM OLLIER DIAG") {
-                    oll[i]++;
-                  }
-                });
-              });
-            });
-            const n = allIidsGlobal.length || 1;
-            const me = allIidsGlobal.reduce((s, i) => s + we[i], 0) / n;
-            const mi = allIidsGlobal.reduce((s, i) => s + wi[i], 0) / n;
-            allIidsGlobal.forEach(i => { wPen += (we[i] - me) ** 2 + (wi[i] - mi) ** 2; });
-          });
-          const varArr = (arr) => {
-            const m = arr.reduce((s, x) => s + x, 0) / (arr.length || 1);
-            return arr.reduce((s, x) => s + (x - m) ** 2, 0);
-          };
-          const echoTot = allIidsGlobal.map(i => echoAm[i] + echoPm[i]);
-          const irmTot = allIidsGlobal.map(i => irmAm[i] + irmPm[i]);
-          return (
-            28 * varArr(echoTot) +
-            28 * varArr(irmTot) +
-            14 * varArr(allIidsGlobal.map(i => irmAm[i])) +
-            14 * varArr(allIidsGlobal.map(i => irmPm[i])) +
-            3 * varArr(allIidsGlobal.map(i => echoAm[i])) +
-            3 * varArr(allIidsGlobal.map(i => echoPm[i])) +
-            2 * varArr(allIidsGlobal.map(i => irm3t[i])) +
-            2 * varArr(allIidsGlobal.map(i => irm15t[i])) +
-            12 * varArr(allIidsGlobal.map(i => ach[i])) +
-            12 * varArr(allIidsGlobal.map(i => oll[i])) +
-            4 * varArr(allIidsGlobal.map(i => ach[i] + oll[i])) +
-            1.5 * wPen
-          );
-        };
-        for (let iterD = 0; iterD < 80; iterD++) {
-          let impD = false;
-          let curScoreD = evalGlobalDiagScore();
+        // 4ter) Second passage d'équilibrage diagnostique intégrant le lissage SCAN ACHARD / TDM OLLIER DIAG
+        for (let iterD2 = 0; iterD2 < 80; iterD2++) {
+          let impD2 = false;
+          let curScoreD2 = evalGlobalDiagScore(true);
           for (const monIso of unlockedWeekMons) {
             for (const dIso of (weeksMap[monIso] || [])) {
               if (!st.schedule[dIso] || st.schedule[dIso].holiday) continue;
@@ -5189,10 +5235,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     const i1 = allIidsGlobal[idx1], i2 = allIidsGlobal[idx2];
                     if (canSwapDiagGlobal(monIso, dIso, hK, i1, i2)) {
                       execSwapDiagGlobal(dIso, hK, i1, i2);
-                      const newScoreD = evalGlobalDiagScore();
-                      if (newScoreD < curScoreD - 1e-6) {
-                        curScoreD = newScoreD;
-                        impD = true;
+                      const newScoreD2 = evalGlobalDiagScore(true);
+                      if (newScoreD2 < curScoreD2 - 1e-6) {
+                        curScoreD2 = newScoreD2;
+                        impD2 = true;
                       } else {
                         execSwapDiagGlobal(dIso, hK, i1, i2);
                       }
@@ -5202,9 +5248,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
             }
           }
-          if (!impD) break;
+          if (!impD2) break;
         }
-        // 4bis) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2
+
+        // 4quater) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2
         for (let iterGA = 0; iterGA < 10; iterGA++) {
           const gestC = {}, achC = {};
           seniorIidsGlobal.forEach(s => {

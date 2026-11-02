@@ -5020,7 +5020,160 @@ def build_full_dataset() -> dict:
         if not swapped_tf:
             break
 
-    # 3bis) Équilibrage global des vacations de LECTURE et de SCAN ACHARD (notamment pour Noé) :
+    # 4) Équilibrage global des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM Matin / IRM PM / Total IRM)
+    #    ainsi que des Scanners diagnostiques (SCAN ACHARD / TDM OLLIER DIAG) sur les semaines non verrouillées :
+    diag_postes_global = ("ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG")
+
+    def _week_irm_pm_cnt_global(mon_iso: str, iid: str) -> int:
+        return sum(
+            1
+            for d_iso in weeks_by_mon_global[mon_iso]
+            if not schedule[d_iso].get("holiday") and _effective_slot_post(d_iso, iid, "pm") == "IRM"
+        )
+
+    def _can_swap_diag_global(d_iso: str, h_key: str, i1: str, i2: str) -> bool:
+        if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+            return False
+        if isinstance(custom_vacations.get(f"{d_iso}__{i1}"), dict) and custom_vacations[f"{d_iso}__{i1}"].get(h_key):
+            return False
+        if isinstance(custom_vacations.get(f"{d_iso}__{i2}"), dict) and custom_vacations[f"{d_iso}__{i2}"].get(h_key):
+            return False
+        p1 = _effective_slot_post(d_iso, i1, h_key)
+        p2 = _effective_slot_post(d_iso, i2, h_key)
+        if p1 == p2 or p1 not in diag_postes_global or p2 not in diag_postes_global:
+            return False
+        if "noe" in (i1, i2):
+            sen_id = i2 if i1 == "noe" else i1
+            p_noe = p1 if i1 == "noe" else p2
+            if any(_effective_slot_post(d_iso, s_other, h_key) == p_noe for s_other in senior_iids_global if s_other != sen_id):
+                return False
+        other_h = "pm" if h_key == "am" else "am"
+        if _is_same_poste_day_global(p2, _effective_slot_post(d_iso, i1, other_h)):
+            return False
+        if _is_same_poste_day_global(p1, _effective_slot_post(d_iso, i2, other_h)):
+            return False
+        if h_key == "pm":
+            mon_iso = _mon_of_iso(d_iso)
+            if p2 == "IRM" and p1 != "IRM" and _week_irm_pm_cnt_global(mon_iso, i1) >= 1:
+                return False
+            if p1 == "IRM" and p2 != "IRM" and _week_irm_pm_cnt_global(mon_iso, i2) >= 1:
+                return False
+        return True
+
+    def _exec_swap_diag_global(d_iso: str, h_key: str, i1: str, i2: str) -> None:
+        by_s = schedule[d_iso]["byInterne"]
+        nk = "noteAm" if h_key == "am" else "notePm"
+        p1, p2 = by_s[i1][h_key], by_s[i2][h_key]
+        by_s[i1][h_key] = p2
+        by_s[i1][nk] = f"Phase Socle ({p2})" if i1 == "noe" else ""
+        by_s[i1]["note"] = " • ".join(x for x in (by_s[i1].get("noteAm", ""), by_s[i1].get("notePm", "")) if x)
+        by_s[i2][h_key] = p1
+        by_s[i2][nk] = f"Phase Socle ({p1})" if i2 == "noe" else ""
+        by_s[i2]["note"] = " • ".join(x for x in (by_s[i2].get("noteAm", ""), by_s[i2].get("notePm", "")) if x)
+
+    def _eval_global_diag_score(phase_two: bool = False) -> float:
+        echo_am = {i: 0 for i in all_iids_global}
+        echo_pm = {i: 0 for i in all_iids_global}
+        irm_am = {i: 0 for i in all_iids_global}
+        irm_3t = {i: 0 for i in all_iids_global}
+        irm_15t = {i: 0 for i in all_iids_global}
+        irm_pm = {i: 0 for i in all_iids_global}
+        achard = {i: 0 for i in all_iids_global}
+        ollier = {i: 0 for i in all_iids_global}
+        w_pen = 0.0
+        for mon_iso, d_list in weeks_by_mon_global.items():
+            we = {i: 0 for i in all_iids_global}
+            wi = {i: 0 for i in all_iids_global}
+            for d_iso in d_list:
+                if schedule[d_iso].get("holiday"):
+                    continue
+                for h_k in ("am", "pm"):
+                    for i in all_iids_global:
+                        v = _effective_slot_post(d_iso, i, h_k)
+                        if v == "ECHO":
+                            if h_k == "am":
+                                echo_am[i] += 1
+                            else:
+                                echo_pm[i] += 1
+                            we[i] += 1
+                        elif v in ("IRM 3T", "IRM 1,5T") and h_k == "am":
+                            irm_am[i] += 1
+                            if v == "IRM 3T":
+                                irm_3t[i] += 1
+                            else:
+                                irm_15t[i] += 1
+                            wi[i] += 1
+                        elif v == "IRM" and h_k == "pm":
+                            irm_pm[i] += 1
+                            wi[i] += 1
+                        elif v == "SCAN ACHARD":
+                            achard[i] += 1
+                        elif v == "TDM OLLIER DIAG":
+                            ollier[i] += 1
+            me = sum(we.values()) / len(all_iids_global)
+            mi = sum(wi.values()) / len(all_iids_global)
+            w_pen += sum((we[i] - me) ** 2 for i in all_iids_global) + sum((wi[i] - mi) ** 2 for i in all_iids_global)
+
+        def _var_g(vals: list[int | float]) -> float:
+            m = sum(vals) / len(vals)
+            return sum((x - m) ** 2 for x in vals)
+
+        echo_tot = [echo_am[i] + echo_pm[i] for i in all_iids_global]
+        irm_tot = [irm_am[i] + irm_pm[i] for i in all_iids_global]
+        if phase_two:
+            return (
+                28.0 * _var_g(echo_tot)
+                + 28.0 * _var_g(irm_tot)
+                + 14.0 * _var_g(list(irm_am.values()))
+                + 14.0 * _var_g(list(irm_pm.values()))
+                + 3.0 * _var_g(list(echo_am.values()))
+                + 3.0 * _var_g(list(echo_pm.values()))
+                + 2.0 * _var_g(list(irm_3t.values()))
+                + 2.0 * _var_g(list(irm_15t.values()))
+                + 12.0 * _var_g(list(achard.values()))
+                + 12.0 * _var_g(list(ollier.values()))
+                + 4.0 * _var_g([achard[i] + ollier[i] for i in all_iids_global])
+                + 1.5 * w_pen
+            )
+        return (
+            16.0 * _var_g(echo_tot)
+            + 16.0 * _var_g(irm_tot)
+            + 10.0 * _var_g(list(irm_am.values()))
+            + 10.0 * _var_g(list(irm_pm.values()))
+            + 3.0 * _var_g(list(echo_am.values()))
+            + 3.0 * _var_g(list(echo_pm.values()))
+            + 2.0 * _var_g(list(irm_3t.values()))
+            + 2.0 * _var_g(list(irm_15t.values()))
+            + 4.0 * _var_g([achard[s] for s in senior_iids_global])
+            + 4.0 * _var_g([ollier[s] for s in senior_iids_global])
+            + 1.5 * _var_g(list(achard.values()))
+            + 1.5 * _var_g(list(ollier.values()))
+            + 1.5 * w_pen
+        )
+
+    for _ in range(120):
+        improved_g = False
+        cur_score_g = _eval_global_diag_score(False)
+        for mon_iso in unlocked_mons_global:
+            for d_iso in weeks_by_mon_global[mon_iso]:
+                if schedule[d_iso].get("holiday"):
+                    continue
+                for h_k in ("am", "pm"):
+                    for idx1 in range(len(all_iids_global)):
+                        for idx2 in range(idx1 + 1, len(all_iids_global)):
+                            i1, i2 = all_iids_global[idx1], all_iids_global[idx2]
+                            if _can_swap_diag_global(d_iso, h_k, i1, i2):
+                                _exec_swap_diag_global(d_iso, h_k, i1, i2)
+                                new_score_g = _eval_global_diag_score(False)
+                                if new_score_g < cur_score_g - 1e-6:
+                                    cur_score_g = new_score_g
+                                    improved_g = True
+                                else:
+                                    _exec_swap_diag_global(d_iso, h_k, i1, i2)
+        if not improved_g:
+            break
+
+    # 4bis) Équilibrage global des vacations de LECTURE et de SCAN ACHARD (notamment pour Noé) :
     def _total_lec_cnt(iid: str) -> int:
         return sum(
             1
@@ -5157,124 +5310,10 @@ def build_full_dataset() -> dict:
         if not swapped_l:
             break
 
-    # 4) Équilibrage global final des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM Matin / IRM PM / Total IRM)
-    #    ainsi que des Scanners diagnostiques (SCAN ACHARD / TDM OLLIER DIAG) sur les semaines non verrouillées :
-    diag_postes_global = ("ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG")
-
-    def _week_irm_pm_cnt_global(mon_iso: str, iid: str) -> int:
-        return sum(
-            1
-            for d_iso in weeks_by_mon_global[mon_iso]
-            if not schedule[d_iso].get("holiday") and _effective_slot_post(d_iso, iid, "pm") == "IRM"
-        )
-
-    def _can_swap_diag_global(d_iso: str, h_key: str, i1: str, i2: str) -> bool:
-        if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
-            return False
-        if isinstance(custom_vacations.get(f"{d_iso}__{i1}"), dict) and custom_vacations[f"{d_iso}__{i1}"].get(h_key):
-            return False
-        if isinstance(custom_vacations.get(f"{d_iso}__{i2}"), dict) and custom_vacations[f"{d_iso}__{i2}"].get(h_key):
-            return False
-        p1 = _effective_slot_post(d_iso, i1, h_key)
-        p2 = _effective_slot_post(d_iso, i2, h_key)
-        if p1 == p2 or p1 not in diag_postes_global or p2 not in diag_postes_global:
-            return False
-        if "noe" in (i1, i2):
-            sen_id = i2 if i1 == "noe" else i1
-            p_noe = p1 if i1 == "noe" else p2
-            if any(_effective_slot_post(d_iso, s_other, h_key) == p_noe for s_other in senior_iids_global if s_other != sen_id):
-                return False
-        other_h = "pm" if h_key == "am" else "am"
-        if _is_same_poste_day_global(p2, _effective_slot_post(d_iso, i1, other_h)):
-            return False
-        if _is_same_poste_day_global(p1, _effective_slot_post(d_iso, i2, other_h)):
-            return False
-        if h_key == "pm":
-            mon_iso = _mon_of_iso(d_iso)
-            if p2 == "IRM" and p1 != "IRM" and _week_irm_pm_cnt_global(mon_iso, i1) >= 1:
-                return False
-            if p1 == "IRM" and p2 != "IRM" and _week_irm_pm_cnt_global(mon_iso, i2) >= 1:
-                return False
-        return True
-
-    def _exec_swap_diag_global(d_iso: str, h_key: str, i1: str, i2: str) -> None:
-        by_s = schedule[d_iso]["byInterne"]
-        nk = "noteAm" if h_key == "am" else "notePm"
-        p1, p2 = by_s[i1][h_key], by_s[i2][h_key]
-        by_s[i1][h_key] = p2
-        by_s[i1][nk] = f"Phase Socle ({p2})" if i1 == "noe" else ""
-        by_s[i1]["note"] = " • ".join(x for x in (by_s[i1].get("noteAm", ""), by_s[i1].get("notePm", "")) if x)
-        by_s[i2][h_key] = p1
-        by_s[i2][nk] = f"Phase Socle ({p1})" if i2 == "noe" else ""
-        by_s[i2]["note"] = " • ".join(x for x in (by_s[i2].get("noteAm", ""), by_s[i2].get("notePm", "")) if x)
-
-    def _eval_global_diag_score() -> float:
-        echo_am = {i: 0 for i in all_iids_global}
-        echo_pm = {i: 0 for i in all_iids_global}
-        irm_am = {i: 0 for i in all_iids_global}
-        irm_3t = {i: 0 for i in all_iids_global}
-        irm_15t = {i: 0 for i in all_iids_global}
-        irm_pm = {i: 0 for i in all_iids_global}
-        achard = {i: 0 for i in all_iids_global}
-        ollier = {i: 0 for i in all_iids_global}
-        w_pen = 0.0
-        for mon_iso, d_list in weeks_by_mon_global.items():
-            we = {i: 0 for i in all_iids_global}
-            wi = {i: 0 for i in all_iids_global}
-            for d_iso in d_list:
-                if schedule[d_iso].get("holiday"):
-                    continue
-                for h_k in ("am", "pm"):
-                    for i in all_iids_global:
-                        v = _effective_slot_post(d_iso, i, h_k)
-                        if v == "ECHO":
-                            if h_k == "am":
-                                echo_am[i] += 1
-                            else:
-                                echo_pm[i] += 1
-                            we[i] += 1
-                        elif v in ("IRM 3T", "IRM 1,5T") and h_k == "am":
-                            irm_am[i] += 1
-                            if v == "IRM 3T":
-                                irm_3t[i] += 1
-                            else:
-                                irm_15t[i] += 1
-                            wi[i] += 1
-                        elif v == "IRM" and h_k == "pm":
-                            irm_pm[i] += 1
-                            wi[i] += 1
-                        elif v == "SCAN ACHARD":
-                            achard[i] += 1
-                        elif v == "TDM OLLIER DIAG":
-                            ollier[i] += 1
-            me = sum(we.values()) / len(all_iids_global)
-            mi = sum(wi.values()) / len(all_iids_global)
-            w_pen += sum((we[i] - me) ** 2 for i in all_iids_global) + sum((wi[i] - mi) ** 2 for i in all_iids_global)
-
-        def _var_g(vals: list[int | float]) -> float:
-            m = sum(vals) / len(vals)
-            return sum((x - m) ** 2 for x in vals)
-
-        echo_tot = [echo_am[i] + echo_pm[i] for i in all_iids_global]
-        irm_tot = [irm_am[i] + irm_pm[i] for i in all_iids_global]
-        return (
-            28.0 * _var_g(echo_tot)
-            + 28.0 * _var_g(irm_tot)
-            + 14.0 * _var_g(list(irm_am.values()))
-            + 14.0 * _var_g(list(irm_pm.values()))
-            + 3.0 * _var_g(list(echo_am.values()))
-            + 3.0 * _var_g(list(echo_pm.values()))
-            + 2.0 * _var_g(list(irm_3t.values()))
-            + 2.0 * _var_g(list(irm_15t.values()))
-            + 12.0 * _var_g(list(achard.values()))
-            + 12.0 * _var_g(list(ollier.values()))
-            + 4.0 * _var_g([achard[i] + ollier[i] for i in all_iids_global])
-            + 1.5 * w_pen
-        )
-
+    # 4ter) Second passage d'équilibrage diagnostique intégrant le lissage SCAN ACHARD / TDM OLLIER DIAG :
     for _ in range(120):
-        improved_g = False
-        cur_score_g = _eval_global_diag_score()
+        improved_g2 = False
+        cur_score_g2 = _eval_global_diag_score(True)
         for mon_iso in unlocked_mons_global:
             for d_iso in weeks_by_mon_global[mon_iso]:
                 if schedule[d_iso].get("holiday"):
@@ -5285,16 +5324,16 @@ def build_full_dataset() -> dict:
                             i1, i2 = all_iids_global[idx1], all_iids_global[idx2]
                             if _can_swap_diag_global(d_iso, h_k, i1, i2):
                                 _exec_swap_diag_global(d_iso, h_k, i1, i2)
-                                new_score_g = _eval_global_diag_score()
-                                if new_score_g < cur_score_g - 1e-6:
-                                    cur_score_g = new_score_g
-                                    improved_g = True
+                                new_score_g2 = _eval_global_diag_score(True)
+                                if new_score_g2 < cur_score_g2 - 1e-6:
+                                    cur_score_g2 = new_score_g2
+                                    improved_g2 = True
                                 else:
                                     _exec_swap_diag_global(d_iso, h_k, i1, i2)
-        if not improved_g:
+        if not improved_g2:
             break
 
-    # 4bis) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2 :
+    # 4quater) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2 :
     for _ in range(10):
         gest_c = {
             s: sum(
