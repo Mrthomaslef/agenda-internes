@@ -4995,11 +4995,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         : "";
       return `
         <div class="weekend-gardes-compact">
-          <div class="weekend-garde-mini" onclick="setCurrentDate('${satIso}'); setPlanningMode('day');">
+          <div class="weekend-garde-mini ${currentDateIso === satIso ? 'active' : ''}" onclick="setCurrentDate('${satIso}'); setPlanningMode('day');">
             <span class="wg-day">Sam. ${String(sd).padStart(2, "0")}/${String(sm).padStart(2, "0")} <span style="font-weight:600; color:#991B1B;">(Garde)</span></span>
             <span class="wg-doc">🚨 ${gSat}${intSatLabel ? ` <span style="color:#475569; font-weight:600; margin-left:6px;">• ${intSatLabel}</span>` : ""}</span>
           </div>
-          <div class="weekend-garde-mini" onclick="setCurrentDate('${sunIso}'); setPlanningMode('day');">
+          <div class="weekend-garde-mini ${currentDateIso === sunIso ? 'active' : ''}" onclick="setCurrentDate('${sunIso}'); setPlanningMode('day');">
             <span class="wg-day">Dim. ${String(ud).padStart(2, "0")}/${String(um).padStart(2, "0")} <span style="font-weight:600; color:#991B1B;">(Garde)</span></span>
             <span class="wg-doc">🚨 ${gSun}${intSunLabel ? ` <span style="color:#475569; font-weight:600; margin-left:6px;">• ${intSunLabel}</span>` : ""}</span>
           </div>
@@ -5007,11 +5007,48 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       `;
     }
 
+    function renderWeekDayPillHtml(dIso, offset, opts) {
+      const dNames = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+      const [yy, mm, dd] = dIso.split("-").map(Number);
+      const isAct = (dIso === currentDateIso) ? "active" : "";
+      const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
+      const blocking = inChefSpace ? computeBlockingDays(STATE) : { byDate: {} };
+      const dayIssues = inChefSpace ? (blocking.byDate[dIso] || []).filter(x => x.severity === "critical") : [];
+      const isBlock = dayIssues.length > 0 ? "blocking-day" : "";
+      const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
+        ? STATE.chefsGardes[dIso].noms.join("/")
+        : "";
+      const gInt = getInterneGardeInfo(dIso);
+      const gIntLabel = (gInt && gInt.isRadioB && gInt.interneId)
+        ? `🌙 ${getInterneById(gInt.interneId).shortName}`
+        : (gInt && gInt.rawLabel ? `🌙 ${gInt.rawLabel.split(" ")[0]}` : "");
+      const gardeSubLabel = [g ? `Dr ${g}` : "", gIntLabel].filter(Boolean).join(" • ");
+      const stopJs = (opts && opts.stopProp) ? "event.stopPropagation(); " : "";
+      const extraStyle = (opts && opts.extraStyle) ? `style="${opts.extraStyle}"` : "";
+      const customSubHtml = (opts && opts.customSubHtml !== undefined)
+        ? opts.customSubHtml
+        : (dayIssues.length
+          ? `<div class="dp-sub" style="color:${isAct ? '#0369A1' : '#DC2626'}; font-weight:800;">À couvrir (${dayIssues.length})</div>`
+          : (gardeSubLabel ? `<div class="dp-sub">${gardeSubLabel}</div>` : ``));
+      return `
+        <div class="day-pill ${isAct} ${isBlock}" ${extraStyle} onclick="${stopJs}setCurrentDate('${dIso}')" title="${dayIssues.length ? dayIssues.map(x => x.title).join(' • ') : gardeSubLabel}">
+          <div class="dp-top">
+            <span class="dp-dow">${dNames[offset]}${dayIssues.length ? ' •' : ''}</span>
+            <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
+          </div>
+          ${customSubHtml}
+        </div>
+      `;
+    }
+
+    function renderWeekDayHeaderCell(dIso, offset) {
+      return `<th class="th-day-col">${renderWeekDayPillHtml(dIso, offset)}</th>`;
+    }
+
     function renderPlanningTab() {
       const monIso = getMondayOfWeek(currentDateIso);
       const friIso = addDaysIso(monIso, 4);
       const inChefSpace = Boolean(isChefPlanningMode);
-      const blocking = inChefSpace ? computeBlockingDays(STATE) : { byDate: {}, list: [] };
 
       let headerLabel = "";
       if (planningMode === "day") {
@@ -5029,29 +5066,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       // Lundi à Vendredi (5 jours principaux)
       for (let offset = 0; offset < 5; offset++) {
         const dIso = addDaysIso(monIso, offset);
-        const [yy, mm, dd] = dIso.split("-").map(Number);
-        const isAct = (dIso === currentDateIso) ? "active" : "";
-        const dayIssues = inChefSpace ? (blocking.byDate[dIso] || []).filter(x => x.severity === "critical") : [];
-        const isBlock = dayIssues.length > 0 ? "blocking-day" : "";
-        const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
-          ? STATE.chefsGardes[dIso].noms.join("/")
-          : "";
-        const gInt = getInterneGardeInfo(dIso);
-        const gIntLabel = (gInt && gInt.isRadioB && gInt.interneId)
-          ? `🌙 ${getInterneById(gInt.interneId).shortName}`
-          : (gInt && gInt.rawLabel ? `🌙 ${gInt.rawLabel.split(" ")[0]}` : "");
-        const gardeSubLabel = [g ? `Dr ${g}` : "", gIntLabel].filter(Boolean).join(" • ");
-        dayStripHtml += `
-          <div class="day-pill ${isAct} ${isBlock}" onclick="setCurrentDate('${dIso}')" title="${dayIssues.length ? dayIssues.map(x => x.title).join(' • ') : gardeSubLabel}">
-            <div class="dp-top">
-              <span class="dp-dow">${dNames[offset]}${dayIssues.length ? ' •' : ''}</span>
-              <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
-            </div>
-            ${dayIssues.length
-              ? `<div class="dp-sub" style="color:${isAct ? '#FDE68A' : '#DC2626'}; font-weight:800;">À couvrir (${dayIssues.length})</div>`
-              : (gardeSubLabel ? `<div class="dp-sub">${gardeSubLabel}</div>` : ``)}
-          </div>
-        `;
+        dayStripHtml += renderWeekDayPillHtml(dIso, offset);
       }
       // Samedi et Dimanche en petit avec juste les gardes
       for (let offset = 5; offset < 7; offset++) {
@@ -5105,18 +5120,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       let bodyHtml = "";
+      let isWeekColumnsView = false;
       if (planningScope === "chefs" && !isChefPlanningMode) {
         bodyHtml = renderChefsPlanningView(monIso);
+        isWeekColumnsView = true;
       } else if (planningScope === "combined") {
         bodyHtml = renderCombinedChefsInternesView(monIso);
+        isWeekColumnsView = true;
       } else if (planningScope === "perso" && isChefId(selectedInterneId) && !isChefPlanningMode) {
         bodyHtml = renderSingleChefPersoView(monIso, getChefById(selectedInterneId));
+        isWeekColumnsView = (planningMode !== "month");
       } else if (planningMode === "day") {
         bodyHtml = renderDayPlanningView(currentDateIso);
+        isWeekColumnsView = false;
       } else if (planningMode === "week" || isChefPlanningMode) {
         bodyHtml = renderWeekPlanningView(monIso);
+        isWeekColumnsView = true;
       } else {
         bodyHtml = renderMonthPlanningView(currentDateIso);
+        isWeekColumnsView = false;
       }
 
       const toolbarScopeHtml = isChefPlanningMode
@@ -5155,7 +5177,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           ${toolbarModeHtml}
         </div>
 
-        ${(isChefPlanningMode && planningMode !== 'day') ? '' : dayStripHtml}
+        ${(!isWeekColumnsView && planningMode === 'day') ? dayStripHtml : ''}
         ${weekValidationStripHtml}
         ${horairesStripHtml}
         ${bodyHtml}
@@ -5241,7 +5263,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           </div>
           <div class="perso-week-grid" style="margin-bottom:10px;">
       `;
-      days.forEach(dIso => {
+      days.forEach((dIso, offset) => {
         const sl = getChefSlotsForDate(dIso, chef);
         const intDay = STATE.schedule[dIso] || { am: [], pm: [] };
 
@@ -5272,12 +5294,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const intAm = findMatchingInternes(sl.am, intDay.am);
         const intPm = findMatchingInternes(sl.pm, intDay.pm);
 
+        const isActDay = (dIso === currentDateIso);
         cardsHtml += `
-          <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:#F8FAFC;">
-            <div style="font-weight:800; font-size:11.5px; margin-bottom:6px; color:${chef.color}; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:2px;">
-              <span>${formatShortDayHeader(dIso)}</span>
-              ${sl.isGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 4px;">Garde</span>` : ``}
-            </div>
+          <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:${isActDay ? '#F0F9FF' : '#F8FAFC'}; border-color:${isActDay ? 'var(--primary)' : 'var(--border)'};">
+            ${renderWeekDayPillHtml(dIso, offset, {
+              extraStyle: "margin-bottom:6px; width:100%;",
+              customSubHtml: sl.isGarde ? `<div class="dp-sub" style="color:#B91C1C; font-weight:800;">🚨 Garde</div>` : ``
+            })}
             <div style="margin-bottom:6px;">
               <div style="font-size:9px; color:var(--text-muted); font-weight:700;">MATIN</div>
               <div style="margin-top:2px; display:flex; flex-wrap:wrap; gap:3px;">
@@ -5408,7 +5431,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <thead>
                 <tr>
                   <th class="col-poste">POSTE</th>
-                  ${days.map(d => `<th>${formatShortDayHeader(d)}</th>`).join("")}
+                  ${days.map((d, idx) => renderWeekDayHeaderCell(d, idx)).join("")}
                 </tr>
               </thead>
               <tbody>
@@ -5417,8 +5440,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <tr class="period-divider"><td colspan="6">APRÈS-MIDI — TDM SAU fin 18h30</td></tr>
                 ${buildCombinedPeriodRows("pm")}
                 <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
-                ${intGardeRowHtml}
-                ${gardeRowHtml}
+                ${intGardeRowHtml}\n                ${gardeRowHtml}
               </tbody>
             </table>
           </div>
@@ -5448,7 +5470,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="perso-week-grid" style="margin-bottom:10px;">
         `;
-        days.forEach(dIso => {
+        days.forEach((dIso, offset) => {
           const dObj = STATE.schedule[dIso] || {};
           const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—", note: "" };
           const isAmMand = isMandatoryVacationSlot(dIso, "am", slot.am);
@@ -5456,12 +5478,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const presList = STATE.presentations.filter(p => p.date === dIso && (p.interneId === me.id || (p.interneName && p.interneName.toLowerCase().includes(me.shortName.toLowerCase()))));
           const gInt = getInterneGardeInfo(dIso);
           const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
+          const isActDay = (dIso === currentDateIso);
           cardsHtml += `
-            <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:${isMeOnGarde ? '#FEF2F2' : '#F8FAFC'}; border-color:${isMeOnGarde ? '#FCA5A5' : 'var(--border)'}; cursor:pointer;" onclick="openVacationEditModal('${dIso}', '${me.id}')">
-              <div style="font-weight:800; font-size:11.5px; margin-bottom:6px; color:var(--primary); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:2px;">
-                <span>${formatShortDayHeader(dIso)}</span>
-                ${isMeOnGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 5px;">🌙 Garde ce soir</span>` : ""}
-              </div>
+            <div class="card perso-day-card" style="margin:0; padding:8px 6px; background:${isMeOnGarde ? '#FEF2F2' : (isActDay ? '#F0F9FF' : '#F8FAFC')}; border-color:${isActDay ? 'var(--primary)' : (isMeOnGarde ? '#FCA5A5' : 'var(--border)')}; cursor:pointer;" onclick="openVacationEditModal('${dIso}', '${me.id}')">
+              ${renderWeekDayPillHtml(dIso, offset, {
+                stopProp: true,
+                extraStyle: "margin-bottom:6px; width:100%;",
+                customSubHtml: isMeOnGarde ? `<div class="dp-sub" style="color:#B91C1C; font-weight:800;">🌙 Garde ce soir</div>` : ``
+              })}
               <div style="margin-bottom:5px; ${isAmMand ? 'background:#FFF5F5; border-left:2.5px solid #FCA5A5; padding:2px 4px; border-radius:5px;' : ''}">
                 <div style="font-size:8.5px; color:${isAmMand ? '#9F1239' : 'var(--text-muted)'}; font-weight:700; display:flex; align-items:center; gap:3px;">MATIN ${isAmMand ? '<span class="mandatory-dot" title="Vacation obligatoire"></span>' : ''}</div>
                 <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.am, "am")}</span>
@@ -5632,12 +5656,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <thead>
                 <tr>
                   <th class="col-poste">POSTE</th>
-                  ${days.map(d => {
-                    const dIss = inChefSpace ? (blocking.byDate[d] || []) : [];
-                    return `<th style="${dIss.length ? 'background:#FEF2F2; color:#991B1B;' : ''}">
-                      ${formatShortDayHeader(d)}
-                    </th>`;
-                  }).join("")}
+                  ${days.map((d, idx) => renderWeekDayHeaderCell(d, idx)).join("")}
                 </tr>
               </thead>
               <tbody>
@@ -5883,7 +5902,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <thead>
                 <tr>
                   <th class="col-poste">POSTE</th>
-                  ${days.map(d => `<th>${formatShortDayHeader(d)}</th>`).join("")}
+                  ${days.map((d, idx) => renderWeekDayHeaderCell(d, idx)).join("")}
                 </tr>
               </thead>
               <tbody>
