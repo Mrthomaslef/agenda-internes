@@ -831,21 +831,40 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "notePm": note_pm,
                 }
         else:
-            if week_idx % 2 == 1:
+            # Rotation sur 4 semaines garantissant systématiquement 1 demi-off MATIN + 1 demi-off APRÈS-MIDI
+            # pour chacun des 5 internes seniors (sur 2 jours différents), tout en variant les créneaux :
+            mod4 = week_idx % 4
+            if mod4 == 1:
                 weekly_offs_by_interne = {
                     "oussama": {(0, "am"), (3, "pm")},    # Lundi AM (fixe) + Jeudi PM
-                    "gabriel": {(1, "am"), (2, "am")},    # Mardi AM (fixe) + Mercredi AM
+                    "gabriel": {(1, "am"), (0, "pm")},    # Mardi AM (fixe) + Lundi PM
                     "marwane": {(3, "am"), (0, "pm")},    # Jeudi AM (fixe) + Lundi PM
                     "milan": {(0, "am"), (2, "pm")},      # Lundi AM + Mercredi PM
-                    "nathanael": {(3, "pm"), (4, "am")},  # Jeudi PM + Vendredi AM
+                    "nathanael": {(4, "am"), (3, "pm")},  # Vendredi AM + Jeudi PM
+                }
+            elif mod4 == 2:
+                weekly_offs_by_interne = {
+                    "oussama": {(0, "am"), (2, "pm")},    # Lundi AM (fixe) + Mercredi PM
+                    "gabriel": {(1, "am"), (3, "pm")},    # Mardi AM (fixe) + Jeudi PM
+                    "marwane": {(3, "am"), (0, "pm")},    # Jeudi AM (fixe) + Lundi PM
+                    "milan": {(4, "am"), (0, "pm")},      # Vendredi AM + Lundi PM
+                    "nathanael": {(0, "am"), (3, "pm")},  # Lundi AM + Jeudi PM
+                }
+            elif mod4 == 3:
+                weekly_offs_by_interne = {
+                    "oussama": {(0, "am"), (3, "pm")},    # Lundi AM (fixe) + Jeudi PM
+                    "gabriel": {(1, "am"), (0, "pm")},    # Mardi AM (fixe) + Lundi PM
+                    "marwane": {(3, "am"), (2, "pm")},    # Jeudi AM (fixe) + Mercredi PM
+                    "milan": {(0, "am"), (3, "pm")},      # Lundi AM + Jeudi PM
+                    "nathanael": {(4, "am"), (0, "pm")},  # Vendredi AM + Lundi PM
                 }
             else:
                 weekly_offs_by_interne = {
-                    "oussama": {(0, "am"), (2, "am")},    # Lundi AM (fixe) + Mercredi AM
-                    "gabriel": {(1, "am"), (3, "pm")},    # Mardi AM (fixe) + Jeudi PM
-                    "marwane": {(3, "am"), (2, "pm")},    # Jeudi AM (fixe) + Mercredi PM
+                    "oussama": {(0, "am"), (3, "pm")},    # Lundi AM (fixe) + Jeudi PM
+                    "gabriel": {(1, "am"), (2, "pm")},    # Mardi AM (fixe) + Mercredi PM
+                    "marwane": {(3, "am"), (0, "pm")},    # Jeudi AM (fixe) + Lundi PM
                     "milan": {(2, "am"), (0, "pm")},      # Mercredi AM + Lundi PM
-                    "nathanael": {(0, "am"), (4, "am")},  # Lundi AM + Vendredi AM
+                    "nathanael": {(0, "am"), (3, "pm")},  # Lundi AM + Jeudi PM
                 }
 
             am_pools_w2 = {
@@ -861,7 +880,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "SCAN ACHARD" if (week_idx % 2 == 1) else "IRM 1,5T",
                     "ECHO",
                 ],
-                2: [  # Mercredi AM (3 seniors actifs : 2 demi-offs) — Obligatoires : TDM SAU, IRM 3T, IRM 1,5T (+ TDM OLLIER DIAG, GESTES C)
+                2: [  # Mercredi AM (4 ou 5 seniors actifs) — Obligatoires : TDM SAU, IRM 3T, IRM 1,5T (+ TDM OLLIER DIAG, GESTES C)
                     "TDM SAU",
                     "IRM 3T",
                     "IRM 1,5T",
@@ -874,15 +893,16 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "GESTES (C)",
                     "SCAN ACHARD",
                 ],
-                4: [  # Vendredi AM (4 seniors actifs, Noé en IRM 3T) — Obligatoires : TDM SAU, IRM 3T (+ ECHO, GESTES C, IRM 1,5T)
+                4: [  # Vendredi AM (4 ou 5 seniors actifs, Noé en IRM 3T) — Obligatoires : TDM SAU, IRM 3T (+ ECHO, GESTES C, IRM 1,5T)
                     "TDM SAU",
                     "ECHO",
                     "GESTES (C)",
                     "IRM 1,5T",
+                    "IRM 3T",
                 ],
             }
             pm_pools_w2 = {
-                0: [  # Lundi PM (4 seniors actifs : 1 demi-off) — Obligatoires : TDM SAU, IRM (+ TDM OLLIER DIAG, ECHO, GESTES C)
+                0: [  # Lundi PM (3 seniors actifs : 2 demi-offs) — Obligatoires : TDM SAU, IRM (+ TDM OLLIER DIAG, ECHO, GESTES C)
                     "TDM SAU",
                     "IRM",
                     "TDM OLLIER DIAG",
@@ -902,7 +922,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "IRM",
                     "SCAN ACHARD",
                 ],
-                3: [  # Jeudi PM (3 ou 4 seniors actifs) — Obligatoires : TDM SAU, IRM (+ SCAN ACHARD, ALLURA)
+                3: [  # Jeudi PM (3 seniors actifs : 2 demi-offs + Noé demi-off) — Obligatoires : TDM SAU, IRM (+ SCAN ACHARD, ALLURA)
                     "TDM SAU",
                     "IRM",
                     "SCAN ACHARD",
@@ -1181,8 +1201,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         cur += datetime.timedelta(days=1)
 
     # 5. Couverture stricte des 13 vacations obligatoires + TDM SAU permanent,
-    #    pose des demi-journées off en fonction, et équilibrage automatique sur les semaines suivantes
-    #    si un interne n'a pas pu avoir ses 2 demi-journées off sur une semaine chargée.
+    #    pose des demi-journées off en fonction (variées entre Matin et Après-midi : 1 AM + 1 PM par semaine),
+    #    et équilibrage automatique sur les semaines suivantes si un interne n'a pas pu avoir ses 2 demi-offs.
     def get_available_open_postes(day_iso: str, half_key: str) -> list[str]:
         day_obj = schedule[day_iso]
         ch_day = (chefs_planning or {}).get(day_iso, {})
@@ -1220,11 +1240,21 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
     # Suivi du solde de demi-offs à reporter sur les semaines suivantes (carry-over)
     carry_over_offs: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    # Suivi cumulé des demi-offs Matin (AM) vs Après-midi (PM) sur le semestre pour varier au maximum
+    total_am_offs_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
+    total_pm_offs_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
     # Suivi cumulé des IRM d'après-midi sur le semestre pour équilibrer entre internes
     total_irm_pm_counts: dict[str, int] = {iid: 0 for iid in all_interne_ids}
 
     for w_idx, iso_list in sorted(weeks_map.items()):
         active_isos = [d_iso for d_iso in iso_list if not schedule[d_iso].get("holiday")]
+
+        def count_week_half_offs(interne_id: str, half_k: str) -> int:
+            return sum(
+                1
+                for d_chk in active_isos
+                if schedule[d_chk]["byInterne"][interne_id][half_k] == "1/2 journée libre"
+            )
 
         # Objectif de demi-offs pour la semaine = 2 + éventuel crédit reporté des semaines précédentes (max 3/semaine)
         target_offs_for_week: dict[str, int] = {}
@@ -1326,15 +1356,24 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                             break
 
                         # C) Si aucun poste non obligatoire n'est disponible sur cette demi-journée, solliciter un interne en demi-off
+                        #    en sollicitant en priorité un interne qui a déjà >1 off sur cette période (AM/PM) ou un double off le même jour
                         if not reassigned_ph:
+                            other_h_ph = "pm" if h == "am" else "am"
                             base_off_cands = ["noe"] + senior_interne_ids if ph_poste != "TDM SAU" else list(senior_interne_ids)
-                            off_candidates = (
-                                [cid for cid in base_off_cands if not is_protected_fixed_off(cid, d_iso, h)]
-                                + [cid for cid in base_off_cands if is_protected_fixed_off(cid, d_iso, h)]
+                            off_candidates = sorted(
+                                [cid for cid in base_off_cands if by_int[cid][h] == "1/2 journée libre"],
+                                key=lambda cid: (
+                                    1 if is_protected_fixed_off(cid, d_iso, h) else 0,
+                                    0 if by_int[cid][other_h_ph] == "1/2 journée libre" else 1,
+                                    -(count_week_half_offs(cid, h) - count_week_half_offs(cid, other_h_ph)),
+                                    -(
+                                        (total_am_offs_counts[cid] - total_pm_offs_counts[cid])
+                                        if h == "am"
+                                        else (total_pm_offs_counts[cid] - total_am_offs_counts[cid])
+                                    ),
+                                ),
                             )
                             for cand_iid in off_candidates:
-                                if by_int[cand_iid][h] != "1/2 journée libre":
-                                    continue
                                 by_int[cand_iid][h] = ph_poste
                                 by_int[cand_iid][nk] = f"Vacation obligatoire ({ph_poste})"
                                 if not by_int[cand_iid].get("note"):
@@ -1342,102 +1381,156 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                 reassigned_ph = True
                                 break
 
-        # 5B. Ajuster les demi-offs de la semaine selon target_offs_for_week (réduire si > cible, libérer des vacations non obligatoires si < cible)
-        #     1) Réduction si un interne dépasse sa cible hebdomadaire (ex: > 2 ou > 3 avec report)
-        while True:
-            off_counts = {iid: 0 for iid in all_interne_ids}
-            for d_iso in active_isos:
-                for iid, st in schedule[d_iso]["byInterne"].items():
-                    for h in ("am", "pm"):
-                        if st[h] == "1/2 journée libre":
-                            off_counts[iid] += 1
-            over_iids = [iid for iid, cnt in off_counts.items() if cnt > target_offs_for_week[iid] and target_offs_for_week[iid] > 0]
-            if not over_iids:
-                break
+        def assign_active_poste_on_slot(interne_id: str, d_iso: str, h: str) -> bool:
+            """Remplace un demi-off en excès sur (d_iso, h) par une vacation active ouverte (ou via binôme Socle)."""
+            st = schedule[d_iso]["byInterne"][interne_id]
+            other_h = "pm" if h == "am" else "am"
+            other_p = st[other_h]
+            avail = [p for p in get_available_open_postes(d_iso, h) if p != other_p] or get_available_open_postes(d_iso, h)
+            nk = "noteAm" if h == "am" else "notePm"
+            if avail:
+                st[h] = avail[0]
+                st[nk] = f"Phase Socle ({avail[0]})" if interne_id == "noe" else ""
+                return True
+            if interne_id != "noe":
+                noe_st = schedule[d_iso]["byInterne"]["noe"]
+                noe_p = noe_st[h]
+                other_h_n = "pm" if h == "am" else "am"
+                if noe_p not in non_active_codes and noe_p != "TDM SAU" and noe_p != other_p:
+                    # Noé bascule au TDM SAU (si < 3) ou en binôme sur ECHO / SCAN ACHARD / TDM OLLIER DIAG
+                    noe_sau_w = sum(
+                        1
+                        for d_chk in active_isos
+                        for h_chk in ("am", "pm")
+                        if schedule[d_chk]["byInterne"]["noe"][h_chk] == "TDM SAU"
+                    )
+                    if noe_sau_w < 3 and noe_st[other_h_n] != "TDM SAU":
+                        st[h] = noe_p
+                        st[nk] = ""
+                        noe_st[h] = "TDM SAU"
+                        noe_st[nk] = "Posté Socle Urgences"
+                        return True
+                    ch_day = (chefs_planning or {}).get(d_iso, {})
+                    wd_cur = datetime.date.fromisoformat(d_iso).weekday()
+                    open_set = get_open_interne_postes_for_halfday(ch_day, h, wd_cur)
+                    closed_codes = {c["poste"] for c in (schedule[d_iso]["closedAm"] if h == "am" else schedule[d_iso]["closedPm"])}
+                    for bin_p in ("TDM OLLIER DIAG", "SCAN ACHARD", "ECHO"):
+                        if bin_p in open_set and bin_p not in closed_codes and bin_p != noe_p and bin_p != noe_st[other_h_n]:
+                            st[h] = noe_p
+                            st[nk] = ""
+                            noe_st[h] = bin_p
+                            noe_st[nk] = f"Phase Socle ({bin_p})"
+                            return True
+            return False
 
-            fixed = False
-            for iid in over_iids:
-                for d_iso in active_isos:
-                    if d_iso == "2026-11-02":
-                        continue
-                    for h in ("am", "pm"):
+        def reduce_excess_offs_for_week():
+            while True:
+                off_counts = {
+                    iid: count_week_half_offs(iid, "am") + count_week_half_offs(iid, "pm")
+                    for iid in all_interne_ids
+                }
+                over_iids = [iid for iid, cnt in off_counts.items() if cnt > target_offs_for_week[iid] and target_offs_for_week[iid] > 0]
+                if not over_iids:
+                    break
+                fixed = False
+                for iid in over_iids:
+                    w_am = count_week_half_offs(iid, "am")
+                    w_pm = count_week_half_offs(iid, "pm")
+                    off_slots = [
+                        (d_iso, h)
+                        for d_iso in active_isos
+                        if d_iso != "2026-11-02"
+                        for h in ("am", "pm")
+                        if schedule[d_iso]["byInterne"][iid][h] == "1/2 journée libre"
+                    ]
+                    # Retirer en priorité :
+                    # 1. Un demi-off non protégé
+                    # 2. Un demi-off situé un jour où l'interne a déjà l'autre demi-journée en off (même jour AM+PM)
+                    # 3. Un demi-off de la période (AM ou PM) qui est en excès sur la semaine (ou sur le cumul du semestre)
+                    off_slots.sort(
+                        key=lambda s: (
+                            1 if is_protected_fixed_off(iid, s[0], s[1]) else 0,
+                            0 if schedule[s[0]]["byInterne"][iid]["pm" if s[1] == "am" else "am"] == "1/2 journée libre" else 1,
+                            0 if (s[1] == "am" and w_am > w_pm) or (s[1] == "pm" and w_pm > w_am) else (
+                                0 if w_am == w_pm and (
+                                    (s[1] == "am" and total_am_offs_counts[iid] >= total_pm_offs_counts[iid])
+                                    or (s[1] == "pm" and total_pm_offs_counts[iid] > total_am_offs_counts[iid])
+                                ) else 1
+                            ),
+                        )
+                    )
+                    for d_iso, h in off_slots:
                         if is_protected_fixed_off(iid, d_iso, h):
                             continue
-                        st = schedule[d_iso]["byInterne"][iid]
-                        if st[h] == "1/2 journée libre":
-                            avail = get_available_open_postes(d_iso, h)
-                            if avail:
-                                nk = "noteAm" if h == "am" else "notePm"
-                                st[h] = avail[0]
-                                st[nk] = ""
-                                fixed = True
-                                break
-                            elif iid != "noe":
-                                noe_sau_w = sum(
-                                    1
-                                    for d_chk in active_isos
-                                    for h_chk in ("am", "pm")
-                                    if schedule[d_chk]["byInterne"]["noe"][h_chk] == "TDM SAU"
-                                )
-                                noe_st = schedule[d_iso]["byInterne"]["noe"]
-                                noe_p = noe_st[h]
-                                other_h_n = "pm" if h == "am" else "am"
-                                if noe_sau_w < 3 and noe_p not in non_active_codes and noe_p != "TDM SAU" and noe_st[other_h_n] != "TDM SAU":
-                                    nk = "noteAm" if h == "am" else "notePm"
-                                    st[h] = noe_p
-                                    st[nk] = ""
-                                    noe_st[h] = "TDM SAU"
-                                    noe_st[nk] = "Posté Socle Urgences"
-                                    fixed = True
-                                    break
+                        if assign_active_poste_on_slot(iid, d_iso, h):
+                            fixed = True
+                            break
                     if fixed:
                         break
-                if fixed:
+                if not fixed:
                     break
-            if not fixed:
-                break
+
+        # 5B. Ajuster les demi-offs de la semaine selon target_offs_for_week (réduire si > cible, libérer des vacations non obligatoires si < cible)
+        #     1) Réduction si un interne dépasse sa cible hebdomadaire
+        reduce_excess_offs_for_week()
 
         #     2) Attribution des demi-offs manquants (jusqu'à target_offs_for_week[iid], soit 2 de base + éventuel report)
-        #        en libérant uniquement des vacations NON obligatoires (hors TDM SAU senior unique et hors 13 vacations obligatoires).
+        #        en privilégiant systématiquement l'alternance Matin / Après-midi (1 AM + 1 PM par semaine)
+        #        et en évitant 2 demi-offs le même jour.
         for iid in all_interne_ids:
             if vac_halfdays_by_interne[iid] >= 6:
                 continue
             target_cnt = target_offs_for_week[iid]
-            off_cnt = sum(
-                1
-                for d_iso in active_isos
-                for h in ("am", "pm")
-                if schedule[d_iso]["byInterne"][iid][h] == "1/2 journée libre"
-            )
+            off_cnt = count_week_half_offs(iid, "am") + count_week_half_offs(iid, "pm")
 
             while off_cnt < target_cnt:
                 freed = False
                 is_rattrapage = off_cnt >= 2
+                w_am = count_week_half_offs(iid, "am")
+                w_pm = count_week_half_offs(iid, "pm")
+                if w_am < w_pm:
+                    preferred_h = "am"
+                elif w_pm < w_am:
+                    preferred_h = "pm"
+                else:
+                    if total_am_offs_counts[iid] + w_am < total_pm_offs_counts[iid] + w_pm:
+                        preferred_h = "am"
+                    elif total_pm_offs_counts[iid] + w_pm < total_am_offs_counts[iid] + w_am:
+                        preferred_h = "pm"
+                    else:
+                        preferred_h = "am" if iid in FIXED_OFF_HALFDAYS_FROM_W2 else "pm"
 
-                # Ordre de parcours des demi-journées : privilégier la demi-journée fixe demandée si elle n'est pas encore en off,
-                # et éviter le vendredi après-midi tant qu'un autre créneau non obligatoire est disponible
-                fixed_slots_cands: list[tuple[str, str]] = []
-                regular_slots_cands: list[tuple[str, str]] = []
-                fri_pm_slots_cands: list[tuple[str, str]] = []
+                raw_slots: list[tuple[str, str]] = []
                 for d_iso in reversed(active_isos):
                     if d_iso == "2026-11-02":
                         continue
                     wd_cand = datetime.date.fromisoformat(d_iso).weekday()
                     for h in ("pm", "am"):
-                        if is_protected_fixed_off(iid, d_iso, h):
-                            fixed_slots_cands.append((d_iso, h))
-                        elif wd_cand == 4 and h == "pm":
-                            fri_pm_slots_cands.append((d_iso, h))
-                        else:
-                            regular_slots_cands.append((d_iso, h))
-                slot_candidates = fixed_slots_cands + regular_slots_cands + fri_pm_slots_cands
+                        if h == "pm" and wd_cand == 1:
+                            continue
+                        if schedule[d_iso]["byInterne"][iid][h] in non_active_codes:
+                            continue
+                        raw_slots.append((d_iso, h))
+
+                # Trier les créneaux candidats pour :
+                # 1. Éviter le vendredi après-midi sauf dernier recours
+                # 2. Éviter de poser 2 demi-offs le même jour (AM + PM sur le même jour)
+                # 3. Privilégier la demi-journée (AM ou PM) manquante pour avoir 1 AM + 1 PM
+                # 4. Privilégier la demi-journée fixe demandée si c'est le matin
+                slot_candidates = sorted(
+                    raw_slots,
+                    key=lambda s: (
+                        1 if (datetime.date.fromisoformat(s[0]).weekday() == 4 and s[1] == "pm") else 0,
+                        1 if schedule[s[0]]["byInterne"][iid]["pm" if s[1] == "am" else "am"] == "1/2 journée libre" else 0,
+                        0 if s[1] == preferred_h else 1,
+                        0 if is_protected_fixed_off(iid, s[0], s[1]) else 1,
+                    ),
+                )
 
                 # Passe 1 : libérer directement une vacation non obligatoire occupée par l'interne
                 cand_list = list(non_mandatory_priority) + (["TDM SAU"] if iid == "noe" else [])
                 for d_iso, h in slot_candidates:
                     wd_cur = datetime.date.fromisoformat(d_iso).weekday()
-                    if h == "pm" and wd_cur == 1:
-                        continue  # Pas de demi-off le mardi après-midi
                     ch_day = (chefs_planning or {}).get(d_iso, {})
                     ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
                     st = schedule[d_iso]["byInterne"][iid]
@@ -1466,92 +1559,238 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     continue
 
                 # Passe 2 : si l'interne n'occupe que des postes obligatoires (13 vacations ou TDM SAU),
-                # échanger sur la même demi-journée avec un co-interne senior qui occupe une vacation non obligatoire :
+                # échanger sur la même demi-journée avec un co-interne qui occupe une vacation non obligatoire :
                 # le co-interne reprend le poste obligatoire et l'interne prend son demi-off !
-                if iid in senior_interne_ids:
-                    for d_iso, h in slot_candidates:
-                        wd_cur = datetime.date.fromisoformat(d_iso).weekday()
-                        if h == "pm" and wd_cur == 1:
+                for d_iso, h in slot_candidates:
+                    wd_cur = datetime.date.fromisoformat(d_iso).weekday()
+                    ch_day = (chefs_planning or {}).get(d_iso, {})
+                    by_int = schedule[d_iso]["byInterne"]
+                    my_p = by_int[iid][h]
+                    if my_p in non_active_codes:
+                        continue
+                    ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
+                    swap_partners = senior_interne_ids if iid in senior_interne_ids else [
+                        s_id for s_id in senior_interne_ids if my_p != "TDM SAU"
+                    ]
+                    for cand_non_mand in non_mandatory_priority:
+                        if cand_non_mand in ph_set:
                             continue
-                        ch_day = (chefs_planning or {}).get(d_iso, {})
-                        by_int = schedule[d_iso]["byInterne"]
-                        my_p = by_int[iid][h]
-                        if my_p in non_active_codes:
-                            continue
-                        ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
-                        for cand_non_mand in non_mandatory_priority:
-                            if cand_non_mand in ph_set:
+                        for other_id in swap_partners:
+                            if other_id == iid:
                                 continue
-                            for other_id in senior_interne_ids:
-                                if other_id == iid:
-                                    continue
-                                if by_int[other_id][h] == cand_non_mand:
-                                    nk = "noteAm" if h == "am" else "notePm"
-                                    by_int[other_id][h] = my_p
-                                    by_int[iid][h] = "1/2 journée libre"
-                                    if is_rattrapage:
-                                        by_int[iid][nk] = "Demi-off de rattrapage (équilibrage semaine précédente)"
-                                    elif is_protected_fixed_off(iid, d_iso, h):
-                                        by_int[iid][nk] = "Demi-journée off fixe hebdomadaire"
-                                    else:
-                                        by_int[iid][nk] = "Demi-off hebdomadaire (équilibré)"
-                                    if not by_int[iid].get("note"):
-                                        by_int[iid]["note"] = by_int[iid][nk]
-                                    off_cnt += 1
-                                    freed = True
-                                    break
-                            if freed:
+                            if by_int[other_id][h] == cand_non_mand:
+                                nk = "noteAm" if h == "am" else "notePm"
+                                by_int[other_id][h] = my_p
+                                by_int[iid][h] = "1/2 journée libre"
+                                if is_rattrapage:
+                                    by_int[iid][nk] = "Demi-off de rattrapage (équilibrage semaine précédente)"
+                                elif is_protected_fixed_off(iid, d_iso, h):
+                                    by_int[iid][nk] = "Demi-journée off fixe hebdomadaire"
+                                else:
+                                    by_int[iid][nk] = "Demi-off hebdomadaire (équilibré)"
+                                if not by_int[iid].get("note"):
+                                    by_int[iid]["note"] = by_int[iid][nk]
+                                off_cnt += 1
+                                freed = True
                                 break
                         if freed:
                             break
+                    if freed:
+                        break
                 if not freed:
                     break
 
         #     3) Second passage de réduction si des postes se sont libérés en 5B-2 pour un interne ayant > target_offs_for_week
-        while True:
-            off_counts = {iid: 0 for iid in all_interne_ids}
-            for d_iso in active_isos:
-                for iid, st in schedule[d_iso]["byInterne"].items():
-                    for h in ("am", "pm"):
-                        if st[h] == "1/2 journée libre":
-                            off_counts[iid] += 1
-            over_iids = [iid for iid, cnt in off_counts.items() if cnt > target_offs_for_week[iid] and target_offs_for_week[iid] > 0]
-            if not over_iids:
-                break
-            fixed = False
-            for iid in over_iids:
-                for d_iso in active_isos:
-                    if d_iso == "2026-11-02":
-                        continue
-                    for h in ("am", "pm"):
-                        if is_protected_fixed_off(iid, d_iso, h):
+        reduce_excess_offs_for_week()
+
+        #     4) Rééquilibrage hebdomadaire Matin / Après-midi (1 AM + 1 PM par semaine et éviter AM+PM le même jour) :
+        #        Si un interne a 2 demi-offs le matin (2 AM, 0 PM) ou 2 l'après-midi (0 AM, 2 PM) ou AM+PM le même jour,
+        #        basculer l'un des demi-offs vers l'autre demi-journée (ou un autre jour) en préservant les vacations obligatoires.
+        for _ in range(20):
+            rebalanced_off = False
+            for iid in all_interne_ids:
+                w_am = count_week_half_offs(iid, "am")
+                w_pm = count_week_half_offs(iid, "pm")
+                if w_am + w_pm < 2:
+                    continue
+
+                # Cas A : L'interne a 2 demi-offs sur la MÊME journée (am == off et pm == off le même jour)
+                same_day_isos = [
+                    d_iso for d_iso in active_isos
+                    if d_iso != "2026-11-02"
+                    and schedule[d_iso]["byInterne"][iid]["am"] == "1/2 journée libre"
+                    and schedule[d_iso]["byInterne"][iid]["pm"] == "1/2 journée libre"
+                ]
+                for d_same in same_day_isos:
+                    # Déplacer l'une des deux demi-journées (en gardant 1 AM + 1 PM si w_am == w_pm)
+                    move_halves = ["am", "pm"] if w_am >= w_pm else ["pm", "am"]
+                    for h_move in move_halves:
+                        if is_protected_fixed_off(iid, d_same, h_move):
                             continue
-                        st = schedule[d_iso]["byInterne"][iid]
-                        if st[h] == "1/2 journée libre":
-                            avail = get_available_open_postes(d_iso, h)
-                            if avail:
-                                nk = "noteAm" if h == "am" else "notePm"
-                                st[h] = avail[0]
-                                st[nk] = ""
-                                fixed = True
+                        target_h = h_move if (w_am == w_pm) else ("pm" if w_am > w_pm else "am")
+                        for d_dest in active_isos:
+                            if d_dest in ("2026-11-02", d_same):
+                                continue
+                            wd_dest = datetime.date.fromisoformat(d_dest).weekday()
+                            if target_h == "pm" and wd_dest in (1, 4):
+                                continue
+                            other_dest_h = "am" if target_h == "pm" else "pm"
+                            if schedule[d_dest]["byInterne"][iid][other_dest_h] == "1/2 journée libre":
+                                continue
+                            dest_p = schedule[d_dest]["byInterne"][iid][target_h]
+                            if dest_p in non_active_codes:
+                                continue
+                            ch_dest = (chefs_planning or {}).get(d_dest, {})
+                            ph_dest = get_ph_interne_postes_for_halfday(ch_dest, target_h, wd_dest, d_dest)
+                            can_free_dest = (dest_p != "TDM SAU" and dest_p not in ph_dest) or (
+                                iid == "noe" and dest_p == "TDM SAU" and not (wd_dest == 1 and target_h == "am" and w_idx < 3)
+                            )
+                            swap_partner_dest = None
+                            if not can_free_dest and iid in senior_interne_ids:
+                                for o_id in senior_interne_ids:
+                                    if o_id == iid:
+                                        continue
+                                    o_p = schedule[d_dest]["byInterne"][o_id][target_h]
+                                    if o_p not in non_active_codes and o_p != "TDM SAU" and o_p not in ph_dest:
+                                        swap_partner_dest = o_id
+                                        break
+                            if not can_free_dest and not swap_partner_dest:
+                                continue
+                            if assign_active_poste_on_slot(iid, d_same, h_move):
+                                nk_dest = "noteAm" if target_h == "am" else "notePm"
+                                if swap_partner_dest:
+                                    schedule[d_dest]["byInterne"][swap_partner_dest][target_h] = dest_p
+                                schedule[d_dest]["byInterne"][iid][target_h] = "1/2 journée libre"
+                                schedule[d_dest]["byInterne"][iid][nk_dest] = "Demi-off hebdomadaire (équilibré)"
+                                rebalanced_off = True
                                 break
-                    if fixed:
+                        if rebalanced_off:
+                            break
+                    if rebalanced_off:
                         break
-                if fixed:
+                if rebalanced_off:
                     break
-            if not fixed:
+
+                # Cas B : L'interne a un déséquilibre Matin / Après-midi (ex: 2 AM + 0 PM ou 0 AM + 2 PM, ou 3 offs mal répartis)
+                need_am_to_pm = (w_am - w_pm >= 2) or (w_am - w_pm == 1 and total_am_offs_counts[iid] > total_pm_offs_counts[iid])
+                need_pm_to_am = (w_pm - w_am >= 2) or (w_pm - w_am == 1 and total_pm_offs_counts[iid] > total_am_offs_counts[iid])
+                if not (need_am_to_pm or need_pm_to_am):
+                    continue
+                from_h = "am" if need_am_to_pm else "pm"
+                to_h = "pm" if need_am_to_pm else "am"
+                other_to_h = from_h
+
+                from_days = [
+                    d_iso for d_iso in active_isos
+                    if d_iso != "2026-11-02"
+                    and schedule[d_iso]["byInterne"][iid][from_h] == "1/2 journée libre"
+                ]
+                from_days.sort(key=lambda d: 1 if is_protected_fixed_off(iid, d, from_h) else 0)
+
+                to_days = [
+                    d_iso for d_iso in active_isos
+                    if d_iso != "2026-11-02"
+                    and schedule[d_iso]["byInterne"][iid][to_h] not in non_active_codes
+                    and not (to_h == "pm" and datetime.date.fromisoformat(d_iso).weekday() == 1)
+                ]
+                to_days.sort(
+                    key=lambda d: (
+                        1 if (to_h == "pm" and datetime.date.fromisoformat(d).weekday() == 4) else 0,
+                        1 if schedule[d]["byInterne"][iid][other_to_h] == "1/2 journée libre" else 0,
+                        0 if is_protected_fixed_off(iid, d, to_h) else 1,
+                    )
+                )
+
+                for d_from in from_days:
+                    if is_protected_fixed_off(iid, d_from, from_h) and len(from_days) > 1:
+                        continue
+                    for d_to in to_days:
+                        if d_to == d_from:
+                            continue
+                        if schedule[d_to]["byInterne"][iid][other_to_h] == "1/2 journée libre" and len(from_days) > 1:
+                            continue
+                        wd_to = datetime.date.fromisoformat(d_to).weekday()
+                        ch_to = (chefs_planning or {}).get(d_to, {})
+                        ph_to = get_ph_interne_postes_for_halfday(ch_to, to_h, wd_to, d_to)
+                        cur_to_p = schedule[d_to]["byInterne"][iid][to_h]
+
+                        can_free_to = (cur_to_p != "TDM SAU" and cur_to_p not in ph_to) or (
+                            iid == "noe" and cur_to_p == "TDM SAU" and not (wd_to == 1 and to_h == "am" and w_idx < 3)
+                        )
+                        swap_partner_to = None
+                        if not can_free_to and iid in senior_interne_ids:
+                            for o_id in senior_interne_ids:
+                                if o_id == iid:
+                                    continue
+                                o_p = schedule[d_to]["byInterne"][o_id][to_h]
+                                if o_p not in non_active_codes and o_p != "TDM SAU" and o_p not in ph_to:
+                                    swap_partner_to = o_id
+                                    break
+
+                        if can_free_to or swap_partner_to:
+                            if assign_active_poste_on_slot(iid, d_from, from_h):
+                                nk_to = "noteAm" if to_h == "am" else "notePm"
+                                if swap_partner_to:
+                                    schedule[d_to]["byInterne"][swap_partner_to][to_h] = cur_to_p
+                                schedule[d_to]["byInterne"][iid][to_h] = "1/2 journée libre"
+                                schedule[d_to]["byInterne"][iid][nk_to] = (
+                                    "Demi-journée off fixe hebdomadaire"
+                                    if is_protected_fixed_off(iid, d_to, to_h)
+                                    else "Demi-off hebdomadaire (équilibré Matin/PM)"
+                                )
+                                if not schedule[d_to]["byInterne"][iid].get("note"):
+                                    schedule[d_to]["byInterne"][iid]["note"] = schedule[d_to]["byInterne"][iid][nk_to]
+                                rebalanced_off = True
+                                break
+
+                        # Sinon, échange croisé avec un co-interne qui est en off sur (d_to, to_h) et actif sur (d_from, from_h)
+                        if not rebalanced_off and iid in senior_interne_ids:
+                            for o_id in senior_interne_ids:
+                                if o_id == iid:
+                                    continue
+                                if is_protected_fixed_off(o_id, d_to, to_h):
+                                    continue
+                                if schedule[d_to]["byInterne"][o_id][to_h] != "1/2 journée libre":
+                                    continue
+                                o_from_p = schedule[d_from]["byInterne"][o_id][from_h]
+                                if o_from_p in non_active_codes:
+                                    continue
+                                o_w_from = count_week_half_offs(o_id, from_h)
+                                o_w_to = count_week_half_offs(o_id, to_h)
+                                # Autoriser si o_id avait le déséquilibre inverse ou garde un équilibre acceptable
+                                if o_w_to <= o_w_from:
+                                    continue
+                                nk_from = "noteAm" if from_h == "am" else "notePm"
+                                nk_to = "noteAm" if to_h == "am" else "notePm"
+                                schedule[d_from]["byInterne"][iid][from_h] = o_from_p
+                                schedule[d_from]["byInterne"][iid][nk_from] = ""
+                                schedule[d_from]["byInterne"][o_id][from_h] = "1/2 journée libre"
+                                schedule[d_from]["byInterne"][o_id][nk_from] = "Demi-off hebdomadaire (équilibré Matin/PM)"
+
+                                schedule[d_to]["byInterne"][o_id][to_h] = cur_to_p
+                                schedule[d_to]["byInterne"][o_id][nk_to] = ""
+                                schedule[d_to]["byInterne"][iid][to_h] = "1/2 journée libre"
+                                schedule[d_to]["byInterne"][iid][nk_to] = "Demi-off hebdomadaire (équilibré Matin/PM)"
+                                rebalanced_off = True
+                                break
+                        if rebalanced_off:
+                            break
+                    if rebalanced_off:
+                        break
+                if rebalanced_off:
+                    break
+            if not rebalanced_off:
                 break
 
-        # Mise à jour du compteur de report (carry-over) pour la semaine suivante :
+        # Mise à jour du compteur de report (carry-over) et du cumul AM/PM pour la semaine suivante :
         for iid in all_interne_ids:
+            w_am_final = count_week_half_offs(iid, "am")
+            w_pm_final = count_week_half_offs(iid, "pm")
+            total_am_offs_counts[iid] += w_am_final
+            total_pm_offs_counts[iid] += w_pm_final
             if vac_halfdays_by_interne[iid] >= 6:
                 continue
-            final_off_cnt = sum(
-                1
-                for d_iso in active_isos
-                for h in ("am", "pm")
-                if schedule[d_iso]["byInterne"][iid][h] == "1/2 journée libre"
-            )
+            final_off_cnt = w_am_final + w_pm_final
             new_debt = carry_over_offs[iid] + (2 - final_off_cnt)
             carry_over_offs[iid] = max(0, new_debt)
 
@@ -2192,15 +2431,25 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
     """
     Génère le calendrier des 3 pages séparées du semestre Hiver 2026-2027 :
-    1. Cas des internes (Mardis) : type = 'cas_mardi'
-    2. Biblio des internes (Vendredis) : type = 'biblio_vendredi'
-    3. Cours des internes faits par les chefs (Mardis, planning officiel de Dr Fadila Mihoubi Bouvier) : type = 'cours_internes'
+    1. Cas des internes (Mardis, à partir de la semaine du 09/11/2026, soit dès le mardi 10/11/2026) : type = 'cas_mardi'
+    2. Biblio des internes (Vendredis, à partir de la semaine du 09/11/2026, soit dès le vendredi 13/11/2026) : type = 'biblio_vendredi'
+    3. Cours des internes faits par les chefs (Mardis dès le 03/11/2026, planning officiel de Dr Fadila Mihoubi Bouvier) : type = 'cours_internes'
+
+    Règle d'espacement strict des présentations des internes :
+    - Décalage d'un demi-cycle (3 semaines) entre le tour de Cas du Mardi et le tour de Biblio du Vendredi.
+    - Chaque interne alterne Cas et Biblio avec au moins 18 à 24 jours (2,5 à 3,5 semaines) d'écart
+      entre deux présentations quelconques (Cas ou Biblio), et au moins 42 jours (6 semaines) d'écart
+      entre deux Cas ou entre deux Biblios.
     """
     start_date = datetime.date(2026, 11, 2)
+    internes_pres_start_date = datetime.date(2026, 11, 9)  # Début des présentations des internes en semaine 2
     end_date = datetime.date(2027, 4, 30)
-    main_ids = ["gabriel", "noe", "marwane", "milan", "nathanael", "oussama"]
-    tue_counts = {k: 0 for k in main_ids}
-    fri_counts = {k: 0 for k in main_ids}
+    rotation_ids = ["noe", "gabriel", "marwane", "milan", "nathanael", "oussama"]
+    tue_counts = {k: 0 for k in rotation_ids}
+    fri_counts = {k: 0 for k in rotation_ids}
+    last_any_date: dict[str, datetime.date | None] = {k: None for k in rotation_ids}
+    last_tue_date: dict[str, datetime.date | None] = {k: None for k in rotation_ids}
+    last_fri_date: dict[str, datetime.date | None] = {k: None for k in rotation_ids}
 
     items = []
     tuesday_idx = 0
@@ -2216,23 +2465,35 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
 
         day_by_int = (schedule or {}).get(iso, {}).get("byInterne", {})
         present_ids = [
-            iid for iid in main_ids
+            iid for iid in rotation_ids
             if day_by_int.get(iid, {}).get("am") not in ("RG", "VACANCES")
             and day_by_int.get(iid, {}).get("pm") not in ("RG", "VACANCES")
         ]
-        pool = present_ids if present_ids else main_ids
+        pool = present_ids if present_ids else rotation_ids
 
-        if wd == 1:  # MARDI : 1) Cas des internes + 2) Cours des internes (fait par le chef)
+        if wd == 1:  # MARDI : 1) Cas des internes (dès le 10/11/2026) + 2) Cours des internes (fait par le chef)
             chef_nom, chef_sujet = FADILA_COURS_SCHEDULE.get(iso, ("—", ""))
             pas_de_cours = (chef_sujet == "Pas de cours")
 
-            if not pas_de_cours:
-                cands = sorted(
-                    pool,
-                    key=lambda x: (tue_counts[x], (main_ids.index(x) - tuesday_idx) % len(main_ids)),
-                )
+            if cur >= internes_pres_start_date and not pas_de_cours:
+                def score_tue(x: str) -> tuple:
+                    d_any = (cur - last_any_date[x]).days if last_any_date[x] else 999
+                    d_tue = (cur - last_tue_date[x]).days if last_tue_date[x] else 999
+                    return (
+                        1 if d_any < 18 else 0,
+                        1 if d_tue < 35 else 0,
+                        tue_counts[x],
+                        tue_counts[x] + fri_counts[x],
+                        -min(d_any, 24),
+                        -min(d_tue, 42),
+                        (rotation_ids.index(x) - tuesday_idx) % len(rotation_ids),
+                    )
+
+                cands = sorted(pool, key=score_tue)
                 assigned_id = cands[0]
                 tue_counts[assigned_id] += 1
+                last_any_date[assigned_id] = cur
+                last_tue_date[assigned_id] = cur
                 assigned_obj = next(x for x in INTERNES_LIST if x["id"] == assigned_id)
                 items.append({
                     "id": f"cas-{iso}",
@@ -2243,7 +2504,7 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
                     "interneName": assigned_obj["shortName"],
                     "sujet": "",
                 })
-            tuesday_idx += 1
+                tuesday_idx += 1
 
             items.append({
                 "id": f"cours-{iso}",
@@ -2256,13 +2517,25 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
                 "pasDeCours": pas_de_cours,
             })
 
-        elif wd == 4:  # VENDREDI : Biblio des internes
-            cands = sorted(
-                pool,
-                key=lambda x: (fri_counts[x], (main_ids.index(x) - (friday_idx + 3)) % len(main_ids)),
-            )
+        elif wd == 4 and cur >= internes_pres_start_date:  # VENDREDI : Biblio des internes (dès le 13/11/2026)
+            def score_fri(x: str) -> tuple:
+                d_any = (cur - last_any_date[x]).days if last_any_date[x] else 999
+                d_fri = (cur - last_fri_date[x]).days if last_fri_date[x] else 999
+                return (
+                    1 if d_any < 18 else 0,
+                    1 if d_fri < 35 else 0,
+                    fri_counts[x],
+                    tue_counts[x] + fri_counts[x],
+                    -min(d_any, 24),
+                    -min(d_fri, 42),
+                    (rotation_ids.index(x) - (friday_idx + 3)) % len(rotation_ids),
+                )
+
+            cands = sorted(pool, key=score_fri)
             assigned_id = cands[0]
             fri_counts[assigned_id] += 1
+            last_any_date[assigned_id] = cur
+            last_fri_date[assigned_id] = cur
             assigned_obj = next(x for x in INTERNES_LIST if x["id"] == assigned_id)
             items.append({
                 "id": f"biblio-{iso}",
@@ -3294,25 +3567,35 @@ def build_full_dataset() -> dict:
     recurring_staffs = build_recurring_staffs()
     phone_directory = build_phone_directory()
 
-    # Préserver les modifications de présentations (intervenant, sujet, format) depuis le cloud/fichier
+    # Préserver les modifications manuelles de présentations (intervenant, sujet) depuis le cloud/fichier
     pres_map = {p["id"]: p for p in presentations if p.get("id")}
     for src in saved_sources:
         if isinstance(src, dict) and isinstance(src.get("presentations"), list):
             for sv in src["presentations"]:
                 if isinstance(sv, dict) and sv.get("id") in pres_map:
                     bp = pres_map[sv["id"]]
-                    if bp.get("type") in ("bone_club", "confrontation_anapath"):
-                        if sv.get("sujet"):
-                            bp["sujet"] = sv["sujet"]
-                        if sv.get("interneId"):
-                            bp["interneId"] = sv["interneId"]
-                        if sv.get("interneName"):
-                            bp["interneName"] = sv["interneName"]
+                    if bp.get("type") == "cours_internes":
+                        if sv.get("userEditedCours"):
+                            if sv.get("chefIntervenant") is not None:
+                                bp["chefIntervenant"] = sv["chefIntervenant"]
+                            if sv.get("coursChef") is not None:
+                                bp["coursChef"] = sv["coursChef"]
+                            if sv.get("sujet") is not None:
+                                bp["sujet"] = sv["sujet"]
+                            bp["pasDeCours"] = bp.get("coursChef") == "Pas de cours" or bp.get("sujet") == "Pas de cours"
+                            bp["userEditedCours"] = True
                     else:
-                        if (bp.get("date"), sv.get("interneId")) in rg_pairs and not sv.get("sujet"):
-                            continue
-                        pres_map[sv["id"]] = {**bp, **sv}
-    presentations = sorted(pres_map.values(), key=lambda x: x.get("date", ""))
+                        suj = sv.get("sujet", "")
+                        if suj and suj != "Dossier ostéo-articulaire inaugural (choix libre)":
+                            bp["sujet"] = suj
+                        if sv.get("userEditedPres"):
+                            if (bp.get("date"), sv.get("interneId")) not in rg_pairs or suj:
+                                if sv.get("interneId"):
+                                    bp["interneId"] = sv["interneId"]
+                                if sv.get("interneName"):
+                                    bp["interneName"] = sv["interneName"]
+                                bp["userEditedPres"] = True
+    presentations = sorted(pres_map.values(), key=lambda x: (x.get("date", ""), x.get("type", "")))
 
     return {
         "version": "2.0.0",
@@ -3343,6 +3626,7 @@ def build_full_dataset() -> dict:
                 "Permanence Scanner SAU (toujours un interne senior matin et après-midi) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C et IRM mardi matin, Relecture mardi après-midi, IRM 3T et IRM 1,5T mercredi matin, Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires. Si les 2 demi-journées off ne sont pas possibles sur une semaine chargée, équilibrage automatique sur la ou les semaines suivantes.",
+                "Présentations des internes (Cas du Mardi & Biblio du Vendredi) : début en semaine 2 (mardi 10/11/2026 pour les Cas, vendredi 13/11/2026 pour la Biblio) avec espacement garanti d'au moins 2,5 à 3,5 semaines (18 à 24 jours minimum) entre deux présentations d'un même interne et 6 semaines entre deux Cas ou deux Biblios.",
                 "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
                 "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
                 "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin).",
@@ -3425,14 +3709,14 @@ def sync_initial_state_to_cloud(dataset: dict):
           }}
           return baseP;
         }}
-        if (sv.interneId && rgPairs[baseP.date + '__' + sv.interneId] && !sv.sujet) {{
-          return baseP;
-        }}
         var merged = Object.assign({{}}, baseP);
-        if (sv.interneId) merged.interneId = sv.interneId;
-        if (sv.interneName) merged.interneName = sv.interneName;
         if (sv.sujet && sv.sujet !== 'Dossier ostéo-articulaire inaugural (choix libre)') {{
           merged.sujet = sv.sujet;
+        }}
+        if (sv.userEditedPres && !(sv.interneId && rgPairs[baseP.date + '__' + sv.interneId] && !sv.sujet)) {{
+          if (sv.interneId) merged.interneId = sv.interneId;
+          if (sv.interneName) merged.interneName = sv.interneName;
+          merged.userEditedPres = true;
         }}
         return merged;
       }});

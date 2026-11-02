@@ -2034,13 +2034,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           }
           return;
         }
-        if (p.interneId && rgSet.has(baseP.date + "__" + p.interneId) && !p.sujet) {
-          return;
-        }
-        if (p.interneId) baseP.interneId = p.interneId;
-        if (p.interneName) baseP.interneName = p.interneName;
-        if (p.sujet !== undefined && p.sujet !== "Dossier ostéo-articulaire inaugural (choix libre)") {
+        if (p.sujet && p.sujet !== "Dossier ostéo-articulaire inaugural (choix libre)") {
           baseP.sujet = p.sujet;
+        }
+        if (p.userEditedPres && !(p.interneId && rgSet.has(baseP.date + "__" + p.interneId) && !p.sujet)) {
+          if (p.interneId) baseP.interneId = p.interneId;
+          if (p.interneName) baseP.interneName = p.interneName;
+          baseP.userEditedPres = true;
         }
       });
       return Object.values(map).sort((a, b) => a.date.localeCompare(b.date) || a.type.localeCompare(b.type));
@@ -3674,10 +3674,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const dayPres = (stateRef.presentations || []).filter(p => p.date === iso);
         dayPres.forEach(pr => {
           if (pr.interneId && absentIds.includes(pr.interneId)) {
-            const presentSeniors = seniorIds.filter(iid => !absentIds.includes(iid)).map(iid => ({
-              interneId: iid,
-              shortName: getInterneById(iid).shortName
-            }));
+            const targetMs = new Date(iso + "T12:00:00").getTime();
+            function minPresGapDays(candId) {
+              let best = 999;
+              (stateRef.presentations || []).forEach(otherP => {
+                if (!otherP || otherP.id === pr.id || otherP.interneId !== candId) return;
+                if (otherP.type !== "cas_mardi" && otherP.type !== "biblio_vendredi") return;
+                const diff = Math.round(Math.abs(new Date(otherP.date + "T12:00:00").getTime() - targetMs) / 86400000);
+                if (diff < best) best = diff;
+              });
+              return best;
+            }
+            const presentCands = allInterneIds
+              .filter(iid => !absentIds.includes(iid))
+              .sort((a, b) => minPresGapDays(b) - minPresGapDays(a))
+              .map(iid => ({
+                interneId: iid,
+                shortName: getInterneById(iid).shortName
+              }));
             addIssue({
               id: `block-pres-${iso}-${pr.id}`,
               date: iso,
@@ -3688,7 +3702,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               presId: pr.id,
               title: `Intervenant absent pour ${pr.typeLabel || "Séance 12h30"} (${pr.interneName})`,
               detail: `${pr.interneName} est en congé/RG le ${formatDateFr(iso)} alors qu'il/elle est programmé(e) pour ${pr.typeLabel || "la séance de 12h30"}.`,
-              candidates: presentSeniors.slice(0, 3)
+              candidates: presentCands.slice(0, 3)
             });
           }
         });
@@ -3974,6 +3988,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (pr && iObj) {
             pr.interneId = iObj.id;
             pr.interneName = iObj.shortName;
+            pr.userEditedPres = true;
           }
           if (!STATE.chefDecisions) STATE.chefDecisions = {};
           STATE.chefDecisions[issueId] = {
@@ -6361,6 +6376,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         p.interneId = iid;
         p.interneName = iObj.shortName;
         p.sujet = sujet;
+        p.userEditedPres = true;
       }
 
       saveStateLocal();
