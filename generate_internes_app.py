@@ -853,7 +853,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       table.planning-table.week-5col td {
         padding: 4px 2px;
         font-size: 9.5px;
-        word-break: break-word;
+        word-break: normal;
+        overflow-wrap: anywhere;
+        hyphens: auto;
       }
       table.planning-table.week-5col th {
         font-size: 9.5px;
@@ -1902,7 +1904,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "08h00–18h30" : "fin 18h30";
       else if (p.includes("LECTURE") || p.includes("CONSULT")) h = periodKey === "pm" ? "Mar : Pr Drapé • Ven : CS" : "";
       return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
-        <span class="poste-pill ${getPosteClass(poste)}">${shortName}</span>
+        <span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>
         ${h ? `<span class="poste-horaire-sub" style="font-size:9.5px; font-weight:700; color:var(--text-muted); padding-left:1px;">🕒 ${h}</span>` : ""}
       </div>`;
     }
