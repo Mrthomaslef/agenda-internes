@@ -1382,6 +1382,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       outline-offset: -2px;
     }
 
+    td.cell-mandatory-vacation {
+      background: #FFF5F5;
+      box-shadow: inset 3px 0 0 #FCA5A5;
+    }
+
+    .poste-pill.poste-mandatory-slot {
+      box-shadow: 0 0 0 1.5px #FCA5A5;
+      background: #FFF1F2;
+      color: #9F1239;
+      border-color: #FECDD3;
+    }
+
+    .mandatory-dot {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #F87171;
+      flex-shrink: 0;
+    }
+
     .status-pill-pending {
       display: inline-block;
       padding: 2px 7px;
@@ -2294,6 +2315,75 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>
         ${h ? `<span class="poste-horaire-sub" style="font-size:9.5px; font-weight:700; color:var(--text-muted); padding-left:1px;">🕒 ${h}</span>` : ""}
       </div>`;
+    }
+
+    const MANDATORY_WEEKLY_POSTES_MAP = {
+      "1_am": ["ECHO"],
+      "1_pm": ["IRM"],
+      "2_am": ["GESTES (C)", "IRM 3T"],
+      "2_pm": ["LECTURE/CS"],
+      "3_am": ["IRM 3T", "IRM 1,5T"],
+      "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
+      "4_am": ["ECHO", "GESTES (C)"],
+      "4_pm": ["IRM"],
+      "5_am": ["IRM 3T"],
+      "5_pm": []
+    };
+
+    const CHEF_TO_INTERNE_POSTE_MAP = {
+      "TDM OLLIER 4 (SAU)": "TDM SAU",
+      "TDM OLLIER 4": "TDM SAU",
+      "ECHO": "ECHO",
+      "GESTES (C)": "GESTES (C)",
+      "POSTE C": "GESTES (C)",
+      "TDM ACHARD 1": "SCAN ACHARD",
+      "TDM OLLIER 3": "TDM OLLIER DIAG",
+      "IRM 3T": "IRM 3T",
+      "IRM 1,5T": "IRM 1,5T",
+      "IRM": "IRM",
+      "ALLURA": "ALLURA"
+    };
+
+    function getOpenMandatoryPostesForHalfDay(iso, halfKey, stRef) {
+      stRef = stRef || STATE;
+      if (!iso || !stRef) return new Set();
+      if (iso === "2026-11-02" && halfKey === "am") return new Set(["FORMATION / ACCUEIL"]);
+      const dObj = stRef.schedule ? stRef.schedule[iso] : null;
+      if (dObj && dObj.holiday) return new Set();
+      const [yy, mm, dd] = iso.split("-").map(Number);
+      const jsDay = new Date(yy, mm - 1, dd).getDay();
+      if (jsDay < 1 || jsDay > 5) return new Set();
+      const noInterneTheveninNov = (halfKey === "am" && jsDay === 3 && iso.startsWith("2026-11"));
+      const baseReq = new Set(MANDATORY_WEEKLY_POSTES_MAP[`${jsDay}_${halfKey}`] || []);
+      if (noInterneTheveninNov) baseReq.delete("ECHO");
+      const chDay = (stRef.chefsPlanning || {})[iso];
+      if (!chDay || !Array.isArray(chDay[halfKey])) {
+        baseReq.add("TDM SAU");
+        return baseReq;
+      }
+      const openPostes = new Set();
+      chDay[halfKey].forEach(entry => {
+        const docVal = String(entry.doc || "").trim();
+        const pChef = String(entry.poste || "").trim();
+        const isClosed = Boolean(entry.closed) || docVal.toUpperCase().startsWith("FERM") || docVal.toUpperCase() === "MAINTENANCE";
+        if (isClosed) return;
+        if (CHEF_TO_INTERNE_POSTE_MAP[pChef]) {
+          openPostes.add(CHEF_TO_INTERNE_POSTE_MAP[pChef]);
+        } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+          openPostes.add("LECTURE/CS");
+        }
+      });
+      const res = new Set(["TDM SAU"]);
+      baseReq.forEach(p => {
+        if (openPostes.has(p)) res.add(p);
+      });
+      return res;
+    }
+
+    function isMandatoryVacationSlot(iso, halfKey, posteName, stRef) {
+      if (!posteName || !iso || !halfKey) return false;
+      const reqSet = getOpenMandatoryPostesForHalfDay(iso, halfKey, stRef);
+      return reqSet.has(posteName);
     }
 
     function recomputeScheduleInPlace(st) {
