@@ -6042,7 +6042,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     var cell = shAbs.getRange(rIdx, c);
                     var curVal = String(cell.getDisplayValue() || '').trim();
                     if (!curVal) continue;
-                    var parts = curVal.split(/\\s*\\/\\s*/).filter(function(tok) {
+                    var parts = curVal.split('/').map(function(tok) { return String(tok || '').trim(); }).filter(function(tok) {
+                      if (!tok) return false;
                       var low = tok.toLowerCase();
                       return low.indexOf(shortToken) === -1 && low !== String(syncOpts.interneName).toLowerCase();
                     });
