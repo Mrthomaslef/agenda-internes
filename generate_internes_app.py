@@ -3830,7 +3830,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE (Mardi) / CONSULTATION (Vendredi)
             // en prélevant d'abord sur une vacation non obligatoire
             if (jsDay === 2) {
-              const hasTueCs = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE");
+              const hasTueCs = Object.keys(dayObj.byInterne).some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE");
               const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
               const anyVacToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "VACANCES");
               if (!hasTueCs && anyRgToday && !anyVacToday) {
@@ -4934,6 +4934,145 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (!swappedTF) break;
         }
 
+        // 3bis) Équilibrage global des vacations de LECTURE et de SCAN ACHARD (notamment pour Noé)
+        const getTotalLecCountGlobal = (iid) => {
+          let c = 0;
+          Object.keys(st.schedule).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "LECTURE") c++;
+            if (sl.pm === "LECTURE") c++;
+          });
+          return c;
+        };
+        const getTotalAchCountGlobal = (iid) => {
+          let c = 0;
+          Object.keys(st.schedule).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "SCAN ACHARD") c++;
+            if (sl.pm === "SCAN ACHARD") c++;
+          });
+          return c;
+        };
+        const getWeekLecCountGlobal = (monIso, iid) => {
+          let c = 0;
+          (weeksMap[monIso] || []).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "LECTURE") c++;
+            if (sl.pm === "LECTURE") c++;
+          });
+          return c;
+        };
+        const getWeekAchCountGlobal = (monIso, iid) => {
+          let c = 0;
+          (weeksMap[monIso] || []).forEach(dIso => {
+            if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+            const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[iid];
+            if (!sl) return;
+            if (sl.am === "SCAN ACHARD") c++;
+            if (sl.pm === "SCAN ACHARD") c++;
+          });
+          return c;
+        };
+        for (let iterNL = 0; iterNL < 15; iterNL++) {
+          const lecC = {}, achC = {};
+          allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
+          if ((lecC["noe"] || 0) >= 10) break;
+          let bestCand = null;
+          let bestSc = -999999;
+          for (const monIso of unlockedWeekMons) {
+            if (getWeekLecCountGlobal(monIso, "noe") >= 1) continue;
+            const noeWAch = getWeekAchCountGlobal(monIso, "noe");
+            for (const dIso of (weeksMap[monIso] || [])) {
+              if (dIso === "2026-11-02" || !st.schedule[dIso] || st.schedule[dIso].holiday) continue;
+              const [yy, mm, dd] = dIso.split("-").map(Number);
+              const jsDay = new Date(yy, mm - 1, dd).getDay();
+              if (jsDay !== 2 && jsDay !== 5) continue;
+              if (custom[dIso + "__noe"] && custom[dIso + "__noe"].pm) continue;
+              const byS = st.schedule[dIso].byInterne;
+              if (!byS["noe"] || byS["noe"].pm !== "SCAN ACHARD") continue;
+              if (isSamePosteDayGlobal(byS["noe"].am, "LECTURE")) continue;
+              for (const sId of seniorIidsGlobal) {
+                if (custom[dIso + "__" + sId] && custom[dIso + "__" + sId].pm) continue;
+                if (!byS[sId] || byS[sId].pm !== "LECTURE") continue;
+                if (isSamePosteDayGlobal(byS[sId].am, "SCAN ACHARD")) continue;
+                if (seniorIidsGlobal.some(oId => oId !== sId && byS[oId] && byS[oId].pm === "SCAN ACHARD")) continue;
+                const sc = 10 * lecC[sId] - 6 * achC[sId] + 3 * noeWAch - 2 * getWeekAchCountGlobal(monIso, sId);
+                if (sc > bestSc) {
+                  bestSc = sc;
+                  bestCand = [dIso, sId];
+                }
+              }
+            }
+          }
+          if (!bestCand) break;
+          const [dSw, sSw] = bestCand;
+          const byS = st.schedule[dSw].byInterne;
+          byS["noe"].pm = "LECTURE";
+          byS["noe"].notePm = formatPmNoteForPosteGlobal(dSw, "noe", "LECTURE");
+          if (!(custom[dSw + "__noe"] && custom[dSw + "__noe"].note)) {
+            byS["noe"].note = [byS["noe"].noteAm, byS["noe"].notePm].filter(Boolean).join(" • ");
+          }
+          byS[sSw].pm = "SCAN ACHARD";
+          byS[sSw].notePm = formatPmNoteForPosteGlobal(dSw, sSw, "SCAN ACHARD");
+          if (!(custom[dSw + "__" + sSw] && custom[dSw + "__" + sSw].note)) {
+            byS[sSw].note = [byS[sSw].noteAm, byS[sSw].notePm].filter(Boolean).join(" • ");
+          }
+        }
+        for (let iterEqL = 0; iterEqL < 30; iterEqL++) {
+          const lecC = {}, achC = {};
+          allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
+          let swappedL = false;
+          const overL = allIidsGlobal.filter(i => lecC[i] >= 9).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
+          const underL = allIidsGlobal.filter(i => lecC[i] <= 7).sort((a, b) => (lecC[a] - lecC[b]) || (achC[b] - achC[a]));
+          for (const oId of overL) {
+            for (const uId of underL) {
+              if (lecC[oId] - lecC[uId] < 2) continue;
+              for (const donorP of ["SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"]) {
+                for (const monIso of unlockedWeekMons) {
+                  if (getWeekLecCountGlobal(monIso, uId) >= 1) continue;
+                  for (const dIso of (weeksMap[monIso] || [])) {
+                    if (dIso === "2026-11-02" || !st.schedule[dIso] || st.schedule[dIso].holiday) continue;
+                    const [yy, mm, dd] = dIso.split("-").map(Number);
+                    const jsDay = new Date(yy, mm - 1, dd).getDay();
+                    if (jsDay !== 2 && jsDay !== 5) continue;
+                    if (custom[dIso + "__" + oId] && custom[dIso + "__" + oId].pm) continue;
+                    if (custom[dIso + "__" + uId] && custom[dIso + "__" + uId].pm) continue;
+                    const byS = st.schedule[dIso].byInterne;
+                    if (!byS[oId] || byS[oId].pm !== "LECTURE" || !byS[uId] || byS[uId].pm !== donorP) continue;
+                    if (isSamePosteDayGlobal(byS[oId].am, donorP) || isSamePosteDayGlobal(byS[uId].am, "LECTURE")) continue;
+                    if (oId === "noe" || uId === "noe") {
+                      if (allIidsGlobal.some(k => k !== oId && k !== uId && byS[k] && byS[k].pm === donorP)) continue;
+                    }
+                    byS[oId].pm = donorP;
+                    byS[oId].notePm = formatPmNoteForPosteGlobal(dIso, oId, donorP);
+                    if (!(custom[dIso + "__" + oId] && custom[dIso + "__" + oId].note)) {
+                      byS[oId].note = [byS[oId].noteAm, byS[oId].notePm].filter(Boolean).join(" • ");
+                    }
+                    byS[uId].pm = "LECTURE";
+                    byS[uId].notePm = formatPmNoteForPosteGlobal(dIso, uId, "LECTURE");
+                    if (!(custom[dIso + "__" + uId] && custom[dIso + "__" + uId].note)) {
+                      byS[uId].note = [byS[uId].noteAm, byS[uId].notePm].filter(Boolean).join(" • ");
+                    }
+                    swappedL = true;
+                    break;
+                  }
+                  if (swappedL) break;
+                }
+                if (swappedL) break;
+              }
+              if (swappedL) break;
+            }
+            if (swappedL) break;
+          }
+          if (!swappedL) break;
+        }
+
         // 4) Équilibrage global final des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM 3T, IRM 1,5T, IRM PM)
         const diagPostesGlobal = ["ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG"];
         const getWeekIrmPmCntGlobal = (monIso, iid) => {
@@ -5024,18 +5163,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const echoTot = allIidsGlobal.map(i => echoAm[i] + echoPm[i]);
           const irmTot = allIidsGlobal.map(i => irmAm[i] + irmPm[i]);
           return (
-            16 * varArr(echoTot) +
-            16 * varArr(irmTot) +
-            10 * varArr(allIidsGlobal.map(i => irmAm[i])) +
-            10 * varArr(allIidsGlobal.map(i => irmPm[i])) +
+            28 * varArr(echoTot) +
+            28 * varArr(irmTot) +
+            14 * varArr(allIidsGlobal.map(i => irmAm[i])) +
+            14 * varArr(allIidsGlobal.map(i => irmPm[i])) +
             3 * varArr(allIidsGlobal.map(i => echoAm[i])) +
             3 * varArr(allIidsGlobal.map(i => echoPm[i])) +
             2 * varArr(allIidsGlobal.map(i => irm3t[i])) +
             2 * varArr(allIidsGlobal.map(i => irm15t[i])) +
-            4 * varArr(seniorIidsGlobal.map(s => ach[s])) +
-            4 * varArr(seniorIidsGlobal.map(s => oll[s])) +
-            1.5 * varArr(allIidsGlobal.map(i => ach[i])) +
-            1.5 * varArr(allIidsGlobal.map(i => oll[i])) +
+            12 * varArr(allIidsGlobal.map(i => ach[i])) +
+            12 * varArr(allIidsGlobal.map(i => oll[i])) +
+            4 * varArr(allIidsGlobal.map(i => ach[i] + oll[i])) +
             1.5 * wPen
           );
         };
@@ -5065,6 +5203,70 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
           }
           if (!impD) break;
+        }
+        // 4bis) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2
+        for (let iterGA = 0; iterGA < 10; iterGA++) {
+          const gestC = {}, achC = {};
+          seniorIidsGlobal.forEach(s => {
+            let gc = 0;
+            Object.keys(st.schedule).forEach(dIso => {
+              if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+              const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[s];
+              if (!sl) return;
+              if (sl.am === "GESTES (C)" || sl.am === "ALLURA") gc++;
+              if (sl.pm === "GESTES (C)" || sl.pm === "ALLURA") gc++;
+            });
+            gestC[s] = gc;
+            achC[s] = getTotalAchCountGlobal(s);
+          });
+          let swappedGA = false;
+          const overGList = [...seniorIidsGlobal].sort((a, b) => gestC[b] - gestC[a]);
+          const underGList = [...seniorIidsGlobal].sort((a, b) => gestC[a] - gestC[b]);
+          for (const overG of overGList) {
+            for (const underG of underGList) {
+              if (gestC[overG] - gestC[underG] < 2 || achC[underG] - achC[overG] < 2) continue;
+              for (const monIso of unlockedWeekMons) {
+                let wGU = 0;
+                (weeksMap[monIso] || []).forEach(dIso => {
+                  if (!st.schedule[dIso] || st.schedule[dIso].holiday) return;
+                  const sl = st.schedule[dIso].byInterne && st.schedule[dIso].byInterne[underG];
+                  if (!sl) return;
+                  if (sl.am === "GESTES (C)" || sl.am === "ALLURA") wGU++;
+                  if (sl.pm === "GESTES (C)" || sl.pm === "ALLURA") wGU++;
+                });
+                if (wGU >= 2) continue;
+                for (const dIso of (weeksMap[monIso] || [])) {
+                  if (dIso === "2026-11-02" || !st.schedule[dIso] || st.schedule[dIso].holiday) continue;
+                  const byS = st.schedule[dIso].byInterne;
+                  for (const hK of ["am", "pm"]) {
+                    if (custom[dIso + "__" + overG] && custom[dIso + "__" + overG][hK]) continue;
+                    if (custom[dIso + "__" + underG] && custom[dIso + "__" + underG][hK]) continue;
+                    if (!byS[overG] || byS[overG][hK] !== "GESTES (C)" || !byS[underG] || byS[underG][hK] !== "SCAN ACHARD") continue;
+                    const othH = hK === "am" ? "pm" : "am";
+                    if (isSamePosteDayGlobal(byS[overG][othH], "SCAN ACHARD") || isSamePosteDayGlobal(byS[underG][othH], "GESTES (C)")) continue;
+                    const nk = hK === "am" ? "noteAm" : "notePm";
+                    byS[overG][hK] = "SCAN ACHARD";
+                    byS[overG][nk] = "";
+                    if (!(custom[dIso + "__" + overG] && custom[dIso + "__" + overG].note)) {
+                      byS[overG].note = [byS[overG].noteAm, byS[overG].notePm].filter(Boolean).join(" • ");
+                    }
+                    byS[underG][hK] = "GESTES (C)";
+                    byS[underG][nk] = "";
+                    if (!(custom[dIso + "__" + underG] && custom[dIso + "__" + underG].note)) {
+                      byS[underG].note = [byS[underG].noteAm, byS[underG].notePm].filter(Boolean).join(" • ");
+                    }
+                    swappedGA = true;
+                    break;
+                  }
+                  if (swappedGA) break;
+                }
+                if (swappedGA) break;
+              }
+              if (swappedGA) break;
+            }
+            if (swappedGA) break;
+          }
+          if (!swappedGA) break;
         }
       }
 

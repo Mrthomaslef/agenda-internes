@@ -5020,6 +5020,143 @@ def build_full_dataset() -> dict:
         if not swapped_tf:
             break
 
+    # 3bis) Équilibrage global des vacations de LECTURE et de SCAN ACHARD (notamment pour Noé) :
+    def _total_lec_cnt(iid: str) -> int:
+        return sum(
+            1
+            for d_iso, d_obj in schedule.items()
+            if not d_obj.get("holiday")
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "LECTURE"
+        )
+
+    def _total_ach_cnt(iid: str) -> int:
+        return sum(
+            1
+            for d_iso, d_obj in schedule.items()
+            if not d_obj.get("holiday")
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "SCAN ACHARD"
+        )
+
+    def _week_lec_cnt(mon_iso: str, iid: str) -> int:
+        return sum(
+            1
+            for d_iso in weeks_by_mon_global[mon_iso]
+            if not schedule[d_iso].get("holiday")
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "LECTURE"
+        )
+
+    def _week_ach_cnt(mon_iso: str, iid: str) -> int:
+        return sum(
+            1
+            for d_iso in weeks_by_mon_global[mon_iso]
+            if not schedule[d_iso].get("holiday")
+            for h in ("am", "pm")
+            if _effective_slot_post(d_iso, iid, h) == "SCAN ACHARD"
+        )
+
+    # A) Transférer des vacations de SCAN ACHARD de Noé vers LECTURE (en échange avec un senior en LECTURE)
+    for _ in range(15):
+        lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
+        ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
+        if lec_c["noe"] >= 10:
+            break
+        best_cand = None
+        best_score = -999999.0
+        for mon_iso in unlocked_mons_global:
+            if _week_lec_cnt(mon_iso, "noe") >= 1:
+                continue
+            noe_w_ach = _week_ach_cnt(mon_iso, "noe")
+            for d_iso in weeks_by_mon_global[mon_iso]:
+                if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+                    continue
+                if datetime.date.fromisoformat(d_iso).weekday() not in (1, 4):
+                    continue
+                if isinstance(custom_vacations.get(f"{d_iso}__noe"), dict) and custom_vacations[f"{d_iso}__noe"].get("pm"):
+                    continue
+                if _effective_slot_post(d_iso, "noe", "pm") != "SCAN ACHARD":
+                    continue
+                if _is_same_poste_day_global(_effective_slot_post(d_iso, "noe", "am"), "LECTURE"):
+                    continue
+                for s_id in senior_iids_global:
+                    if isinstance(custom_vacations.get(f"{d_iso}__{s_id}"), dict) and custom_vacations[f"{d_iso}__{s_id}"].get("pm"):
+                        continue
+                    if _effective_slot_post(d_iso, s_id, "pm") != "LECTURE":
+                        continue
+                    if _is_same_poste_day_global(_effective_slot_post(d_iso, s_id, "am"), "SCAN ACHARD"):
+                        continue
+                    if any(_effective_slot_post(d_iso, o_id, "pm") == "SCAN ACHARD" for o_id in senior_iids_global if o_id != s_id):
+                        continue
+                    sc = 10.0 * lec_c[s_id] - 6.0 * ach_c[s_id] + 3.0 * noe_w_ach - 2.0 * _week_ach_cnt(mon_iso, s_id)
+                    if sc > best_score:
+                        best_score = sc
+                        best_cand = (d_iso, s_id)
+        if not best_cand:
+            break
+        d_sw, s_sw = best_cand
+        by_s = schedule[d_sw]["byInterne"]
+        by_s["noe"]["pm"] = "LECTURE"
+        by_s["noe"]["notePm"] = _format_pm_note_global(d_sw, "noe", "LECTURE")
+        by_s["noe"]["note"] = " • ".join(x for x in (by_s["noe"].get("noteAm", ""), by_s["noe"].get("notePm", "")) if x)
+        by_s[s_sw]["pm"] = "SCAN ACHARD"
+        by_s[s_sw]["notePm"] = _format_pm_note_global(d_sw, s_sw, "SCAN ACHARD")
+        by_s[s_sw]["note"] = " • ".join(x for x in (by_s[s_sw].get("noteAm", ""), by_s[s_sw].get("notePm", "")) if x)
+
+    # B) Égaliser les LECTURE entre tous les internes (cible ~8-9 chacun)
+    for _ in range(30):
+        lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
+        ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
+        swapped_l = False
+        over_l = sorted([i for i in all_iids_global if lec_c[i] >= 9], key=lambda x: (-lec_c[x], ach_c[x]))
+        under_l = sorted([i for i in all_iids_global if lec_c[i] <= 7], key=lambda x: (lec_c[x], -ach_c[x]))
+        for o_id in over_l:
+            for u_id in under_l:
+                if lec_c[o_id] - lec_c[u_id] < 2:
+                    continue
+                for donor_p in ("SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"):
+                    for mon_iso in unlocked_mons_global:
+                        if _week_lec_cnt(mon_iso, u_id) >= 1:
+                            continue
+                        for d_iso in weeks_by_mon_global[mon_iso]:
+                            if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+                                continue
+                            if datetime.date.fromisoformat(d_iso).weekday() not in (1, 4):
+                                continue
+                            if isinstance(custom_vacations.get(f"{d_iso}__{o_id}"), dict) and custom_vacations[f"{d_iso}__{o_id}"].get("pm"):
+                                continue
+                            if isinstance(custom_vacations.get(f"{d_iso}__{u_id}"), dict) and custom_vacations[f"{d_iso}__{u_id}"].get("pm"):
+                                continue
+                            if _effective_slot_post(d_iso, o_id, "pm") != "LECTURE" or _effective_slot_post(d_iso, u_id, "pm") != donor_p:
+                                continue
+                            if _is_same_poste_day_global(_effective_slot_post(d_iso, o_id, "am"), donor_p):
+                                continue
+                            if _is_same_poste_day_global(_effective_slot_post(d_iso, u_id, "am"), "LECTURE"):
+                                continue
+                            if "noe" in (o_id, u_id):
+                                if any(_effective_slot_post(d_iso, k, "pm") == donor_p for k in all_iids_global if k not in (o_id, u_id)):
+                                    continue
+                            by_s = schedule[d_iso]["byInterne"]
+                            by_s[o_id]["pm"] = donor_p
+                            by_s[o_id]["notePm"] = _format_pm_note_global(d_iso, o_id, donor_p)
+                            by_s[o_id]["note"] = " • ".join(x for x in (by_s[o_id].get("noteAm", ""), by_s[o_id].get("notePm", "")) if x)
+                            by_s[u_id]["pm"] = "LECTURE"
+                            by_s[u_id]["notePm"] = _format_pm_note_global(d_iso, u_id, "LECTURE")
+                            by_s[u_id]["note"] = " • ".join(x for x in (by_s[u_id].get("noteAm", ""), by_s[u_id].get("notePm", "")) if x)
+                            swapped_l = True
+                            break
+                        if swapped_l:
+                            break
+                    if swapped_l:
+                        break
+                if swapped_l:
+                    break
+            if swapped_l:
+                break
+        if not swapped_l:
+            break
+
     # 4) Équilibrage global final des vacations d'ÉCHOGRAPHIE (ECHO) et d'IRM (IRM Matin / IRM PM / Total IRM)
     #    ainsi que des Scanners diagnostiques (SCAN ACHARD / TDM OLLIER DIAG) sur les semaines non verrouillées :
     diag_postes_global = ("ECHO", "IRM 3T", "IRM 1,5T", "IRM", "SCAN ACHARD", "TDM OLLIER DIAG")
@@ -5121,18 +5258,17 @@ def build_full_dataset() -> dict:
         echo_tot = [echo_am[i] + echo_pm[i] for i in all_iids_global]
         irm_tot = [irm_am[i] + irm_pm[i] for i in all_iids_global]
         return (
-            16.0 * _var_g(echo_tot)
-            + 16.0 * _var_g(irm_tot)
-            + 10.0 * _var_g(list(irm_am.values()))
-            + 10.0 * _var_g(list(irm_pm.values()))
+            28.0 * _var_g(echo_tot)
+            + 28.0 * _var_g(irm_tot)
+            + 14.0 * _var_g(list(irm_am.values()))
+            + 14.0 * _var_g(list(irm_pm.values()))
             + 3.0 * _var_g(list(echo_am.values()))
             + 3.0 * _var_g(list(echo_pm.values()))
             + 2.0 * _var_g(list(irm_3t.values()))
             + 2.0 * _var_g(list(irm_15t.values()))
-            + 4.0 * _var_g([achard[s] for s in senior_iids_global])
-            + 4.0 * _var_g([ollier[s] for s in senior_iids_global])
-            + 1.5 * _var_g(list(achard.values()))
-            + 1.5 * _var_g(list(ollier.values()))
+            + 12.0 * _var_g(list(achard.values()))
+            + 12.0 * _var_g(list(ollier.values()))
+            + 4.0 * _var_g([achard[i] + ollier[i] for i in all_iids_global])
             + 1.5 * w_pen
         )
 
@@ -5157,6 +5293,71 @@ def build_full_dataset() -> dict:
                                     _exec_swap_diag_global(d_iso, h_k, i1, i2)
         if not improved_g:
             break
+
+    # 4bis) Lissage fin GESTES (C) <-> SCAN ACHARD entre seniors lorsque l'écart combiné est >= 2 :
+    for _ in range(10):
+        gest_c = {
+            s: sum(
+                1
+                for d_iso, d_obj in schedule.items()
+                if not d_obj.get("holiday")
+                for h_k in ("am", "pm")
+                if _effective_slot_post(d_iso, s, h_k) in ("GESTES (C)", "ALLURA")
+            )
+            for s in senior_iids_global
+        }
+        ach_c = {s: _total_ach_cnt(s) for s in senior_iids_global}
+        swapped_ga = False
+        for over_g in sorted(senior_iids_global, key=lambda s: -gest_c[s]):
+            for under_g in sorted(senior_iids_global, key=lambda s: gest_c[s]):
+                if gest_c[over_g] - gest_c[under_g] < 2 or ach_c[under_g] - ach_c[over_g] < 2:
+                    continue
+                for mon_iso in unlocked_mons_global:
+                    w_g_u = sum(
+                        1
+                        for d_iso in weeks_by_mon_global[mon_iso]
+                        if not schedule[d_iso].get("holiday")
+                        for h_k in ("am", "pm")
+                        if _effective_slot_post(d_iso, under_g, h_k) in ("GESTES (C)", "ALLURA")
+                    )
+                    if w_g_u >= 2:
+                        continue
+                    for d_iso in weeks_by_mon_global[mon_iso]:
+                        if d_iso == "2026-11-02" or schedule[d_iso].get("holiday"):
+                            continue
+                        for h_k in ("am", "pm"):
+                            if isinstance(custom_vacations.get(f"{d_iso}__{over_g}"), dict) and custom_vacations[f"{d_iso}__{over_g}"].get(h_k):
+                                continue
+                            if isinstance(custom_vacations.get(f"{d_iso}__{under_g}"), dict) and custom_vacations[f"{d_iso}__{under_g}"].get(h_k):
+                                continue
+                            if _effective_slot_post(d_iso, over_g, h_k) != "GESTES (C)" or _effective_slot_post(d_iso, under_g, h_k) != "SCAN ACHARD":
+                                continue
+                            other_h = "pm" if h_k == "am" else "am"
+                            if _is_same_poste_day_global(_effective_slot_post(d_iso, over_g, other_h), "SCAN ACHARD"):
+                                continue
+                            if _is_same_poste_day_global(_effective_slot_post(d_iso, under_g, other_h), "GESTES (C)"):
+                                continue
+                            by_s = schedule[d_iso]["byInterne"]
+                            nk = "noteAm" if h_k == "am" else "notePm"
+                            by_s[over_g][h_k] = "SCAN ACHARD"
+                            by_s[over_g][nk] = ""
+                            by_s[over_g]["note"] = " • ".join(x for x in (by_s[over_g].get("noteAm", ""), by_s[over_g].get("notePm", "")) if x)
+                            by_s[under_g][h_k] = "GESTES (C)"
+                            by_s[under_g][nk] = ""
+                            by_s[under_g]["note"] = " • ".join(x for x in (by_s[under_g].get("noteAm", ""), by_s[under_g].get("notePm", "")) if x)
+                            swapped_ga = True
+                            break
+                        if swapped_ga:
+                            break
+                    if swapped_ga:
+                        break
+                if swapped_ga:
+                    break
+            if swapped_ga:
+                break
+        if not swapped_ga:
+            break
+
     for mon_iso in unlocked_mons_global:
         for d_iso in weeks_by_mon_global[mon_iso]:
             rebuild_day_lists(schedule[d_iso])
