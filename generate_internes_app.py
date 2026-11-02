@@ -2111,9 +2111,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             dayObj.byInterne[iid] = { am, pm, note, noteAm, notePm, isSocle, absStatus };
           });
 
-          // Note : Lorsqu'un congé ou RG laisse un poste obligatoire (TDM SAU Matin/PM ou Relecture Pr Drapé le Mardi PM)
-          // sans interne, on ne remplace plus silencieusement en arrière-plan : le jour est signalé comme "Jour qui bloque"
-          // dans l'Espace Chef afin qu'une décision soit prise par le Chef (affectation en 1 clic ou maintien en l'état).
+          // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
+          const sauDonorOrder = ["ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "IRM 1,5T", "IRM 3T", "1/2 journée libre", "FORMATION / ACCUEIL"];
+          ["am", "pm"].forEach(hSau => {
+            const hasSauSenior = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
+            if (!hasSauSenior) {
+              const nkSau = hSau === "am" ? "noteAm" : "notePm";
+              for (const donorP of sauDonorOrder) {
+                let replacedSau = false;
+                for (const sId of seniorIds) {
+                  const sl = dayObj.byInterne[sId];
+                  if (sl && sl[hSau] === donorP) {
+                    sl[hSau] = "TDM SAU";
+                    sl[nkSau] = "Remplacement TDM SAU (permanence obligatoire)";
+                    if (!sl.note) sl.note = sl[nkSau];
+                    replacedSau = true;
+                    break;
+                  }
+                }
+                if (replacedSau) break;
+              }
+            }
+          });
         }
         st.schedule[iso] = dayObj;
       });
@@ -2180,19 +2199,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         });
       });
 
-      // 2bis. Garantie stricte : Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
+      // 2bis. Garantie stricte : il doit TOUJOURS y avoir un interne senior au TDM SAU (Matin & Après-midi)
+      //       et Noé (Phase Socle) est SYSTÉMATIQUEMENT avec un co-interne lorsqu'il est au TDM SAU
       const nonActivePostes = ["1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"];
+      const finalSauDonors = ["ECHO", "GESTES (C)", "ALLURA", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "IRM 1,5T", "IRM 3T", "1/2 journée libre", "FORMATION / ACCUEIL"];
       Object.keys(st.schedule).sort().forEach(iso => {
         const dayObj = st.schedule[iso];
-        if (!dayObj || dayObj.holiday || !dayObj.byInterne || !dayObj.byInterne.noe) return;
-        const noeSlot = dayObj.byInterne.noe;
+        if (!dayObj || dayObj.holiday || !dayObj.byInterne) return;
         const [yy, mm, dd] = iso.split("-").map(Number);
         const jsDay = new Date(yy, mm - 1, dd).getDay();
         ["am", "pm"].forEach(h => {
-          if (iso === "2026-11-02" && h === "am") return;
+          const nk = h === "am" ? "noteAm" : "notePm";
+          const hasSeniorSau = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
+          if (!hasSeniorSau) {
+            for (const donorP of finalSauDonors) {
+              let replaced = false;
+              for (const sId of seniorIds) {
+                const sl = dayObj.byInterne[sId];
+                if (sl && sl[h] === donorP) {
+                  sl[h] = "TDM SAU";
+                  sl[nk] = "Remplacement TDM SAU (permanence obligatoire)";
+                  if (!sl.note) sl.note = sl[nk];
+                  replaced = true;
+                  break;
+                }
+              }
+              if (replaced) break;
+            }
+          }
+          if (!dayObj.byInterne.noe) return;
+          const noeSlot = dayObj.byInterne.noe;
           const noeP = noeSlot[h];
           if (!noeP || nonActivePostes.includes(noeP)) return;
-          const nk = h === "am" ? "noteAm" : "notePm";
           if (noeP === "TDM SAU") {
             const sauPartners = seniorIds
               .filter(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU")
@@ -2210,8 +2248,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
           }
         });
-        if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm)) {
-          noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
+        if (dayObj.byInterne.noe) {
+          const noeSlot = dayObj.byInterne.noe;
+          if (iso !== "2026-11-02" && !nonActivePostes.includes(noeSlot.am) && !nonActivePostes.includes(noeSlot.pm)) {
+            noeSlot.note = [noeSlot.noteAm, noeSlot.notePm].filter(Boolean).join(" • ");
+          }
         }
       });
 
@@ -4267,7 +4308,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const isCoursInt = p.type === "cours_internes";
           const presBlock = (blocking.byDate[dIso] || []).find(iss => iss.category === "pres_absent" && iss.presId === p.id);
           const bg = presBlock ? "#FEE2E2" : (isBone ? "#FEF2F2" : (isCra ? "#FEF3C7" : (isCoursInt ? "#DBEAFE" : "#F3E8FF")));
-          const fg = presBlock ? "#991B1B" : (isBone ? "#B91C1C" : (isCra ? "#B45309" : (isCoursInt ? "#1D4ED8" : "#6D28D9"));
+          const fg = presBlock ? "#991B1B" : (isBone ? "#B91C1C" : (isCra ? "#B45309" : (isCoursInt ? "#1D4ED8" : "#6D28D9")));
           const lbl = isBone
             ? `Bone Club`
             : (isCra
