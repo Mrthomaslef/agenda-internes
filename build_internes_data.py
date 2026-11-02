@@ -767,12 +767,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             for i_obj in INTERNES_LIST:
                 iid = i_obj["id"]
                 pm_poste, pm_note = monnier_pm_base[iid]
-                if iid == "oussama":
-                    am_poste = "TDM SAU"
-                    am_note = "Permanence Scanner des Urgences (pendant la matinée d'accueil des internes)"
-                else:
-                    am_poste = "FORMATION / ACCUEIL"
-                    am_note = "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
+                am_poste = "FORMATION / ACCUEIL"
+                am_note = "Accueil café (08h15), visite du service & Formation obligatoire (Salle Chevrot)"
                 by_interne[iid] = {
                     "am": am_poste,
                     "pm": pm_poste,
@@ -1206,17 +1202,18 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             ch_day = (chefs_planning or {}).get(d_iso, {})
             by_int = schedule[d_iso]["byInterne"]
             for h in ("am", "pm"):
+                if d_iso == "2026-11-02" and h == "am":
+                    continue
                 nk = "noteAm" if h == "am" else "notePm"
                 ph_set = get_ph_interne_postes_for_halfday(ch_day, h, wd_cur, d_iso)
 
-                # 1) Toujours au moins un interne senior au TDM SAU
+                # 1) Toujours au moins un interne senior au TDM SAU (hors 02/11 matin = Formation/Accueil)
                 has_senior_sau = any(by_int[s_id][h] == "TDM SAU" for s_id in senior_interne_ids)
                 if not has_senior_sau:
                     sau_donors = (
                         [p for p in non_mandatory_priority if p not in ph_set]
                         + ["1/2 journée libre"]
                         + [p for p in non_mandatory_priority if p in ph_set]
-                        + ["FORMATION / ACCUEIL"]
                     )
                     for donor_p in sau_donors:
                         replaced_s = False
@@ -1532,19 +1529,20 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             wd_chk = datetime.date.fromisoformat(d_iso).weekday()
             ch_chk = (chefs_planning or {}).get(d_iso, {})
             for h_chk in ("am", "pm"):
+                if d_iso == "2026-11-02" and h_chk == "am":
+                    continue
                 if not any(day_obj["byInterne"][s_id][h_chk] == "TDM SAU" for s_id in senior_interne_ids):
                     raise RuntimeError(f"ERREUR : Aucun interne senior au TDM SAU le {d_iso} ({h_chk})")
-                if not (d_iso == "2026-11-02" and h_chk == "am"):
-                    ph_req = get_ph_interne_postes_for_halfday(ch_chk, h_chk, wd_chk, d_iso)
-                    present_cnt = sum(
-                        1
-                        for st in day_obj["byInterne"].values()
-                        if st[h_chk] not in ("RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL")
-                    )
-                    if present_cnt >= 1 + len(ph_req):
-                        for ph_p in ph_req:
-                            if not any(day_obj["byInterne"][any_id][h_chk] == ph_p for any_id in day_obj["byInterne"]):
-                                raise RuntimeError(f"ERREUR : Vacation obligatoire non couverte ({ph_p}) le {d_iso} ({h_chk})")
+                ph_req = get_ph_interne_postes_for_halfday(ch_chk, h_chk, wd_chk, d_iso)
+                present_cnt = sum(
+                    1
+                    for st in day_obj["byInterne"].values()
+                    if st[h_chk] not in ("RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL")
+                )
+                if present_cnt >= 1 + len(ph_req):
+                    for ph_p in ph_req:
+                        if not any(day_obj["byInterne"][any_id][h_chk] == ph_p for any_id in day_obj["byInterne"]):
+                            raise RuntimeError(f"ERREUR : Vacation obligatoire non couverte ({ph_p}) le {d_iso} ({h_chk})")
         rebuild_day_lists(day_obj)
 
     return schedule

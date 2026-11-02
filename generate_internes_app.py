@@ -2445,9 +2445,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
 
           // Garantie impérative : il doit TOUJOURS y avoir au moins un interne senior au Scanner du SAU (TDM SAU) Matin & Après-midi
+          // (hors matinée d'accueil et formation obligatoire du 02/11/2026)
           // en prélevant d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
           const baseSauDonors = ["ALLURA", "TDM OLLIER DIAG", "IRM 1,5T", "SCAN ACHARD", "GESTES (C)", "ECHO", "IRM 3T", "IRM"];
           ["am", "pm"].forEach(hSau => {
+            if (iso === "2026-11-02" && hSau === "am") return;
             const hasSauSenior = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][hSau] === "TDM SAU");
             if (!hasSauSenior) {
               const nkSau = hSau === "am" ? "noteAm" : "notePm";
@@ -2455,8 +2457,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               const sauDonorOrder = [
                 ...baseSauDonors.filter(d => !phSauSet.has(d)),
                 ...baseSauDonors.filter(d => phSauSet.has(d)),
-                "1/2 journée libre",
-                "FORMATION / ACCUEIL"
+                "1/2 journée libre"
               ];
               let replacedSau = false;
               for (const allowCustomOverride of [false, true]) {
@@ -2563,6 +2564,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const [yy, mm, dd] = iso.split("-").map(Number);
           const jsDay = new Date(yy, mm - 1, dd).getDay();
           ["am", "pm"].forEach(h => {
+            if (iso === "2026-11-02" && h === "am") return;
             const nk = h === "am" ? "noteAm" : "notePm";
             const phSet = getPhInternePostesForHalfDay(iso, h, jsDay);
             const hasSeniorSau = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId][h] === "TDM SAU");
@@ -2570,8 +2572,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               const finalSauDonors = [
                 ...nonMandatoryPriority.filter(d => !phSet.has(d)),
                 "1/2 journée libre",
-                ...nonMandatoryPriority.filter(d => phSet.has(d)),
-                "FORMATION / ACCUEIL"
+                ...nonMandatoryPriority.filter(d => phSet.has(d))
               ];
               const orderedSeniors = [
                 ...seniorIds.filter(sId => !isProtectedFixedOff(sId, iso, h)),
