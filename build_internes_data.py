@@ -2650,7 +2650,8 @@ def build_initial_presentations(schedule: dict | None = None) -> list[dict]:
     start_date = datetime.date(2026, 11, 2)
     internes_pres_start_date = datetime.date(2026, 11, 9)  # Début des présentations des internes en semaine 2
     end_date = datetime.date(2027, 4, 30)
-    rotation_ids = ["noe", "gabriel", "marwane", "milan", "nathanael", "oussama"]
+    # Oussama (DJ) et les internes seniors passent en premier ; Noé (Phase Socle) passe en dernier du cycle de Cas
+    rotation_ids = ["oussama", "gabriel", "marwane", "milan", "nathanael", "noe"]
     tue_counts = {k: 0 for k in rotation_ids}
     fri_counts = {k: 0 for k in rotation_ids}
     last_any_date: dict[str, datetime.date | None] = {k: None for k in rotation_ids}

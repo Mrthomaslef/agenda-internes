@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-02T19:06:03.689342+00:00",
+  "updatedAt": "2026-11-02T19:06:36.786943+00:00",
   "chefValidatedAt": null,
   "chefRevision": 0,
   "deletedAbsenceIds": [],
@@ -55943,8 +55943,8 @@
       "date": "2026-11-10",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56018,8 +56018,8 @@
       "date": "2026-11-27",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56046,8 +56046,8 @@
       "date": "2026-12-04",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56083,8 +56083,8 @@
       "date": "2026-12-15",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56131,8 +56131,8 @@
       "date": "2027-01-05",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56206,8 +56206,8 @@
       "date": "2027-01-22",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56234,8 +56234,8 @@
       "date": "2027-01-29",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56271,8 +56271,8 @@
       "date": "2027-02-09",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56299,8 +56299,8 @@
       "date": "2027-02-16",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56374,8 +56374,8 @@
       "date": "2027-03-05",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56402,8 +56402,8 @@
       "date": "2027-03-12",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56439,8 +56439,8 @@
       "date": "2027-03-23",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56467,8 +56467,8 @@
       "date": "2027-03-30",
       "type": "cas_mardi",
       "typeLabel": "Cas des internes",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
@@ -56542,8 +56542,8 @@
       "date": "2027-04-16",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "oussama",
-      "interneName": "Oussama",
+      "interneId": "noe",
+      "interneName": "Noé",
       "sujet": ""
     },
     {
@@ -56570,8 +56570,8 @@
       "date": "2027-04-23",
       "type": "biblio_vendredi",
       "typeLabel": "Biblio",
-      "interneId": "noe",
-      "interneName": "Noé",
+      "interneId": "oussama",
+      "interneName": "Oussama",
       "sujet": ""
     },
     {
