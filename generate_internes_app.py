@@ -783,6 +783,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       .brand-sub {
         display: none;
       }
+      .brand > div:not(.brand-logo) {
+        display: none;
+      }
+      .header-actions {
+        gap: 5px;
+        min-width: 0;
+      }
+      .header-actions .btn {
+        padding: 6px 8px;
+        font-size: 11.5px;
+        white-space: nowrap;
+      }
       .summary-strip {
         padding: 8px 10px;
         gap: 8px;
