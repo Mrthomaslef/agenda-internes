@@ -3079,15 +3079,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function renderChefOffVacSummaryHtml(monIso) {
       const targetMon = monIso || getMondayOfWeek(currentDateIso);
-      const friIso = addDaysIso(targetMon, 4);
       const weekStats = computeWeekStatsByInterne(targetMon);
-      const semStats = computeStatsByInterne();
 
       let cardsHtml = "";
       STATE.internes.forEach(i => {
         const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekCongesHalf: 0, weekRgHalf: 0 };
-        const s = semStats[i.id] || { activeHalfDays: 0, freeHalfDays: 0, vacHalfDays: 0, rgHalfDays: 0, gardesCount: 0 };
-        const isDJ = Boolean(i.isDJ || i.id === "oussama");
         const absHalf = w.weekCongesHalf + w.weekRgHalf;
         const isFullWeekAbs = absHalf >= 8;
 
@@ -3101,63 +3097,34 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           cardQuotaClass = "warn-quota";
         }
 
-        let offSlotsLabel = "";
-        if (w.weekOffSlots.length > 0) {
-          offSlotsLabel = `Off : ${w.weekOffSlots.join(" • ")}`;
-        } else if (isFullWeekAbs) {
-          offSlotsLabel = `En congés / RG cette semaine`;
-        } else {
-          offSlotsLabel = `⚠️ Aucun demi-off posé`;
-        }
-
-        const absBadges = [];
-        if (w.weekCongesHalf > 0) {
-          const cj = w.weekCongesHalf / 2;
-          absBadges.push(`<span class="offvac-pill conges-count" title="Congés sur cette semaine">${cj}j Cong.</span>`);
-        }
-        if (w.weekRgHalf > 0) {
-          const rj = w.weekRgHalf / 2;
-          absBadges.push(`<span class="offvac-pill off-danger" title="Repos de garde sur cette semaine">${rj}j RG</span>`);
-        }
+        const slotParts = [];
+        if (w.weekOffSlots.length > 0) slotParts.push(`Off : ${w.weekOffSlots.join(" • ")}`);
+        if (w.weekCongesHalf > 0) slotParts.push(`${w.weekCongesHalf / 2}j Congé`);
+        if (w.weekRgHalf > 0) slotParts.push(`${w.weekRgHalf / 2}j RG`);
+        const offSlotsLabel = slotParts.length > 0
+          ? slotParts.join(" • ")
+          : (isFullWeekAbs ? "En congés / RG" : "⚠️ 0 demi-off");
 
         cardsHtml += `
-          <div class="chef-offvac-card ${cardQuotaClass}" onclick="openVacationEditModal('${currentDateIso}', '${i.id}')" title="Cliquer pour modifier le poste de ${i.fullName} le ${formatDateFr(currentDateIso)}">
+          <div class="chef-offvac-card ${cardQuotaClass}" onclick="openVacationEditModal('${currentDateIso}', '${i.id}')" title="Modifier les postes de ${i.fullName}">
             <div class="chef-offvac-top">
               <div class="chef-offvac-name">
                 <span style="width:7px;height:7px;border-radius:50%;background:${i.color};display:inline-block;flex-shrink:0;"></span>
                 <span>${i.shortName}</span>
-                ${i.isSocle ? `<span class="tag-sm" style="font-size:8.5px;padding:0 4px;">Socle</span>` : ""}
-                ${isDJ ? `<span class="tag-dj" style="font-size:8.5px;padding:0 4px;">DJ</span>` : ""}
               </div>
-              <span style="font-size:10px; color:#64748B; font-weight:700;">✎</span>
-            </div>
-            <div class="chef-offvac-badges">
-              <span class="offvac-pill ${offPillClass}" title="Demi-offs sur la semaine (quota max 2)">${w.weekOff}/2 Off</span>
-              <span class="offvac-pill vac-count" title="Vacations travaillées sur la semaine">${w.weekVac} Vac.</span>
-              ${absBadges.join("")}
+              <div class="chef-offvac-badges">
+                <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
+                <span class="offvac-pill vac-count">${w.weekVac}v</span>
+              </div>
             </div>
             <div class="chef-offvac-slots" title="${offSlotsLabel}">${offSlotsLabel}</div>
-            <div class="chef-offvac-sem">
-              <span title="Total sur le semestre : vacations travaillées et demi-offs">Sem. : <strong>${s.activeHalfDays}</strong> vac • <strong>${s.freeHalfDays}</strong> off</span>
-              <span title="Congés et Repos de garde sur le semestre"><strong>${Math.round(s.vacHalfDays / 2)}j</strong> CA • <strong>${Math.round((s.rgHalfDays || 0) / 2)}</strong> RG</span>
-            </div>
           </div>
         `;
       });
 
       return `
         <div class="chef-offvac-section">
-          <div class="chef-offvac-bar-header">
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <strong style="color:#0F172A; font-size:12px;">📊 Résumé Offs & Vacations (${formatShortDayHeader(targetMon)} – ${formatShortDayHeader(friIso)})</strong>
-              <span style="color:#64748B; font-size:11px;">Semaine (quota 2 Off max) & cumul semestre • Touchez un interne pour modifier son poste</span>
-            </div>
-            <div style="display:flex; align-items:center; gap:6px;">
-              <button class="btn btn-sm" style="padding:2px 8px; font-size:11px;" onclick="toggleStatsTable()">${showStatsTable ? "Masquer détail modalités" : "Détail par modalité"}</button>
-              <button class="btn btn-sm" style="padding:2px 8px; font-size:11px;" onclick="toggleChefOffVacSummary()">${showChefOffVacSummary ? "Réduire" : "Afficher"}</button>
-            </div>
-          </div>
-          ${showChefOffVacSummary ? `<div class="chef-offvac-grid">${cardsHtml}</div>` : ""}
+          <div class="chef-offvac-grid">${cardsHtml}</div>
         </div>
       `;
     }
@@ -3557,11 +3524,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           cb();
           return;
         }
-        if (planningScope === "chefs" || planningScope === "perso") {
+        currentTab = "planning";
+        selectedInterneId = "all";
+        localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
+        if (planningScope !== "combined") {
           planningScope = "internes";
         }
+        if (planningMode === "month") {
+          planningMode = "week";
+        }
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.toggle("active", b.getAttribute("data-tab") === "planning");
+        });
         renderAll();
-        showToast("🔓 Espace Chef déverrouillé !");
+        showToast("🔓 Espace Chef activé");
       } else {
         if (err) err.style.display = "block";
         if (inp) inp.select();
@@ -3820,53 +3796,51 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const tabBtnPlanning = document.getElementById("tabBtnPlanning");
       const tabBtnVacances = document.getElementById("tabBtnVacances");
 
-      const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId));
-      const showChefSpace = isChefPlanningMode || inChefSpace;
+      const monIso = getMondayOfWeek(currentDateIso);
+      const friIso = addDaysIso(monIso, 4);
+      const weekDaysSet = new Set([0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off)));
 
       const blocking = computeBlockingDays(STATE);
+      const weekIssues = blocking.issues.filter(iss => weekDaysSet.has(iss.date) && iss.severity === "critical");
       const allGroups = groupAbsenceRequests((STATE.absences || []).filter(a => a && a.status !== "rejected"));
       const pendingGroups = allGroups.filter(g => g.status === "pending");
       const pendingModifs = getPendingVacationModifs(STATE);
-      const totalNotifs = blocking.issues.length + pendingGroups.length + pendingModifs.length;
+      const pendingCount = pendingGroups.length + pendingModifs.length;
+      const totalNotifs = weekIssues.length + pendingCount;
 
-      // Les pastilles de notification n'apparaissent que lorsqu'on est dans l'Espace Chef
       if (btn && btnTxt) {
-        const badgeHtml = (showChefSpace && totalNotifs > 0)
-          ? `<span class="notif-badge ${blocking.issues.length === 0 ? 'warn' : ''}">${totalNotifs}</span>`
+        const badgeHtml = (isChefPlanningMode && totalNotifs > 0)
+          ? `<span class="notif-badge ${weekIssues.length === 0 ? 'warn' : ''}">${totalNotifs}</span>`
           : "";
         if (isChefPlanningMode) {
           btn.classList.add("unlocked");
-          btnTxt.innerHTML = `🔓 Espace Chef ${badgeHtml}`;
+          btnTxt.innerHTML = `🔓 Mode Chef ${badgeHtml}`;
         } else {
           btn.classList.remove("unlocked");
-          btnTxt.innerHTML = `🔒 Espace Chef ${badgeHtml}`;
+          btnTxt.innerHTML = `🔒 Espace Chef`;
         }
       }
 
       if (tabBtnPlanning) tabBtnPlanning.innerHTML = `Planning`;
       if (tabBtnVacances) {
-        tabBtnVacances.innerHTML = (showChefSpace && pendingGroups.length > 0)
+        tabBtnVacances.innerHTML = (isChefPlanningMode && pendingGroups.length > 0)
           ? `Congés <span class="notif-badge warn">${pendingGroups.length}</span>`
           : `Congés`;
       }
 
       if (!banner) return;
 
-      // En dehors de l'Espace Chef : aucune notification ni bannière affichée
-      if (!showChefSpace) {
+      if (!isChefPlanningMode) {
         banner.style.display = "none";
         banner.innerHTML = "";
         return;
       }
 
-      const monIso = getMondayOfWeek(currentDateIso);
-      const friIso = addDaysIso(monIso, 4);
       const weekLock = getWeekLockInfo(monIso);
 
-      // Lignes de notifications simplifiées (1 ligne par demande ou conflit)
+      // Lignes d'actions rapides : uniquement les demandes en attente + créneaux critiques non couverts de la semaine
       const rows = [];
 
-      // 1. Demandes de congés / RG en attente
       pendingGroups.forEach(g => {
         const iObj = getInterneById(g.interneId);
         const periodLabel = g.startDate === g.endDate
@@ -3890,7 +3864,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         `);
       });
 
-      // 2. Modifications de postes par les internes
       pendingModifs.forEach(m => {
         const changes = [];
         if (m.prevAm && m.prevAm !== m.am) changes.push(`Matin : ${m.prevAm} → <strong>${m.am}</strong>`);
@@ -3913,8 +3886,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         `);
       });
 
-      // 3. Conflits / créneaux non couverts
-      blocking.issues.forEach(iss => {
+      weekIssues.forEach(iss => {
         const candBtns = (iss.candidates || []).slice(0, 3).map(c => {
           const pEsc = String(iss.poste || "").replace(/'/g, "\\'");
           const prArg = iss.presId ? `'${iss.presId}'` : `null`;
@@ -3929,42 +3901,38 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="chef-decision-btns">
               ${candBtns}
-              <button class="btn btn-sm" style="padding:3px 8px; font-size:11px;" onclick="acknowledgeBlockingIssue('${iss.id}', 'Maintenu')">✓ Ignorer</button>
-              <button class="btn btn-sm" style="padding:3px 8px; font-size:11px;" onclick="openBlockingDayInPlanning('${iss.date}')">Voir</button>
+              <button class="btn btn-sm" style="padding:3px 8px; font-size:11px;" onclick="acknowledgeBlockingIssue('${iss.id}', 'Maintenu')">Ignorer</button>
             </div>
           </div>
         `);
       });
 
       const weekBtnHtml = weekLock
-        ? `<span class="status-pill-approved">📌 Semaine du ${formatShortDayHeader(monIso)} fixée</span>
+        ? `<span class="status-pill-approved">📌 Semaine fixée</span>
            <button class="btn-unfix-week" onclick="unfixWeekPlanning('${monIso}')">Débloquer</button>`
         : `<button class="btn-fix-week" onclick="validateAndFixWeekPlanning('${monIso}')">📌 Fixer la semaine (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</button>`;
 
-      const movePillHtml = selectedForMove
-        ? `<span class="poste-pill poste-tdm">Déplacement : ${getInterneById(selectedForMove.interneId).shortName} (cliquez sur la cible)</span>
-           <button class="btn btn-sm" onclick="cancelSelectedForMove()">Annuler</button>`
-        : "";
+      const subHintHtml = selectedForMove
+        ? `<span class="poste-pill poste-tdm">Sélectionné : ${getInterneById(selectedForMove.interneId).shortName} (${formatShortDayHeader(selectedForMove.dIso)} ${selectedForMove.periodKey === 'am' ? 'Matin' : 'PM'})</span>
+           <span style="font-size:11.5px; color:#92400E; font-weight:600;">Cliquez sur un interne pour échanger ou une case pour déplacer</span>
+           <button class="btn btn-sm" style="padding:3px 8px; font-size:11px;" onclick="openVacationEditModal('${selectedForMove.dIso}', '${selectedForMove.interneId}')">✎ Liste des postes</button>
+           <button class="btn btn-sm" style="padding:3px 8px; font-size:11px;" onclick="cancelSelectedForMove()">Annuler</button>`
+        : `<span style="font-size:11.5px; color:#64748B; font-weight:600;">Cliquez sur 2 internes pour les échanger, sur une case vide pour déplacer, ou sur un prénom ci-dessous pour modifier sa journée</span>`;
 
       banner.style.display = "block";
       banner.innerHTML = `
-        <div class="chef-simple-panel ${isChefPlanningMode ? 'unlocked' : ''}">
+        <div class="chef-simple-panel unlocked">
           <div class="chef-simple-header">
             <div class="chef-simple-title">
-              <span>${isChefPlanningMode ? "🔓 Espace Chef" : "🔒 Espace Chef"}</span>
-              ${totalNotifs > 0
-                ? `<span class="notif-badge ${blocking.issues.length === 0 ? 'warn' : ''}">${totalNotifs} notification${totalNotifs > 1 ? 's' : ''}</span>`
-                : `<span class="status-pill-approved">✓ Aucune modification en attente</span>`}
-              ${movePillHtml}
+              <span>🔓 Organisation du Planning</span>
+              ${subHintHtml}
             </div>
             <div class="chef-simple-actions">
               ${weekBtnHtml}
-              ${(pendingGroups.length + pendingModifs.length) > 1 ? `<button class="btn-approve" onclick="approveAllPendingAbsences()">✓ Tout valider</button>` : ""}
+              ${pendingCount > 1 ? `<button class="btn-approve" onclick="approveAllPendingAbsences()">✓ Tout valider (${pendingCount})</button>` : ""}
               ${chefHistoryStack.length > 0 ? `<button class="btn btn-sm" onclick="undoLastChefMove()">↩ Annuler</button>` : ""}
-              ${isChefPlanningMode
-                ? `<button class="btn btn-sm" onclick="resetCurrentWeekVacations()" title="Réinitialiser la semaine par défaut">Réinit. sem.</button>
-                   <button class="btn btn-sm" onclick="toggleChefPlanningMode()">Fermer</button>`
-                : `<button class="btn btn-sm btn-primary" onclick="toggleChefPlanningMode()">Déverrouiller</button>`}
+              <button class="btn btn-sm" onclick="resetCurrentWeekVacations()" title="Réinitialiser la semaine par défaut">Réinit. sem.</button>
+              <button class="btn btn-sm" onclick="toggleChefPlanningMode()">Quitter</button>
             </div>
           </div>
           ${rows.length > 0 ? `<div class="chef-simple-list">${rows.join("")}</div>` : ""}
@@ -4333,23 +4301,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       executeChefMoveOrSwap(selectedForMove, { dIso, periodKey, toPoste });
     }
 
-    // Barre de sélection simplifiée
+    // Barre de sélection simplifiée (masquée en Mode Chef pour garder toute la place au planning)
     function renderInterneSelector() {
       const bar = document.getElementById("interneSelectorBar");
+      if (!bar) return;
+      if (isChefPlanningMode) {
+        bar.style.display = "none";
+        bar.innerHTML = "";
+        return;
+      }
+      bar.style.display = "flex";
       const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId));
-      const showChefSpace = isChefPlanningMode || inChefSpace;
-      const blocking = computeBlockingDays(STATE);
-      const pendingGroups = groupAbsenceRequests((STATE.absences || []).filter(a => a && a.status !== "rejected")).filter(g => g.status === "pending");
-      const pendingModifs = getPendingVacationModifs(STATE);
-      const totalChefAlerts = blocking.issues.length + pendingGroups.length + pendingModifs.length;
-      const chefAlertBadge = (showChefSpace && totalChefAlerts > 0)
-        ? `<span class="notif-badge ${blocking.issues.length === 0 ? 'warn' : ''}">${totalChefAlerts}</span>`
-        : "";
 
       let html = `
         <div class="segmented">
           <button class="seg-btn ${!inChefSpace ? 'active' : ''}" onclick="switchRoleSpace('internes')">Internes</button>
-          <button class="seg-btn ${inChefSpace ? 'active' : ''}" onclick="switchRoleSpace('chefs')">Chefs ${chefAlertBadge}</button>
+          <button class="seg-btn ${inChefSpace ? 'active' : ''}" onclick="switchRoleSpace('chefs')">Chefs</button>
         </div>
         <div class="person-chips">
       `;
@@ -4416,9 +4383,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       renderAll();
     }
 
-    // Bandeau résumé épuré sur une seule barre lisible
+    // Bandeau résumé épuré sur une seule barre lisible (masqué en Mode Chef)
     function renderPersonalBanner() {
       const el = document.getElementById("personalBanner");
+      if (!el) return;
+      if (isChefPlanningMode) {
+        el.style.display = "none";
+        el.innerHTML = "";
+        return;
+      }
+      el.style.display = "flex";
 
       if (selectedInterneId === "all_chefs") {
         el.innerHTML = `
@@ -4624,7 +4598,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function renderPlanningTab() {
       const monIso = getMondayOfWeek(currentDateIso);
       const friIso = addDaysIso(monIso, 4);
-      const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
+      const inChefSpace = Boolean(isChefPlanningMode);
       const blocking = inChefSpace ? computeBlockingDays(STATE) : { byDate: {}, list: [] };
 
       let headerLabel = "";
@@ -4645,7 +4619,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const dIso = addDaysIso(monIso, offset);
         const [yy, mm, dd] = dIso.split("-").map(Number);
         const isAct = (dIso === currentDateIso) ? "active" : "";
-        const dayIssues = inChefSpace ? (blocking.byDate[dIso] || []) : [];
+        const dayIssues = inChefSpace ? (blocking.byDate[dIso] || []).filter(x => x.severity === "critical") : [];
         const isBlock = dayIssues.length > 0 ? "blocking-day" : "";
         const g = (STATE.chefsGardes && STATE.chefsGardes[dIso] && STATE.chefsGardes[dIso].noms)
           ? STATE.chefsGardes[dIso].noms.join("/")
@@ -4691,7 +4665,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
       dayStripHtml += `</div>`;
 
-      const horairesStripHtml = `
+      const horairesStripHtml = isChefPlanningMode ? "" : `
         <div style="display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:8px; font-size:11px;">
           <span style="font-weight:700; color:var(--text-muted); margin-right:2px;">🕒 Horaires :</span>
           <span class="poste-pill poste-irm">IRM : 07h45</span>
@@ -4719,43 +4693,57 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       let bodyHtml = "";
-      if (planningScope === "chefs") {
+      if (planningScope === "chefs" && !isChefPlanningMode) {
         bodyHtml = renderChefsPlanningView(monIso);
       } else if (planningScope === "combined") {
         bodyHtml = renderCombinedChefsInternesView(monIso);
-      } else if (planningScope === "perso" && isChefId(selectedInterneId)) {
+      } else if (planningScope === "perso" && isChefId(selectedInterneId) && !isChefPlanningMode) {
         bodyHtml = renderSingleChefPersoView(monIso, getChefById(selectedInterneId));
       } else if (planningMode === "day") {
         bodyHtml = renderDayPlanningView(currentDateIso);
-      } else if (planningMode === "week") {
+      } else if (planningMode === "week" || isChefPlanningMode) {
         bodyHtml = renderWeekPlanningView(monIso);
       } else {
         bodyHtml = renderMonthPlanningView(currentDateIso);
       }
 
+      const toolbarScopeHtml = isChefPlanningMode
+        ? `<div class="segmented">
+             <button class="seg-btn ${planningScope !== 'combined' ? 'active' : ''}" onclick="setPlanningScope('internes')">Internes seuls</button>
+             <button class="seg-btn ${planningScope === 'combined' ? 'active' : ''}" onclick="setPlanningScope('combined')">Avec les Chefs</button>
+           </div>`
+        : `<div class="segmented">
+             <button class="seg-btn ${planningScope === 'internes' ? 'active' : ''}" onclick="setPlanningScope('internes')">Internes</button>
+             <button class="seg-btn ${planningScope === 'chefs' ? 'active' : ''}" onclick="setPlanningScope('chefs')">Chefs</button>
+             <button class="seg-btn ${planningScope === 'combined' ? 'active' : ''}" onclick="setPlanningScope('combined')">Croisé</button>
+             <button class="seg-btn ${planningScope === 'perso' ? 'active' : ''}" onclick="setPlanningScope('perso')">Mon planning</button>
+           </div>`;
+
+      const toolbarModeHtml = isChefPlanningMode
+        ? `<div class="segmented">
+             <button class="seg-btn ${planningMode !== 'day' ? 'active' : ''}" onclick="setPlanningMode('week')">Semaine</button>
+             <button class="seg-btn ${planningMode === 'day' ? 'active' : ''}" onclick="setPlanningMode('day')">Jour</button>
+           </div>`
+        : `<div class="segmented">
+             <button class="seg-btn ${planningMode === 'day' ? 'active' : ''}" onclick="setPlanningMode('day')">Jour</button>
+             <button class="seg-btn ${planningMode === 'week' ? 'active' : ''}" onclick="setPlanningMode('week')">Semaine</button>
+             <button class="seg-btn ${planningMode === 'month' ? 'active' : ''}" onclick="setPlanningMode('month')">Mois</button>
+           </div>`;
+
       return `
         <div class="planning-toolbar">
-          <div class="segmented">
-            <button class="seg-btn ${planningScope === 'internes' ? 'active' : ''}" onclick="setPlanningScope('internes')">Internes</button>
-            <button class="seg-btn ${planningScope === 'chefs' ? 'active' : ''}" onclick="setPlanningScope('chefs')">Chefs</button>
-            <button class="seg-btn ${planningScope === 'combined' ? 'active' : ''}" onclick="setPlanningScope('combined')">Croisé</button>
-            <button class="seg-btn ${planningScope === 'perso' ? 'active' : ''}" onclick="setPlanningScope('perso')">Mon planning</button>
-          </div>
+          ${toolbarScopeHtml}
 
           <div class="date-nav">
-            <button class="btn btn-sm" onclick="shiftPlanningDate(-1)">Préc.</button>
+            <button class="btn btn-sm" onclick="shiftPlanningDate(-1)">◀ Préc.</button>
             <div class="date-label">${headerLabel}</div>
-            <button class="btn btn-sm" onclick="shiftPlanningDate(1)">Suiv.</button>
+            <button class="btn btn-sm" onclick="shiftPlanningDate(1)">Suiv. ▶</button>
           </div>
 
-          <div class="segmented">
-            <button class="seg-btn ${planningMode === 'day' ? 'active' : ''}" onclick="setPlanningMode('day')">Jour</button>
-            <button class="seg-btn ${planningMode === 'week' ? 'active' : ''}" onclick="setPlanningMode('week')">Semaine</button>
-            <button class="seg-btn ${planningMode === 'month' ? 'active' : ''}" onclick="setPlanningMode('month')">Mois</button>
-          </div>
+          ${toolbarModeHtml}
         </div>
 
-        ${dayStripHtml}
+        ${(isChefPlanningMode && planningMode !== 'day') ? '' : dayStripHtml}
         ${weekValidationStripHtml}
         ${horairesStripHtml}
         ${bodyHtml}
@@ -5093,7 +5081,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (!isChefPlanningMode && !hasAny && (posteName === "RG" || posteName === "VACANCES")) return;
 
           const escPoste = posteName.replace(/'/g, "\\'");
-          rowsHtml += `<tr><td>${renderPosteCellLabel(posteName, periodKey)}</td>`;
+          const canClickPosteTarget = isChefPlanningMode && selectedForMove && selectedForMove.periodKey === periodKey;
+          const posteTdAttr = canClickPosteTarget
+            ? `class="tap-target-ready" style="cursor:pointer;" title="Déplacer vers ${posteName}" onclick="onChefCellClick(event, '${selectedForMove.dIso}', '${periodKey}', '${escPoste}')"`
+            : "";
+          rowsHtml += `<tr><td ${posteTdAttr}>${renderPosteCellLabel(posteName, periodKey)}</td>`;
           days.forEach(dIso => {
             const dObj = STATE.schedule[dIso];
             if (!dObj) {
@@ -5136,17 +5128,19 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const isMe = (selectedInterneId !== "all" && m.interneId === selectedInterneId) ? "highlight-me" : "";
                 const isSelectedMove = isChefPlanningMode && selectedForMove && selectedForMove.interneId === m.interneId && selectedForMove.dIso === dIso && selectedForMove.periodKey === periodKey;
                 const dragClass = isChefPlanningMode ? `draggable-interne ${isSelectedMove ? 'selected-for-move' : ''}` : "";
-                const socleHtml = iObj.isSocle ? `<span class="tag-sm">Socle</span>` : "";
-                const djHtml = (iObj.isDJ || iObj.id === "oussama") ? `<span class="tag-dj">DJ</span>` : "";
+                const socleHtml = (!isChefPlanningMode && iObj.isSocle) ? `<span class="tag-sm">Socle</span>` : "";
+                const djHtml = (!isChefPlanningMode && (iObj.isDJ || iObj.id === "oussama")) ? `<span class="tag-dj">DJ</span>` : "";
                 let binomeHtml = "";
-                if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 2) {
-                  binomeHtml = `<span class="tag-binome">Relecture Pr Drapé</span>`;
-                } else if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 5) {
-                  binomeHtml = `<span class="tag-binome">Consult.</span>`;
-                } else if (m.note && m.note.includes("Macil")) {
-                  binomeHtml = `<span class="tag-binome">${m.binome ? 'Binôme • +Macil' : '+Macil'}</span>`;
-                } else if (m.binome) {
-                  binomeHtml = `<span class="tag-binome">Binôme</span>`;
+                if (!isChefPlanningMode) {
+                  if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 2) {
+                    binomeHtml = `<span class="tag-binome">Relecture Pr Drapé</span>`;
+                  } else if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 5) {
+                    binomeHtml = `<span class="tag-binome">Consult.</span>`;
+                  } else if (m.note && m.note.includes("Macil")) {
+                    binomeHtml = `<span class="tag-binome">${m.binome ? 'Binôme • +Macil' : '+Macil'}</span>`;
+                  } else if (m.binome) {
+                    binomeHtml = `<span class="tag-binome">Binôme</span>`;
+                  }
                 }
                 let vacStatusHtml = "";
                 if (inChefSpace && (posteName === "VACANCES" || posteName === "RG")) {
