@@ -1647,7 +1647,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <button class="btn btn-sm" onclick="closeModal('modalVacationEdit')">Fermer</button>
       </div>
       <div class="note-box">
-        Règle : 2 demi-offs (1/2 journée libre) par semaine maximum par interne.
+        Règle : 2 demi-offs (1/2 journée libre) par semaine maximum par interne • <strong>Pas de demi-off le mardi après-midi ni le vendredi après-midi</strong>.
       </div>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
@@ -2004,8 +2004,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const isSocle = Boolean(origSlot.isSocle || (intObj && intObj.isSocle));
 
             if (custom[cKey]) {
+              const [yyC, mmC, ddC] = iso.split("-").map(Number);
+              const jsDayC = new Date(yyC, mmC - 1, ddC).getDay();
               if (custom[cKey].am) am = custom[cKey].am;
-              if (custom[cKey].pm) pm = custom[cKey].pm;
+              if (custom[cKey].pm && !((jsDayC === 2 || jsDayC === 5) && custom[cKey].pm === "1/2 journée libre")) {
+                pm = custom[cKey].pm;
+              }
               if (custom[cKey].note !== undefined) {
                 note = custom[cKey].note;
                 noteAm = custom[cKey].note;
@@ -2036,9 +2040,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       });
 
       // 2. Garantie hebdomadaire : si les demi-offs ne sont pas suffisants (< 2 demi-offs / sem pour un interne présent),
-      //    les autres créneaux ne sont pas obligatoires (hors TDM SAU et hors Relecture Pr Drapé du mardi PM)
+      //    les autres créneaux ne sont pas obligatoires (hors mardi PM, hors vendredi PM et hors TDM SAU)
       const nonMandatoryPriority = [
-        "LECTURE/CS", // Vendredi PM uniquement (Mardi PM protégé)
         "ALLURA",
         "TDM OLLIER DIAG",
         "IRM 1,5T",
@@ -2073,8 +2076,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const jsDay = new Date(yy, mm - 1, dd).getDay();
                 const cKey = dIso + "__" + iid;
                 for (const h of ["pm", "am"]) {
-                  // Ne jamais supprimer la Relecture systématique avec Pr Drapé du mardi après-midi
-                  if (jsDay === 2 && h === "pm" && candPoste === "LECTURE/CS") continue;
+                  // Interdiction stricte de demi-off le mardi après-midi (jsDay === 2) et le vendredi après-midi (jsDay === 5)
+                  if (h === "pm" && (jsDay === 2 || jsDay === 5)) continue;
                   // Respecter un choix manuel explicite dans customVacations
                   if (custom[cKey] && custom[cKey][h]) continue;
                   const slot = st.schedule[dIso].byInterne[iid];
@@ -3031,6 +3034,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           ? tgtDayObj.byInterne[target.targetInterneId][target.periodKey]
           : target.toPoste;
 
+        const [yyS, mmS, ddS] = source.dIso.split("-").map(Number);
+        const jsDayS = new Date(yyS, mmS - 1, ddS).getDay();
+        const [yyT, mmT, ddT] = target.dIso.split("-").map(Number);
+        const jsDayT = new Date(yyT, mmT - 1, ddT).getDay();
+        if ((source.periodKey === "pm" && (jsDayS === 2 || jsDayS === 5) && tgtPoste === "1/2 journée libre") ||
+            (target.periodKey === "pm" && (jsDayT === 2 || jsDayT === 5) && srcPoste === "1/2 journée libre")) {
+          showToast("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.");
+          selectedForMove = null;
+          renderAll();
+          return;
+        }
+
         pushChefHistorySnapshot();
         applyInterneSlotChange(source.dIso, source.periodKey, source.interneId, tgtPoste);
         applyInterneSlotChange(target.dIso, target.periodKey, target.targetInterneId, srcPoste);
@@ -3049,6 +3064,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       // Déplacement vers une ligne de poste
       if (!target.toPoste || target.toPoste === source.fromPoste) {
+        selectedForMove = null;
+        renderAll();
+        return;
+      }
+
+      const [yyM, mmM, ddM] = source.dIso.split("-").map(Number);
+      const jsDayM = new Date(yyM, mmM - 1, ddM).getDay();
+      if (source.periodKey === "pm" && (jsDayM === 2 || jsDayM === 5) && target.toPoste === "1/2 journée libre") {
+        showToast("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.");
         selectedForMove = null;
         renderAll();
         return;
@@ -5078,6 +5102,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const am = document.getElementById("vacEditAm").value;
       const pm = document.getElementById("vacEditPm").value;
       const note = document.getElementById("vacEditNote").value.trim();
+
+      // Vérification stricte : pas de demi-off le mardi après-midi ni le vendredi après-midi
+      const [yyV, mmV, ddV] = iso.split("-").map(Number);
+      const jsDayV = new Date(yyV, mmV - 1, ddV).getDay();
+      if ((jsDayV === 2 || jsDayV === 5) && pm === "1/2 journée libre") {
+        alert("Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi pour les internes.");
+        return;
+      }
 
       // Vérification stricte : maximum 2 demi-offs ('1/2 journée libre') par semaine par interne
       const monIso = getMondayOfWeek(iso);

@@ -401,7 +401,7 @@ def build_balanced_trame() -> dict:
                 "socle": "TDM SAU",    # Posté au TDM SAU (1 sem/2) ou TDM OLLIER DIAG (1 sem/2, et binôme TDM3 le 02/11 PM)
             },
         },
-        1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi PM : Relecture systématique avec Pr Drapé)
+        1: {  # MARDI (Staff Cas Clinique + Cours Chef à 12h30 • Mardi PM : pas de demi-off, Relecture systématique avec Pr Drapé)
             "am": {
                 0: "IRM 1,5T",  # En IRM 1,5T quand Noé est posté au TDM SAU (et au TDM SAU quand Noé est en IRM 1,5T)
                 1: "IRM 3T",
@@ -417,7 +417,7 @@ def build_balanced_trame() -> dict:
                 2: "GESTES (C)",
                 3: "LECTURE/CS",  # Relecture avec Pr Drapé (systématique)
                 4: "TDM SAU",
-                "socle": "1/2 journée libre",  # Demi-off n°1 de Noé
+                "socle": "TDM SAU",  # Posté Socle Urgences (pas de demi-off le mardi après-midi)
             },
         },
         2: {  # MERCREDI
@@ -427,7 +427,7 @@ def build_balanced_trame() -> dict:
                 2: "1/2 journée libre",
                 3: "ECHO",
                 4: "TDM SAU",
-                "socle": "IRM 3T",  # Posté en IRM 3T
+                "socle": "1/2 journée libre",  # Demi-off n°1 de Noé
             },
             "pm": {
                 0: "1/2 journée libre",
@@ -451,27 +451,27 @@ def build_balanced_trame() -> dict:
                 0: "ALLURA",
                 1: "IRM",
                 2: "TDM SAU",
-                3: "ECHO",
+                3: "1/2 journée libre",  # Demi-off n°2 de R3 (Écho fermée le jeudi PM)
                 4: "SCAN ACHARD",
                 "socle": "1/2 journée libre",  # Demi-off n°2 de Noé
             },
         },
-        4: {  # VENDREDI (Biblio du vendredi • Vendredi PM : Consultation Internes)
+        4: {  # VENDREDI (Biblio du vendredi • Vendredi PM : pas de demi-off, Consultation Internes)
             "am": {
                 0: "GESTES (C)",
                 1: "ECHO",
                 2: "1/2 journée libre",
-                3: "IRM 3T",
+                3: "TDM SAU",
                 4: "IRM 1,5T",
-                "socle": "TDM SAU",  # Posté au TDM SAU
+                "socle": "IRM 3T",  # Posté en IRM 3T le vendredi matin
             },
             "pm": {
                 0: "IRM",
                 1: "GESTES (C)",
                 2: "TDM SAU",
-                3: "1/2 journée libre",
+                3: "LECTURE/CS",  # Consultation du vendredi après-midi (avec Dr Macil HAMADOUCHE / Internes)
                 4: "SCAN ACHARD",
-                "socle": "LECTURE/CS",  # Consultation du vendredi après-midi (avec Dr Macil HAMADOUCHE)
+                "socle": "TDM SAU",  # Posté Socle Urgences (pas de demi-off le vendredi après-midi)
             },
         },
     }
@@ -605,14 +605,15 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
       le Dr Hippolyte MONNIER (Nathanaël au U, Marwane en IRM, Noé et Gabriel en TDM3, Milan en US, Oussama en demi-off)
       servant de base (R0..R4) pour toute la suite du semestre.
     - Les 5 internes DES hors socle en rotation équilibrée sur R0..R4 (2 demi-offs / semaine chacun)
+    - PAS DE DEMI-OFF LE MARDI APRÈS-MIDI NI LE VENDREDI APRÈS-MIDI pour les internes.
     - Consultation ('LECTURE/CS') pour les internes UNIQUEMENT le mardi après-midi et le vendredi après-midi :
       * Mardi après-midi : Relecture avec Pr Drapé SYSTÉMATIQUE (toujours pourvue par un interne présent).
       * Vendredi après-midi : Consultation Internes (avec MH / seniors).
-      * Autres créneaux non obligatoires si les demi-offs ne sont pas suffisants pour les internes.
+      * Autres créneaux (hors mardi PM et vendredi PM) non obligatoires si les demi-offs ne sont pas suffisants pour les internes.
     - Noé GRANDVAL ('noe', Phase Socle) :
-      * 2 demi-offs / semaine
-      * Posté principalement au Scanner des Urgences ('TDM SAU') avec un ratio équilibré (~53 % de ses vacations actives)
-        et réparti le reste du temps en IRM (3T / 1,5T), Échographie, TDM Ollier Diag (TDM3) et Consultation du vendredi PM.
+      * 2 demi-offs / semaine (Mercredi matin et Jeudi après-midi)
+      * Posté principalement au Scanner des Urgences ('TDM SAU') avec un ratio équilibré (~55 % de ses vacations actives)
+        et réparti le reste du temps en IRM (3T / 1,5T), Échographie et TDM Ollier Diag (TDM3).
       * Posté avec Dr Macil HAMADOUCHE ('MH') le mardi matin les 3 premières semaines (03/11, 10/11, 17/11).
     - Les vacations fermées ('FERMÉ' / 'MAINTENANCE') issues du planning officiel du service.
     """
@@ -716,7 +717,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             # Lundi après-midi (hors 02/11) : 1 semaine sur 2 (semaines paires >= S3), Noé est en TDM OLLIER DIAG et R0 prend le TDM SAU
             if wd == 0 and role_idx == 0 and (week_idx % 2 == 0):
                 post_pm = "TDM SAU"
-            note_pm = "Relecture avec Pr Drapé (systématique)" if (wd == 1 and post_pm == "LECTURE/CS") else ""
+            if wd == 1 and post_pm == "LECTURE/CS":
+                note_pm = "Relecture avec Pr Drapé (systématique)"
+            elif wd == 4 and post_pm == "LECTURE/CS":
+                note_pm = "Consultation Internes (Vendredi PM)"
+            else:
+                note_pm = ""
             by_interne[iid] = {
                 "am": post_am,
                 "pm": post_pm,
@@ -743,9 +749,6 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         if wd == 0:  # Lundi après-midi (hors 02/11) : alterne 1 sem/2 TDM SAU et 1 sem/2 TDM OLLIER DIAG
             noe_pm = "TDM OLLIER DIAG" if (week_idx % 2 == 0) else "TDM SAU"
             noe_note_pm = "Posté Socle Urgences" if noe_pm == "TDM SAU" else "Phase Socle (TDM3)"
-        elif wd == 4:  # Vendredi après-midi : en LECTURE/CS (Consultation Internes avec MH)
-            noe_pm = "LECTURE/CS"
-            noe_note_pm = "Consultation Internes (Vendredi PM)"
         else:
             noe_pm = day_roles["pm"]["socle"]
             noe_note_pm = "Posté Socle Urgences" if noe_pm == "TDM SAU" else ""
@@ -812,8 +815,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                         break
 
         # 4. Gestion des vacations FERMÉES / MAINTENANCE et garantie zéro doublon hors TDM SAU
+        #    Note : Le mardi après-midi (wd=1, half='pm') et le vendredi après-midi (wd=4, half='pm'),
+        #    AUCUN interne ne peut être mis en '1/2 journée libre' : si une salle est fermée,
+        #    l'interne rejoint LECTURE/CS (Relecture Pr Drapé / Consultation Internes).
         for half, closed_map, open_set in [("am", closed_am_codes, open_am_codes), ("pm", closed_pm_codes, open_pm_codes)]:
             note_key = "noteAm" if half == "am" else "notePm"
+            is_no_off_halfday = (half == "pm" and wd in (1, 4))
             used_by_seniors = set()
             for iid in senior_interne_ids:
                 p = by_interne[iid][half]
@@ -853,13 +860,20 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             reassigned = cand
                             break
                     if not reassigned:
-                        reassigned = "1/2 journée libre"
+                        if is_no_off_halfday:
+                            reassigned = "LECTURE/CS"
+                        else:
+                            reassigned = "1/2 journée libre"
                     else:
                         used_by_seniors.add(reassigned)
                     by_interne[iid][half] = reassigned
-                    by_interne[iid][note_key] = f"{p} {status_lbl.lower()}"
+                    if is_no_off_halfday and reassigned == "LECTURE/CS":
+                        re_lbl = "Relecture Pr Drapé" if wd == 1 else "Consultation Internes"
+                        by_interne[iid][note_key] = f"{p} {status_lbl.lower()} → {re_lbl}"
+                    else:
+                        by_interne[iid][note_key] = f"{p} {status_lbl.lower()}"
                     if not by_interne[iid]["note"]:
-                        by_interne[iid]["note"] = f"{p} {status_lbl.lower()}"
+                        by_interne[iid]["note"] = by_interne[iid][note_key]
 
             noe_p = by_interne["noe"][half]
             if noe_p not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
@@ -873,7 +887,6 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     by_interne["noe"][note_key] = "Posté Socle Urgences"
 
         # 4bis. Le Vendredi après-midi (wd == 4), s'assurer que le créneau LECTURE/CS est couvert par un interne
-        # si cela ne prive aucun interne de ses 2 demi-offs hebdomadaires
         if wd == 4 and "LECTURE/CS" in open_pm_codes and "LECTURE/CS" not in closed_pm_codes:
             has_fri_cs = any(
                 by_interne[iid]["pm"] == "LECTURE/CS"
@@ -904,11 +917,11 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         cur += datetime.timedelta(days=1)
 
     # 5. Équilibrage hebdomadaire des demi-offs ('1/2 journée libre') :
+    #    - INTERDICTION STRICTE de demi-off le mardi après-midi (wd=1, pm) et le vendredi après-midi (wd=4, pm)
     #    - Maximum 2 demi-offs par semaine par interne (réaffectation sur postes ouverts si > 2)
     #    - Garantie de 2 demi-offs par semaine pour chaque interne actif : si un interne a < 2 demi-offs
-    #      (ex: jour férié tombant sur son demi-off ou réaffectation), les autres créneaux non obligatoires
-    #      (en dehors du TDM SAU et de la Relecture systématique du mardi après-midi avec Pr Drapé)
-    #      ne sont pas obligatoires et sont libérés en demi-off.
+    #      (ex: jour férié tombant sur son demi-off ou 1re matinée d'accueil), les autres créneaux non obligatoires
+    #      (en dehors du mardi PM, du vendredi PM et du TDM SAU) sont libérés en demi-off.
     def get_available_open_postes(day_iso: str, half_key: str) -> list[str]:
         day_obj = schedule[day_iso]
         ch_day = (chefs_planning or {}).get(day_iso, {})
@@ -979,7 +992,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                                 for d_iso2 in active_isos:
                                     if d_iso2 == "2026-11-02":
                                         continue
+                                    wd2 = datetime.date.fromisoformat(d_iso2).weekday()
                                     for h2 in ("am", "pm"):
+                                        if h2 == "pm" and wd2 in (1, 4):
+                                            continue
                                         nk2 = "noteAm" if h2 == "am" else "notePm"
                                         st_other2 = schedule[d_iso2]["byInterne"][other]
                                         if st_other2[h2] == "1/2 journée libre":
@@ -1038,12 +1054,9 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 break
 
         # 5B. Garantie que chaque interne actif (hors semaine de congés) a bien ses 2 demi-offs :
-        #     "Autre créneaux pas obligatoire si les off ne sont pas suffisant pour les internes"
-        #     On libère en priorité les créneaux non obligatoires (LECTURE/CS du vendredi PM, ALLURA,
-        #     TDM OLLIER DIAG, IRM 1,5T, ECHO, GESTES (C), SCAN ACHARD, IRM 3T, IRM), sans jamais
-        #     toucher au TDM SAU ni à la Relecture systématique avec Pr Drapé du mardi après-midi.
+        #     INTERDICTION STRICTE de libérer le mardi après-midi (wd_cur == 1, h == 'pm')
+        #     ou le vendredi après-midi (wd_cur == 4, h == 'pm') ou le TDM SAU.
         non_mandatory_priority = [
-            "LECTURE/CS",  # Vendredi PM uniquement (Mardi PM protégé ci-dessous)
             "ALLURA",
             "TDM OLLIER DIAG",
             "IRM 1,5T",
@@ -1074,10 +1087,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             continue
                         wd_cur = datetime.date.fromisoformat(d_iso).weekday()
                         for h in ("pm", "am"):
-                            # Protéger strictement la Relecture avec Pr Drapé du mardi après-midi
-                            if wd_cur == 1 and h == "pm" and cand_poste == "LECTURE/CS":
+                            # Interdiction stricte de demi-off le mardi après-midi (wd=1) et le vendredi après-midi (wd=4)
+                            if h == "pm" and wd_cur in (1, 4):
                                 continue
-                            # Pour Noé (socle), éviter de libérer le TDM SAU des 3 premiers mardis matins avec Macil
+                            # Pour Noé (socle), ne jamais libérer le TDM SAU
                             st = schedule[d_iso]["byInterne"][iid]
                             if st[h] == cand_poste:
                                 nk = "noteAm" if h == "am" else "notePm"
