@@ -1023,8 +1023,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
             elif wd == 1:
                 noe_am = "TDM SAU"
                 noe_note_am = "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
-                noe_pm = "CONSULTATION" if (week_idx % 2 == 0) else "ECHO"
-                noe_note_pm = "Consultation Internes (Mardi PM)" if noe_pm == "CONSULTATION" else "Échographie"
+                noe_pm = "SCAN ACHARD" if (week_idx % 2 == 0) else "ECHO"
+                noe_note_pm = "Scanner Achard 1" if noe_pm == "SCAN ACHARD" else "Échographie"
             elif wd == 2:
                 noe_am = "1/2 journée libre"
                 noe_note_am = "Demi-off hebdomadaire"
@@ -1042,15 +1042,16 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     noe_pm = "TDM SAU"
                     noe_note_pm = "Posté Socle Urgences"
                 else:
-                    noe_pm = "CONSULTATION" if (week_idx % 2 == 1) else "LECTURE"
-                    noe_note_pm = "Consultation Internes (Vendredi PM)" if noe_pm == "CONSULTATION" else "Lecture (Vendredi PM)"
+                    noe_pm = "SCAN ACHARD" if (week_idx % 2 == 1) else "LECTURE"
+                    noe_note_pm = "Scanner Achard 1" if noe_pm == "SCAN ACHARD" else "Lecture (Vendredi PM)"
         else:
+            is_noe_cs_months = iso >= "2027-03-01"
             rot_noe = (week_idx - 4) % 5
             if rot_noe == 0:
                 # SAU : Mar AM (solo MH), Lun PM, Ven PM (1 AM + 2 PM) • Offs : Mer AM, Jeu PM
                 noe_week_plan = {
                     0: ("ECHO", "TDM SAU"),
-                    1: ("TDM SAU", "CONSULTATION"),
+                    1: ("TDM SAU", "CONSULTATION" if is_noe_cs_months else "SCAN ACHARD"),
                     2: ("1/2 journée libre", "TDM OLLIER DIAG"),
                     3: ("GESTES (C)", "1/2 journée libre"),
                     4: ("IRM 3T", "TDM SAU"),
@@ -1080,7 +1081,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     1: ("TDM SAU", "LECTURE"),
                     2: ("1/2 journée libre", "TDM SAU"),
                     3: ("ECHO", "SCAN ACHARD"),
-                    4: ("TDM SAU", "IRM" if (week_idx % 2 == 0) else "CONSULTATION"),
+                    4: ("TDM SAU", "IRM" if (week_idx % 2 == 0) else ("CONSULTATION" if is_noe_cs_months else "LECTURE")),
                 }
             else:  # rot_noe == 4
                 # SAU : Mar AM (solo MH), Lun PM, Jeu PM (1 AM + 2 PM) • Offs : Mer PM, Ven AM
@@ -1089,7 +1090,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     1: ("TDM SAU", "SCAN ACHARD"),
                     2: ("IRM 1,5T", "1/2 journée libre"),
                     3: ("GESTES (C)", "TDM SAU"),
-                    4: ("1/2 journée libre", "CONSULTATION"),
+                    4: ("1/2 journée libre", "CONSULTATION" if is_noe_cs_months else "LECTURE"),
                 }
             noe_am, noe_pm = noe_week_plan[wd]
 
@@ -1262,7 +1263,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 if noe_p in closed_map or (noe_p != "TDM SAU" and noe_p in used_by_seniors):
                     noe_cands = ["TDM OLLIER DIAG", "SCAN ACHARD", "ECHO", "IRM 1,5T", "IRM 3T", "IRM", "GESTES (C)"]
                     if half == "pm" and wd in (1, 4):
-                        noe_cands = ["CONSULTATION", "LECTURE"] + noe_cands
+                        noe_cands = (["CONSULTATION", "LECTURE"] if iso >= "2027-03-01" else ["LECTURE"]) + noe_cands
                     if no_interne_thevenin_nov:
                         noe_cands = [c for c in noe_cands if c != "ECHO"]
                     reassigned_noe = None

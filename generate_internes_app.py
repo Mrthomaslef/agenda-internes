@@ -2784,22 +2784,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (shortName === "TDM ACHARD 1") shortName = "SCAN ACHARD";
       if (shortName === "LECTURE/CS") shortName = "LECTURE";
       if (shortName === "IRM" && periodKey === "pm") shortName = "IRM PM";
-      if (isChefPlanningMode) {
-        return `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
-      }
-      const p = String(poste || "").toUpperCase();
-      let h = "";
-      if (p.includes("FORMATION") || p.includes("ACCUEIL")) h = "08h15–12h00";
-      else if (p.includes("IRM")) h = periodKey === "am" ? "07h45" : "13h00";
-      else if (p.includes("ECHO") || p.includes("ÉCHO")) h = periodKey === "am" ? "09h00" : "14h00";
-      else if (p.includes("GESTES")) h = periodKey === "am" ? "09h00" : "14h00";
-      else if (p.includes("SAU") || p.includes("OLLIER 4")) h = periodKey === "am" ? "08h00–18h30" : "fin 18h30";
-      else if (p.includes("CONSULT")) h = periodKey === "pm" ? "14h00–15h00 • Mar & Ven PM" : "";
-      else if (p.includes("LECTURE")) h = periodKey === "pm" ? "14h00–16h00 • Relecture" : "";
-      return `<div style="display:flex; flex-direction:column; align-items:flex-start; gap:1px;">
-        <span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>
-        ${h ? `<span class="poste-horaire-sub" style="font-size:9.5px; font-weight:700; color:var(--text-muted); padding-left:1px;">🕒 ${h}</span>` : ""}
-      </div>`;
+      return `<span class="poste-pill ${getPosteClass(poste)}">${shortName.replace("/", "/<wbr>")}</span>`;
     }
 
     const MANDATORY_WEEKLY_POSTES_MAP = {
@@ -5737,11 +5722,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const activePm = filterActivePostes(postesPm, "pm");
 
       const tableRows = [];
-      tableRows.push({ kind: "divider", title: "MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00" });
+      tableRows.push({ kind: "divider", title: "MATIN" });
       activeAm.forEach(p => tableRows.push({ kind: "poste", periodKey: "am", posteName: p }));
       tableRows.push({ kind: "divider", title: "COURS & RÉUNIONS (12h30)" });
       tableRows.push({ kind: "staff" });
-      tableRows.push({ kind: "divider", title: "APRÈS-MIDI — IRM 13h00 • US & Gestes 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30" });
+      tableRows.push({ kind: "divider", title: "APRÈS-MIDI" });
       activePm.forEach(p => tableRows.push({ kind: "poste", periodKey: "pm", posteName: p }));
       tableRows.push({ kind: "divider", title: "GARDES (LUNDI – VENDREDI)" });
       tableRows.push({ kind: "garde_interne" });
@@ -5826,15 +5811,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (r.kind === "poste") {
           const pal = getPostePalette(r.posteName);
           const lbl = getPdfPosteLabel(r.posteName, r.periodKey);
-          const hor = getPdfPosteHoraire(r.posteName, r.periodKey);
           const pillW = Math.min(COL_POSTE_W - 10, measureText(lbl, 7.1, true) + 10);
           const pillH = Math.min(11.5, rowH - 2);
-          const pillY = hor && rowH >= 16 ? curY + 2 : curY + (rowH - pillH) / 2;
+          const pillY = curY + (rowH - pillH) / 2;
           drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
           drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.9, pal.fg, true, pillW - 6);
-          if (hor && rowH >= 15.5) {
-            drawText(hor, MARGIN_X + 6, pillY + pillH + 6.2, 5.8, "#64748B", false, COL_POSTE_W - 10);
-          }
         } else if (r.kind === "staff") {
           const pal = getPostePalette("IRM");
           const pillH = Math.min(11.5, rowH - 3);
@@ -7094,9 +7075,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </tr>
               </thead>
               <tbody>
-                <tr class="period-divider"><td colspan="6">MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00</td></tr>
+                <tr class="period-divider"><td colspan="6">MATIN</td></tr>
                 ${buildCombinedPeriodRows("am")}
-                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — IRM 13h00 • Écho & Poste C 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30</td></tr>
+                <tr class="period-divider"><td colspan="6">APRÈS-MIDI</td></tr>
                 ${buildCombinedPeriodRows("pm")}
                 <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
                 ${intGardeRowHtml}\n                ${gardeRowHtml}
@@ -7347,11 +7328,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </tr>
               </thead>
               <tbody>
-                <tr class="period-divider"><td colspan="6">MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00</td></tr>
+                <tr class="period-divider"><td colspan="6">MATIN</td></tr>
                 ${renderPeriodRows(postesAm, "am")}
                 <tr class="period-divider"><td colspan="6">COURS & RÉUNIONS (12h30)</td></tr>
                 ${staffRowHtml}
-                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — IRM 13h00 • Écho & Poste C 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30</td></tr>
+                <tr class="period-divider"><td colspan="6">APRÈS-MIDI</td></tr>
                 ${renderPeriodRows(postesPm, "pm")}
                 <tr class="period-divider"><td colspan="6">GARDES (LUN–VEN)</td></tr>
                 ${intGardeRowHtml}
@@ -7469,9 +7450,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </tr>
               </thead>
               <tbody>
-                <tr class="period-divider"><td colspan="6">MATIN — IRM 07h45 • TDM SAU 08h00 • Écho & Poste C 09h00</td></tr>
+                <tr class="period-divider"><td colspan="6">MATIN</td></tr>
                 ${renderChefRows(chefPostesAm, "am")}
-                <tr class="period-divider"><td colspan="6">APRÈS-MIDI — IRM 13h00 • Écho & Poste C 14h00 • CS 14h00–15h00 • Lecture 14h00–16h00 • TDM SAU fin 18h30</td></tr>
+                <tr class="period-divider"><td colspan="6">APRÈS-MIDI</td></tr>
                 ${renderChefRows(chefPostesPm, "pm")}
                 <tr class="period-divider"><td colspan="6">GARDE SENIOR (LUN–VEN)</td></tr>
                 ${gardeRowHtml}
