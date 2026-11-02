@@ -26,6 +26,7 @@ from build_internes_data import (
     WEBHOOK_URL,
     assert_zero_patient_data,
     build_full_dataset,
+    push_to_prod_github,
     sync_initial_state_to_cloud,
 )
 
@@ -1155,6 +1156,205 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       outline: 1.5px dashed #D97706;
       outline-offset: -2px;
     }
+
+    /* Pastilles de notification & Espace Chef (Validation Vacances + Jours qui bloquent) */
+    .notif-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      background: #DC2626;
+      color: #FFFFFF;
+      font-size: 10.5px;
+      font-weight: 800;
+      line-height: 1;
+      margin-left: 4px;
+      box-shadow: 0 1px 3px rgba(220, 38, 38, 0.35);
+    }
+
+    .notif-badge.warn {
+      background: #D97706;
+      box-shadow: 0 1px 3px rgba(217, 119, 6, 0.35);
+    }
+
+    .chef-alert-strip {
+      background: linear-gradient(90deg, #FEF2F2 0%, #FFFBEB 100%);
+      border: 1.5px solid #F87171;
+      border-radius: 12px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chef-dashboard-panel {
+      background: #FFFFFF;
+      border: 2px solid #F59E0B;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.1);
+    }
+
+    .chef-notif-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .chef-notif-section {
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 11px;
+      padding: 11px;
+    }
+
+    .chef-notif-section.blocking-sec {
+      background: #FFF5F5;
+      border-color: #FCA5A5;
+    }
+
+    .chef-notif-section.vacances-sec {
+      background: #F0FDF4;
+      border-color: #86EFAC;
+    }
+
+    .chef-sec-header {
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .chef-item-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 9px;
+      padding: 9px 11px;
+      margin-bottom: 8px;
+    }
+    .chef-item-card:last-child {
+      margin-bottom: 0;
+    }
+
+    .chef-item-card.blocking-card {
+      border-left: 4px solid #DC2626;
+    }
+
+    .chef-item-card.pending-vac-card {
+      border-left: 4px solid #F59E0B;
+    }
+
+    .chef-item-card.approved-vac-card {
+      border-left: 4px solid #16A34A;
+    }
+
+    .chef-decision-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .btn-approve {
+      background: #16A34A;
+      border-color: #15803D;
+      color: #FFFFFF;
+      font-weight: 700;
+    }
+    .btn-approve:hover {
+      background: #15803D;
+      border-color: #166534;
+      color: #FFFFFF;
+    }
+
+    .btn-reject {
+      background: #FEF2F2;
+      border-color: #FCA5A5;
+      color: #B91C1C;
+      font-weight: 700;
+    }
+    .btn-reject:hover {
+      background: #FEE2E2;
+      border-color: #F87171;
+      color: #991B1B;
+    }
+
+    .btn-decide {
+      background: #EFF6FF;
+      border: 1px solid #93C5FD;
+      color: #1D4ED8;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-decide:hover {
+      background: #DBEAFE;
+      border-color: #3B82F6;
+    }
+
+    .day-pill.blocking-day {
+      border-color: #DC2626 !important;
+      background: #FEF2F2;
+    }
+
+    .day-pill .dp-alert {
+      font-size: 8.5px;
+      font-weight: 800;
+      color: #FFFFFF;
+      background: #DC2626;
+      border-radius: 4px;
+      padding: 1px 4px;
+      line-height: 1.1;
+      white-space: nowrap;
+    }
+
+    .cell-blocking-alert {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 6px;
+      border-radius: 6px;
+      background: #FEE2E2;
+      border: 1px dashed #DC2626;
+      color: #991B1B;
+      font-size: 10px;
+      font-weight: 800;
+      cursor: pointer;
+      line-height: 1.15;
+    }
+    .cell-blocking-alert:hover {
+      background: #FECACA;
+    }
+
+    .status-pill-pending {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FCD34D;
+    }
+    .status-pill-approved {
+      background: #DCFCE7;
+      color: #166534;
+      border: 1px solid #86EFAC;
+    }
+    .status-pill-rejected {
+      background: #F1F5F9;
+      color: #64748B;
+      border: 1px solid #CBD5E1;
+      text-decoration: line-through;
+    }
   </style>
 </head>
 <body>
@@ -1169,8 +1369,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-sm btn-chef-lock" onclick="toggleChefPlanningMode()" id="chefModeBtn" title="Mode Chef de Planning (code requis)">
-          <span id="chefModeBtnText">🔒 Mode Chef</span>
+        <button class="btn btn-sm btn-chef-lock" onclick="toggleChefPlanningMode()" id="chefModeBtn" title="Espace Chef : validation des vacances & décisions sur les jours qui bloquent">
+          <span id="chefModeBtnText">🔒 Espace Chef</span>
         </button>
         <button class="btn btn-sm" onclick="syncWithCloud(true)" id="syncBtn">
           <span id="syncStatusText">Synchroniser</span>
@@ -1186,7 +1386,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   </header>
 
   <main class="container">
-    <!-- Bandeau Mode Chef de Planning (visible uniquement quand déverrouillé) -->
+    <!-- Bandeau Espace Chef : Notifications Jours qui bloquent & Validation Vacances -->
     <div id="chefPlanningBanner" style="display:none;"></div>
 
     <!-- Bandeau résumé sur 1 ligne -->
@@ -1194,8 +1394,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     <!-- 5 Onglets au texte court et sans icône -->
     <nav class="main-tabs">
-      <button class="tab-btn active" data-tab="planning" onclick="switchTab('planning')">Planning</button>
-      <button class="tab-btn" data-tab="vacances" onclick="switchTab('vacances')">Congés</button>
+      <button class="tab-btn active" data-tab="planning" id="tabBtnPlanning" onclick="switchTab('planning')">Planning</button>
+      <button class="tab-btn" data-tab="vacances" id="tabBtnVacances" onclick="switchTab('vacances')">Congés</button>
       <button class="tab-btn" data-tab="presentations" onclick="switchTab('presentations')">Cours & Cas</button>
       <button class="tab-btn" data-tab="reunions" onclick="switchTab('reunions')">Réunions</button>
       <button class="tab-btn" data-tab="annuaire" onclick="switchTab('annuaire')">Annuaire</button>
@@ -1205,23 +1405,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div id="tabContent"></div>
   </main>
 
-  <!-- Modal : Déverrouillage Mode Chef de Planning (code cocochin) -->
+  <!-- Modal : Déverrouillage Espace Chef (code cocochin) -->
   <div class="modal-backdrop" id="modalChefAuth">
-    <div class="modal-box" style="max-width:400px;">
+    <div class="modal-box" style="max-width:410px;">
       <div class="card-header">
-        <div class="card-title">🔓 Mode Chef de Planning</div>
+        <div class="card-title">🔓 Espace Chef — Validation & Arbitrage</div>
         <button class="btn btn-sm" onclick="closeModal('modalChefAuth')">Fermer</button>
       </div>
       <div class="note-box">
-        Entrez le code d'accès Chef de Planning pour activer le déplacement direct des internes par glisser-déposer (Drag & Drop).
+        Entrez le code Chef pour <strong>valider les vacances des internes</strong>, <strong>arbitrer les jours qui bloquent</strong> et déplacer les internes par glisser-déposer.
       </div>
       <div class="form-group">
-        <label>Code d'accès</label>
+        <label>Code d'accès Chef</label>
         <input
           type="password"
           id="chefCodeInput"
           class="form-control"
-          placeholder="Code chef de planning..."
+          placeholder="Code espace chef..."
           autocomplete="off"
           onkeydown="if(event.key==='Enter') submitChefAuth()"
         />
@@ -1231,7 +1431,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       </div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
         <button class="btn" onclick="closeModal('modalChefAuth')">Annuler</button>
-        <button class="btn btn-primary" onclick="submitChefAuth()">Déverrouiller</button>
+        <button class="btn btn-primary" onclick="submitChefAuth()">Ouvrir l'Espace Chef</button>
       </div>
     </div>
   </div>
@@ -1246,7 +1446,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div class="action-choice-grid">
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openAbsenceModal();">
           <strong>Poser un congé / RG</strong>
-          <span>Vacances, formation ou repos de garde</span>
+          <span>Soumis à validation dans l'Espace Chef</span>
         </button>
         <button class="choice-btn" onclick="closeModal('modalQuickAdd'); openNextPresentationModal();">
           <strong>S'inscrire à un cours</strong>
@@ -1265,8 +1465,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span>Poste interne Cochin, DECT ou secrétariat</span>
         </button>
         <button class="choice-btn" style="background:#FFFBEB; border-color:#FCD34D;" onclick="closeModal('modalQuickAdd'); toggleChefPlanningMode();">
-          <strong style="color:#92400E;">🔓 Mode Chef de Planning</strong>
-          <span>Glisser-déposer les internes (code requis)</span>
+          <strong style="color:#92400E;">🔓 Espace Chef (Validation & Planning)</strong>
+          <span>Valider les vacances & arbitrer les jours bloquants</span>
         </button>
       </div>
     </div>
@@ -1280,15 +1480,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <button class="btn btn-sm" onclick="closeModal('modalAbsence')">Fermer</button>
       </div>
       <div class="note-box">
-        Règle : max 2 internes absents en même temps. Éviter mardi/vendredi pour les jours isolés.
+        Règle : max 2 internes absents en même temps. Éviter mardi/vendredi pour les jours isolés. <strong>Les vacances sont validées par le Chef dans l'Espace Chef.</strong>
       </div>
       <div class="form-group">
         <label>Interne</label>
-        <select id="absInterneSelect" class="form-control"></select>
+        <select id="absInterneSelect" class="form-control" onchange="previewAbsenceRuleWarning()"></select>
       </div>
       <div class="form-group">
         <label>Motif</label>
-        <select id="absTypeSelect" class="form-control">
+        <select id="absTypeSelect" class="form-control" onchange="previewAbsenceRuleWarning()">
           <option value="CA 1">Congés Annuels (CA 1)</option>
           <option value="CA 2">Congés Annuels (CA 2)</option>
           <option value="CF">Congé Formation / Congrès (CF)</option>
@@ -1299,11 +1499,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
         <div class="form-group">
           <label>Début</label>
-          <input type="date" id="absStartDate" class="form-control" min="2026-11-02" max="2027-05-02" />
+          <input type="date" id="absStartDate" class="form-control" min="2026-11-02" max="2027-05-02" onchange="previewAbsenceRuleWarning()" />
         </div>
         <div class="form-group">
           <label>Fin (incluse)</label>
-          <input type="date" id="absEndDate" class="form-control" min="2026-11-02" max="2027-05-02" />
+          <input type="date" id="absEndDate" class="form-control" min="2026-11-02" max="2027-05-02" onchange="previewAbsenceRuleWarning()" />
         </div>
       </div>
       <div class="form-group">
@@ -1313,7 +1513,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       <div id="absRuleWarning" class="note-box" style="display:none;"></div>
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
         <button class="btn" onclick="closeModal('modalAbsence')">Annuler</button>
-        <button class="btn btn-primary" onclick="saveAbsenceForm()">Enregistrer</button>
+        <button class="btn btn-primary" onclick="saveAbsenceForm()">Soumettre la demande</button>
       </div>
     </div>
   </div>
@@ -4304,19 +4504,23 @@ def generate_pwa_files(dataset: dict):
     }
     MANIFEST_FILE.write_text(json.dumps(manifest, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    sw_code = """const CACHE_NAME = 'cochin-internes-v4';
+    sw_version = dataset.get("updatedAt", "v5")
+    sw_code = f"""const CACHE_NAME = 'cochin-internes-{sw_version}';
 const ASSETS = ['./index.html', './manifest.json', './icon.svg'];
-self.addEventListener('install', e => {
+self.addEventListener('install', e => {{
   e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
-});
-self.addEventListener('activate', e => {
-  e.waitUntil(self.clients.claim());
-});
-self.addEventListener('fetch', e => {
+}});
+self.addEventListener('activate', e => {{
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
+  );
+}});
+self.addEventListener('fetch', e => {{
   if (e.request.method !== 'GET') return;
   e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
-});
+}});
 """
     SW_FILE.write_text(sw_code, encoding="utf-8")
 
@@ -4329,7 +4533,7 @@ self.addEventListener('fetch', e => {
 
     launcher_code = """#!/bin/zsh
 cd "$(dirname "$0")"
-open "./index.html"
+open "https://mrthomaslef.github.io/agenda-internes/"
 """
     LAUNCHER_FILE.write_text(launcher_code, encoding="utf-8")
     LAUNCHER_FILE.chmod(LAUNCHER_FILE.stat().st_mode | stat.S_IEXEC)
@@ -4345,3 +4549,8 @@ if __name__ == "__main__":
         print("Synced initial state to cloud:", res)
     except Exception as exc:
         print("Cloud sync warning:", exc)
+    try:
+        prod_res = push_to_prod_github()
+        print("Pushed to GitHub Pages prod (https://mrthomaslef.github.io/agenda-internes/):", prod_res)
+    except Exception as exc:
+        print("GitHub Pages prod push warning:", exc)

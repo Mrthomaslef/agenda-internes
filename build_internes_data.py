@@ -17,6 +17,7 @@ import os
 from pathlib import Path
 import re
 import ssl
+import subprocess
 import urllib.request
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -458,7 +459,7 @@ def build_balanced_trame() -> dict:
                 1: "ECHO",
                 2: "TDM SAU",
                 3: "IRM 3T",
-                4: "IRM 1,5T",
+                4: "1/2 journée libre",
                 "socle": "TDM SAU",  # Binôme Urgences uniquement
             },
             "pm": {
@@ -1558,6 +1559,7 @@ def get_initial_absences() -> list[dict]:
             "interneId": "milan",
             "interneName": "Milan KORSEC",
             "type": "CA 1",
+            "status": "pending",
             "comment": "Congés annuels posés sur le Google Sheet Hiver 26-27",
             "createdAt": "2026-11-01T10:00:00Z",
         })
@@ -2129,11 +2131,14 @@ def build_full_dataset() -> dict:
                 abs_map = {a["id"]: a for a in absences}
                 for a in old["absences"]:
                     if a.get("id"):
+                        if not a.get("status"):
+                            a["status"] = "pending"
                         abs_map[a["id"]] = a
                 absences = sorted(abs_map.values(), key=lambda x: (x["date"], x["interneId"]))
         except Exception:
             pass
 
+    base_schedule = generate_semester_schedule([], chefs_planning)
     schedule = generate_semester_schedule(absences, chefs_planning)
     presentations = build_initial_presentations()
     meetings = build_service_meetings()
@@ -2141,7 +2146,7 @@ def build_full_dataset() -> dict:
     phone_directory = build_phone_directory()
 
     return {
-        "version": "1.5.0",
+        "version": "1.6.0",
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "semester": {
             "title": "Semestre d'Hiver 2026–2027",
@@ -2160,7 +2165,8 @@ def build_full_dataset() -> dict:
                 "Horaires des vacations : IRM commence à 07h45 • Scanner des U (TDM SAU) de 08h00 à 18h30 • Échographie et Poste C (Gestes) commencent à 09h00.",
                 "Consultation pour les internes uniquement le Mardi après-midi et le Vendredi après-midi : Relecture avec Pr Drapé le Mardi après-midi systématique.",
                 "2 demi-offs (1/2 journée libre) par semaine par interne : les autres créneaux ne sont pas obligatoires si les demi-offs ne sont pas suffisants pour les internes.",
-                "Pas plus de 2 internes absents (CA / CF) en même temps.",
+                "Pas plus de 2 internes absents (CA / CF) en même temps. Toutes les vacances sont validées par le Chef dans l'Espace Chef.",
+                "Notification automatique dans l'Espace Chef lorsqu'un jour bloque (TDM SAU découvert, >2 absents, Relecture Mardi PM, cours/biblio sans interne) et qu'une décision doit être prise.",
                 "Noé GRANDVAL (Phase Socle) est doublé-posté uniquement aux Urgences (TDM SAU) et posté avec Dr Macil HAMADOUCHE (MH) le mardi matin les 3 premières semaines.",
                 "Pas d'interne en Échographie avec le Dr Fabrice THÉVENIN sur le mois de novembre (mercredi matin).",
                 "Les vacations fermées (FERMÉ / MAINTENANCE) sont affichées directement sur le planning.",
@@ -2172,7 +2178,9 @@ def build_full_dataset() -> dict:
         "curriculumCours": CURRICULUM_COURS,
         "absences": absences,
         "customVacations": {},
+        "chefDecisions": {},
         "interneGardes": {},
+        "baseSchedule": base_schedule,
         "schedule": schedule,
         "presentations": presentations,
         "meetings": meetings,
@@ -2239,6 +2247,39 @@ def sync_initial_state_to_cloud(dataset: dict):
         return json.loads(resp.read().decode("utf-8"))
 
 
+def push_to_prod_github(commit_msg: str | None = None) -> dict:
+    """
+    Pousse systématiquement en production sur GitHub Pages (https://github.com/Mrthomaslef/agenda-internes.git)
+    toutes les mises à jour réalisées sur l'application Planning Internes.
+    """
+    repo_url = "https://github.com/Mrthomaslef/agenda-internes.git"
+    cwd = str(BASE_DIR)
+
+    if not (BASE_DIR / ".git").exists():
+        subprocess.run(["git", "init", "-b", "main"], cwd=cwd, check=False, capture_output=True)
+        subprocess.run(["git", "remote", "add", "origin", repo_url], cwd=cwd, check=False, capture_output=True)
+        subprocess.run(["git", "fetch", "origin", "main"], cwd=cwd, check=False, capture_output=True)
+        subprocess.run(["git", "branch", "--set-upstream-to=origin/main", "main"], cwd=cwd, check=False, capture_output=True)
+
+    subprocess.run(["git", "add", "-A"], cwd=cwd, check=True, capture_output=True)
+    status = subprocess.run(["git", "status", "--porcelain"], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+    if not status:
+        return {"status": "up_to_date", "message": "Aucun changement local à pousser"}
+
+    if not commit_msg:
+        ts = datetime.datetime.now().strftime("%d/%m/%Y %H:%M")
+        commit_msg = f"Mise à jour automatique Planning Internes ({ts})"
+
+    subprocess.run(["git", "commit", "-m", commit_msg], cwd=cwd, check=True, capture_output=True, text=True)
+    push_res = subprocess.run(["git", "push", "origin", "main"], cwd=cwd, check=False, capture_output=True, text=True)
+    if push_res.returncode != 0:
+        subprocess.run(["git", "pull", "--rebase", "-X", "ours", "origin", "main"], cwd=cwd, check=False, capture_output=True)
+        push_res = subprocess.run(["git", "push", "origin", "main"], cwd=cwd, check=True, capture_output=True, text=True)
+
+    head_sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
+    return {"status": "pushed", "commit": head_sha, "message": commit_msg}
+
+
 if __name__ == "__main__":
     data = build_full_dataset()
     DATA_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -2248,3 +2289,9 @@ if __name__ == "__main__":
         print("Cloud sync result:", res)
     except Exception as e:
         print("Cloud sync warning:", e)
+    try:
+        gen_script = BASE_DIR / "generate_internes_app.py"
+        if gen_script.exists():
+            subprocess.run(["python3", str(gen_script)], cwd=str(BASE_DIR), check=True)
+    except Exception as e:
+        print("App generation / prod push warning:", e)
