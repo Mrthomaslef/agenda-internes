@@ -4487,6 +4487,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const todayAm = daySched ? daySched.am : "—";
       const todayPm = daySched ? daySched.pm : "—";
+      const isTodayAmMand = isMandatoryVacationSlot(currentDateIso, "am", todayAm);
+      const isTodayPmMand = isMandatoryVacationSlot(currentDateIso, "pm", todayPm);
       const gIntToday = getInterneGardeInfo(currentDateIso);
       const isMeGardeToday = Boolean(gIntToday && gIntToday.interneId === me.id);
 
@@ -4502,8 +4504,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
             <div class="summary-sub">
               <span>${formatDateFr(currentDateIso)} :</span>
-              <span class="poste-pill ${getPosteClass(todayAm)}">Matin : ${getPosteWithTimeLabel(todayAm, "am")}</span>
-              <span class="poste-pill ${getPosteClass(todayPm)}">PM : ${getPosteWithTimeLabel(todayPm, "pm")}</span>
+              <span class="poste-pill ${getPosteClass(todayAm)} ${isTodayAmMand ? 'poste-mandatory-slot' : ''}">${isTodayAmMand ? '<span class="mandatory-dot"></span> ' : ''}Matin : ${getPosteWithTimeLabel(todayAm, "am")}</span>
+              <span class="poste-pill ${getPosteClass(todayPm)} ${isTodayPmMand ? 'poste-mandatory-slot' : ''}">${isTodayPmMand ? '<span class="mandatory-dot"></span> ' : ''}PM : ${getPosteWithTimeLabel(todayPm, "pm")}</span>
               ${daySched && daySched.note ? `<span class="tag-binome">${daySched.note}</span>` : ""}
             </div>
           </div>
@@ -4685,6 +4687,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="poste-pill poste-echo">Écho : 09h00</span>
           <span class="poste-pill poste-gestes">Poste C : 09h00</span>
           <span class="poste-pill poste-cs">Consult. Internes : Mar PM (Relecture Pr Drapé) & Ven PM</span>
+          <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T mar. AM, Relecture mar. PM, IRM 3T/1,5T mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
         </div>
       `;
 
@@ -4955,13 +4958,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 </span>`;
               }).join("") + `</div>`;
             }
+            const isMandatorySec = sec.intMatch.some(p => isMandatoryVacationSlot(dIso, periodKey, p));
             const canDrop = isChefPlanningMode;
             const isTapTarget = canDrop && selectedForMove && selectedForMove.dIso === dIso && selectedForMove.periodKey === periodKey;
-            const tdClass = canDrop ? `drop-zone-cell ${isTapTarget ? 'tap-target-ready' : ''}` : "";
+            const tdClass = [
+              canDrop ? "drop-zone-cell" : "",
+              isTapTarget ? "tap-target-ready" : "",
+              isMandatorySec ? "cell-mandatory-vacation" : ""
+            ].filter(Boolean).join(" ");
             const tdAttrs = canDrop
               ? `ondragover="onCellDragOver(event, '${dIso}', '${periodKey}')" ondragleave="onCellDragLeave(event)" ondrop="onCellDrop(event, '${dIso}', '${periodKey}', '${escPoste}')" onclick="onChefCellClick(event, '${dIso}', '${periodKey}', '${escPoste}')"`
               : "";
-            rows += `<td class="${tdClass}" ${tdAttrs}>${cellHtml || '<span style="color:#CBD5E1">—</span>'}</td>`;
+            rows += `<td class="${tdClass}" ${tdAttrs} ${isMandatorySec ? 'title="Vacation obligatoire prioritaire"' : ''}>${cellHtml || '<span style="color:#CBD5E1">—</span>'}</td>`;
           });
           rows += `</tr>`;
         });
@@ -5031,6 +5039,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         days.forEach(dIso => {
           const dObj = STATE.schedule[dIso] || {};
           const slot = (dObj.byInterne && dObj.byInterne[me.id]) ? dObj.byInterne[me.id] : { am: "—", pm: "—", note: "" };
+          const isAmMand = isMandatoryVacationSlot(dIso, "am", slot.am);
+          const isPmMand = isMandatoryVacationSlot(dIso, "pm", slot.pm);
           const presList = STATE.presentations.filter(p => p.date === dIso && (p.interneId === me.id || (p.interneName && p.interneName.toLowerCase().includes(me.shortName.toLowerCase()))));
           const gInt = getInterneGardeInfo(dIso);
           const isMeOnGarde = Boolean(gInt && gInt.interneId === me.id);
@@ -5040,13 +5050,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <span>${formatShortDayHeader(dIso)}</span>
                 ${isMeOnGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 5px;">🌙 Garde ce soir</span>` : ""}
               </div>
-              <div style="margin-bottom:5px;">
-                <div style="font-size:8.5px; color:var(--text-muted); font-weight:700;">MATIN</div>
-                <span class="poste-pill ${getPosteClass(slot.am)}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.am, "am")}</span>
+              <div style="margin-bottom:5px; ${isAmMand ? 'background:#FFF5F5; border-left:2.5px solid #FCA5A5; padding:2px 4px; border-radius:5px;' : ''}">
+                <div style="font-size:8.5px; color:${isAmMand ? '#9F1239' : 'var(--text-muted)'}; font-weight:700; display:flex; align-items:center; gap:3px;">MATIN ${isAmMand ? '<span class="mandatory-dot" title="Vacation obligatoire"></span>' : ''}</div>
+                <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.am, "am")}</span>
               </div>
-              <div>
-                <div style="font-size:8.5px; color:var(--text-muted); font-weight:700;">APRÈS-MIDI</div>
-                <span class="poste-pill ${getPosteClass(slot.pm)}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.pm, "pm")}</span>
+              <div style="${isPmMand ? 'background:#FFF5F5; border-left:2.5px solid #FCA5A5; padding:2px 4px; border-radius:5px;' : ''}">
+                <div style="font-size:8.5px; color:${isPmMand ? '#9F1239' : 'var(--text-muted)'}; font-weight:700; display:flex; align-items:center; gap:3px;">APRÈS-MIDI ${isPmMand ? '<span class="mandatory-dot" title="Vacation obligatoire"></span>' : ''}</div>
+                <span class="poste-pill ${getPosteClass(slot.pm)} ${isPmMand ? 'poste-mandatory-slot' : ''}" style="margin-top:2px;">${getPosteWithTimeLabel(slot.pm, "pm")}</span>
               </div>
               ${slot.note ? `<div style="font-size:9.5px; color:#0369A1; font-weight:700; margin-top:4px;">${slot.note}</div>` : ''}
               ${isMeOnGarde ? `<div style="font-size:9.5px; color:#991B1B; font-weight:800; margin-top:4px;">🌙 Garde Radio (RG demain)</div>` : ''}
@@ -5083,24 +5093,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               return;
             }
             const matches = (dObj[periodKey] || []).filter(x => x.poste === posteName);
+            const isMandatoryCell = isMandatoryVacationSlot(dIso, periodKey, posteName);
             const cellIssue = inChefSpace ? (blocking.byDate[dIso] || []).find(iss => iss.periodKey === periodKey && iss.poste === posteName) : null;
             const canDrop = isChefPlanningMode;
             const isTapTarget = canDrop && selectedForMove && selectedForMove.dIso === dIso && selectedForMove.periodKey === periodKey;
             const tdClass = [
               canDrop ? "drop-zone-cell" : "",
               isTapTarget ? "tap-target-ready" : "",
-              cellIssue ? "cell-blocking-alert" : ""
+              cellIssue ? "cell-blocking-alert" : (isMandatoryCell ? "cell-mandatory-vacation" : "")
             ].filter(Boolean).join(" ");
             const tdAttrs = canDrop
               ? `ondragover="onCellDragOver(event, '${dIso}', '${periodKey}')" ondragleave="onCellDragLeave(event)" ondrop="onCellDrop(event, '${dIso}', '${periodKey}', '${escPoste}')" onclick="onChefCellClick(event, '${dIso}', '${periodKey}', '${escPoste}')"`
               : "";
+            const mandatoryTitleAttr = isMandatoryCell ? `title="Vacation obligatoire prioritaire (${posteName})"` : "";
 
             const issueBannerHtml = cellIssue
               ? `<div style="margin-top:2px;"><span class="poste-pill poste-rg" style="font-size:9px; background:#DC2626; color:#FFF;">À couvrir</span></div>`
               : "";
 
             if (matches.length === 0) {
-              rowsHtml += `<td class="${tdClass}" ${tdAttrs} style="color:#CBD5E1">${cellIssue ? issueBannerHtml : '—'}</td>`;
+              rowsHtml += `<td class="${tdClass}" ${tdAttrs} ${mandatoryTitleAttr} style="color:#CBD5E1">${cellIssue ? issueBannerHtml : '—'}</td>`;
             } else {
               const [yy, mm, dd] = dIso.split("-").map(Number);
               const jsDay = new Date(yy, mm - 1, dd).getDay();
@@ -5143,7 +5155,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   ${vacStatusHtml}
                 </span>`;
               }).join(" ");
-              rowsHtml += `<td class="${tdClass}" ${tdAttrs}>${badges}${issueBannerHtml}</td>`;
+              rowsHtml += `<td class="${tdClass}" ${tdAttrs} ${mandatoryTitleAttr}>${badges}${issueBannerHtml}</td>`;
             }
           });
           rowsHtml += `</tr>`;
@@ -5270,6 +5282,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         const pmEsc = String(slot.pm || "").replace(/'/g, "\\'");
         const isSelAm = isChefPlanningMode && selectedForMove && selectedForMove.interneId === i.id && selectedForMove.dIso === iso && selectedForMove.periodKey === "am";
         const isSelPm = isChefPlanningMode && selectedForMove && selectedForMove.interneId === i.id && selectedForMove.dIso === iso && selectedForMove.periodKey === "pm";
+        const isAmMand = isMandatoryVacationSlot(iso, "am", slot.am);
+        const isPmMand = isMandatoryVacationSlot(iso, "pm", slot.pm);
         const isDJ = Boolean(i.isDJ || i.id === "oussama");
         const isOnGardeTonight = Boolean(gInt && gInt.interneId === i.id);
 
@@ -5291,15 +5305,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ${isOnGardeTonight ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 5px;">🌙 Garde ce soir</span>` : ""}
               </div>
             </td>
-            <td class="${isChefPlanningMode ? 'drop-zone-cell' : ''}" ${amDragAttrs}>
-              <span class="poste-pill ${getPosteClass(slot.am)} ${isChefPlanningMode ? 'draggable-interne' : ''} ${isSelAm ? 'selected-for-move' : ''}">
+            <td class="${[isChefPlanningMode ? 'drop-zone-cell' : '', isAmMand ? 'cell-mandatory-vacation' : ''].filter(Boolean).join(' ')}" ${amDragAttrs} ${isAmMand ? 'title="Vacation obligatoire prioritaire"' : ''}>
+              <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''} ${isChefPlanningMode ? 'draggable-interne' : ''} ${isSelAm ? 'selected-for-move' : ''}">
                 ${isChefPlanningMode ? `<span class="drag-grip">⋮⋮</span>` : ""}
+                ${isAmMand ? `<span class="mandatory-dot"></span>` : ""}
                 ${getPosteWithTimeLabel(slot.am, "am")}
               </span>
             </td>
-            <td class="${isChefPlanningMode ? 'drop-zone-cell' : ''}" ${pmDragAttrs}>
-              <span class="poste-pill ${getPosteClass(slot.pm)} ${isChefPlanningMode ? 'draggable-interne' : ''} ${isSelPm ? 'selected-for-move' : ''}">
+            <td class="${[isChefPlanningMode ? 'drop-zone-cell' : '', isPmMand ? 'cell-mandatory-vacation' : ''].filter(Boolean).join(' ')}" ${pmDragAttrs} ${isPmMand ? 'title="Vacation obligatoire prioritaire"' : ''}>
+              <span class="poste-pill ${getPosteClass(slot.pm)} ${isPmMand ? 'poste-mandatory-slot' : ''} ${isChefPlanningMode ? 'draggable-interne' : ''} ${isSelPm ? 'selected-for-move' : ''}">
                 ${isChefPlanningMode ? `<span class="drag-grip">⋮⋮</span>` : ""}
+                ${isPmMand ? `<span class="mandatory-dot"></span>` : ""}
                 ${getPosteWithTimeLabel(slot.pm, "pm")}
               </span>
             </td>
@@ -5370,6 +5386,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       daysInMonth.forEach(dIso => {
         const dObj = STATE.schedule[dIso];
         const slot = (dObj.byInterne && dObj.byInterne[targetId]) ? dObj.byInterne[targetId] : null;
+        const isAmMand = slot ? isMandatoryVacationSlot(dIso, "am", slot.am) : false;
+        const isPmMand = slot ? isMandatoryVacationSlot(dIso, "pm", slot.pm) : false;
         const gInt = getInterneGardeInfo(dIso);
         const isMeOnGarde = Boolean(gInt && gInt.interneId === targetId);
         cells += `
@@ -5379,8 +5397,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               ${isMeOnGarde ? `<span class="poste-pill poste-rg" style="font-size:9px; padding:1px 4px;">🌙 Garde</span>` : ""}
             </div>
             ${dObj.holiday ? `<span class="poste-pill poste-rg">Férié</span>` : (slot ? `
-              <span class="poste-pill ${getPosteClass(slot.am)}" style="font-size:10.5px; padding:2px 6px;">M: ${getPosteWithTimeLabel(slot.am, "am")}</span>
-              <span class="poste-pill ${getPosteClass(slot.pm)}" style="font-size:10.5px; padding:2px 6px;">PM: ${getPosteWithTimeLabel(slot.pm, "pm")}</span>
+              <span class="poste-pill ${getPosteClass(slot.am)} ${isAmMand ? 'poste-mandatory-slot' : ''}" style="font-size:10.5px; padding:2px 6px;">${isAmMand ? '<span class="mandatory-dot"></span> ' : ''}M: ${getPosteWithTimeLabel(slot.am, "am")}</span>
+              <span class="poste-pill ${getPosteClass(slot.pm)} ${isPmMand ? 'poste-mandatory-slot' : ''}" style="font-size:10.5px; padding:2px 6px;">${isPmMand ? '<span class="mandatory-dot"></span> ' : ''}PM: ${getPosteWithTimeLabel(slot.pm, "pm")}</span>
             ` : `—`)}
           </div>
         `;
