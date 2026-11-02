@@ -2330,7 +2330,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     const MANDATORY_WEEKLY_POSTES_MAP = {
       "1_am": ["ECHO"],
       "1_pm": ["IRM"],
-      "2_am": ["GESTES (C)", "IRM 3T"],
+      "2_am": ["GESTES (C)", "IRM 3T", "IRM 1,5T"],
       "2_pm": ["LECTURE/CS"],
       "3_am": ["IRM 3T", "IRM 1,5T"],
       "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
@@ -2435,7 +2435,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const mandatoryWeeklyPostes = {
         "1_am": ["ECHO"],
         "1_pm": ["IRM"],
-        "2_am": ["GESTES (C)", "IRM 3T"],
+        "2_am": ["GESTES (C)", "IRM 3T", "IRM 1,5T"],
         "2_pm": ["LECTURE/CS"],
         "3_am": ["IRM 3T", "IRM 1,5T"],
         "3_pm": ["GESTES (C)", "IRM", "SCAN ACHARD", "ECHO"],
@@ -4979,7 +4979,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="poste-pill poste-echo">Écho : 09h00</span>
           <span class="poste-pill poste-gestes">Poste C : 09h00</span>
           <span class="poste-pill poste-cs">Consult. Internes : Mar PM (Relecture Pr Drapé) & Ven PM</span>
-          <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T mar. AM, Relecture mar. PM, IRM 3T/1,5T mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
+          <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
         </div>
       `;
 
