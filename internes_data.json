@@ -1,8 +1,8 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-02T19:44:59.233991+00:00",
-  "chefValidatedAt": "2026-11-02T19:44:47.312Z",
-  "chefRevision": 12,
+  "updatedAt": "2026-11-02T19:47:47.563712+00:00",
+  "chefValidatedAt": "2026-11-02T19:47:38.808Z",
+  "chefRevision": 21,
   "deletedAbsenceIds": [],
   "deletedCustomKeys": [],
   "semester": {
@@ -1236,6 +1236,54 @@
       "status": "approved",
       "validatedBy": "Chef",
       "validatedAt": "2026-11-02T19:44:40.928Z"
+    },
+    "2026-11-04__nathanael": {
+      "am": "TDM OLLIER DIAG",
+      "pm": "ECHO",
+      "note": "",
+      "status": "approved",
+      "validatedBy": "Chef",
+      "validatedAt": "2026-11-02T19:46:35.706Z"
+    },
+    "2026-11-04__gabriel": {
+      "am": "IRM 1,5T",
+      "pm": "TDM SAU",
+      "note": "",
+      "status": "approved",
+      "validatedBy": "Chef",
+      "validatedAt": "2026-11-02T19:46:54.872Z"
+    },
+    "2026-11-04__noe": {
+      "am": "IRM 3T",
+      "pm": "TDM SAU",
+      "note": "Vacation obligatoire (IRM 3T) • Échographie (avec Dr Mihoubi)",
+      "status": "approved",
+      "validatedBy": "Chef",
+      "validatedAt": "2026-11-02T19:46:41.265Z"
+    },
+    "2026-11-04__milan": {
+      "am": "1/2 journée libre",
+      "pm": "SCAN ACHARD",
+      "note": "Remplacement TDM SAU (permanence obligatoire)",
+      "status": "approved",
+      "validatedBy": "Chef",
+      "validatedAt": "2026-11-02T19:46:42.177Z"
+    },
+    "2026-11-04__oussama": {
+      "am": "TDM SAU",
+      "pm": "GESTES (C)",
+      "note": "Remplacement TDM SAU (permanence obligatoire)",
+      "status": "approved",
+      "validatedBy": "Chef",
+      "validatedAt": "2026-11-02T19:46:54.872Z"
+    },
+    "2026-11-03__nathanael": {
+      "am": "GESTES (C)",
+      "pm": "LECTURE",
+      "note": "Relecture avec Pr Drapé (systématique)",
+      "status": "approved",
+      "validatedBy": "Chef",
+      "validatedAt": "2026-11-02T19:47:38.808Z"
     }
   },
   "chefDecisions": {},

@@ -3203,6 +3203,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             return cnt;
           };
 
+          const countWeekSauHalfJs = (interneId, halfKey) => {
+            let cnt = 0;
+            activeIsos.forEach(dChk => {
+              const sl = st.schedule[dChk] && st.schedule[dChk].byInterne && st.schedule[dChk].byInterne[interneId];
+              if (sl && sl[halfKey] === "TDM SAU") cnt++;
+            });
+            return cnt;
+          };
+
           const countWeekIrmPmJs = (interneId) => {
             let cnt = 0;
             activeIsos.forEach(dChk => {
@@ -3229,12 +3238,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               if (sauCounts[overSid] > 3) {
                 underSids = [...underSids, ...seniorIds.filter(sId => sauCounts[sId] === 2)];
               }
+              const overHalves = countWeekSauHalfJs(overSid, "am") >= countWeekSauHalfJs(overSid, "pm") ? ["am", "pm"] : ["pm", "am"];
               // 1. Échange direct sur la même demi-journée
               for (const underSid of underSids) {
                 for (const dIso of activeIsos) {
                   if (dIso === "2026-11-02") continue;
                   const byInt = st.schedule[dIso].byInterne;
-                  for (const h of ["am", "pm"]) {
+                  for (const h of overHalves) {
                     const otherH = h === "am" ? "pm" : "am";
                     if (custom[dIso + "__" + overSid] && custom[dIso + "__" + overSid][h]) continue;
                     if (custom[dIso + "__" + underSid] && custom[dIso + "__" + underSid][h]) continue;
@@ -3266,7 +3276,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   for (const dIso of activeIsos) {
                     if (dIso === "2026-11-02") continue;
                     const byInt = st.schedule[dIso].byInterne;
-                    for (const h of ["am", "pm"]) {
+                    for (const h of overHalves) {
                       const otherH = h === "am" ? "pm" : "am";
                       if (custom[dIso + "__" + overSid] && custom[dIso + "__" + overSid][h]) continue;
                       if (custom[dIso + "__" + midSid] && custom[dIso + "__" + midSid][h]) continue;
@@ -3410,6 +3420,60 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             }
             if (!fixedSame) break;
           }
+
+          // 2B-quinquies. Équilibrage des vacations TDM SAU Matin (am) et Après-midi (pm) dans la limite du possible
+          const canSwapSauHalfJs = (dIso, hKey, fromSid, toSid) => {
+            if (dIso === "2026-11-02") return false;
+            if (custom[dIso + "__" + fromSid] && custom[dIso + "__" + fromSid][hKey]) return false;
+            if (custom[dIso + "__" + toSid] && custom[dIso + "__" + toSid][hKey]) return false;
+            const byS = st.schedule[dIso].byInterne;
+            if (!byS[fromSid] || byS[fromSid][hKey] !== "TDM SAU" || !byS[toSid]) return false;
+            const otherP = byS[toSid][hKey];
+            if (!otherP || nonActivePostes.includes(otherP) || otherP === "TDM SAU") return false;
+            const otherH = hKey === "am" ? "pm" : "am";
+            if (isSamePosteDayJs(otherP, byS[fromSid][otherH]) || isSamePosteDayJs("TDM SAU", byS[toSid][otherH])) return false;
+            if (hKey === "pm" && otherP === "IRM" && countWeekIrmPmJs(fromSid) >= 1) return false;
+            return true;
+          };
+          const execSwapSauHalfJs = (dIso, hKey, fromSid, toSid) => {
+            const byS = st.schedule[dIso].byInterne;
+            const nk = hKey === "am" ? "noteAm" : "notePm";
+            const pOther = byS[toSid][hKey];
+            const nOther = byS[toSid][nk] || "";
+            byS[fromSid][hKey] = pOther;
+            byS[fromSid][nk] = nOther;
+            byS[toSid][hKey] = "TDM SAU";
+            byS[toSid][nk] = "";
+          };
+          for (let iterSauBal = 0; iterSauBal < 20; iterSauBal++) {
+            let swappedBal = false;
+            for (const sidA of seniorIds) {
+              const wAmA = countWeekSauHalfJs(sidA, "am");
+              const wPmA = countWeekSauHalfJs(sidA, "pm");
+              if (wAmA - wPmA < 2) continue;
+              for (const sidB of seniorIds) {
+                if (sidB === sidA) continue;
+                const wAmB = countWeekSauHalfJs(sidB, "am");
+                const wPmB = countWeekSauHalfJs(sidB, "pm");
+                if (wPmB - wAmB < 2) continue;
+                const dAm = activeIsos.find(d => canSwapSauHalfJs(d, "am", sidA, sidB));
+                if (!dAm) continue;
+                const dPm = activeIsos.find(d => d !== dAm && canSwapSauHalfJs(d, "pm", sidB, sidA));
+                if (dAm && dPm) {
+                  execSwapSauHalfJs(dAm, "am", sidA, sidB);
+                  execSwapSauHalfJs(dPm, "pm", sidB, sidA);
+                  swappedBal = true;
+                  break;
+                }
+              }
+              if (swappedBal) break;
+            }
+            if (!swappedBal) break;
+          }
+          allIidsJs.forEach(id => {
+            totalSauAmCounts[id] = (totalSauAmCounts[id] || 0) + countWeekSauHalfJs(id, "am");
+            totalSauPmCounts[id] = (totalSauPmCounts[id] || 0) + countWeekSauHalfJs(id, "pm");
+          });
         }
 
         // 2C. Mise à jour des notes de binôme de Noé (Phase Socle)
@@ -3528,7 +3592,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           casMardi: 0,
           biblioVendredi: 0,
           coursInternes: 0,
-          byModality: { TDM_SAU: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, CONSULTATION: 0, LECTURE: 0, LECTURE_CS: 0 }
+          byModality: { TDM_SAU: 0, TDM_SAU_AM: 0, TDM_SAU_PM: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, CONSULTATION: 0, LECTURE: 0, LECTURE_CS: 0 }
         };
       });
 
@@ -3578,6 +3642,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
               else if (up.includes("SAU") || up.includes("OLLIER 4")) {
                 stats[iid].byModality.TDM_SAU++;
+                if (hKey === "am") stats[iid].byModality.TDM_SAU_AM++;
+                else stats[iid].byModality.TDM_SAU_PM++;
                 stats[iid].byModality.TDM++;
               }
               else if (up.includes("GESTES") || up.includes("ALLURA")) stats[iid].byModality.RI_GESTES++;
@@ -3616,6 +3682,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           weekOff: 0,
           weekOffSlots: [],
           weekSau: 0,
+          weekSauAm: 0,
+          weekSauPm: 0,
           weekAchard: 0,
           weekOllier: 0,
           weekIrmAm: 0,
@@ -3648,7 +3716,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               weekStats[iid].weekRgHalf++;
             } else if (up !== "FÉRIÉ") {
               weekStats[iid].weekVac++;
-              if (up.includes("SAU") || up.includes("OLLIER 4")) weekStats[iid].weekSau++;
+              if (up.includes("SAU") || up.includes("OLLIER 4")) {
+                weekStats[iid].weekSau++;
+                if (hKey === "am") weekStats[iid].weekSauAm++;
+                else weekStats[iid].weekSauPm++;
+              }
               else if (up.includes("ACHARD")) weekStats[iid].weekAchard++;
               else if (up.includes("OLLIER DIAG") || up.includes("OLLIER 3") || up === "TDM OLLIER") weekStats[iid].weekOllier++;
               else if (up.includes("IRM")) {
@@ -3674,7 +3746,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       let cardsHtml = "";
       STATE.internes.forEach(i => {
-        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, weekIrmPm: 0, sauTarget: i.isSocle ? 3 : 2, weekCongesHalf: 0, weekRgHalf: 0 };
+        const w = weekStats[i.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, weekSauAm: 0, weekSauPm: 0, weekIrmPm: 0, sauTarget: i.isSocle ? 3 : 2, weekCongesHalf: 0, weekRgHalf: 0 };
         const absHalf = w.weekCongesHalf + w.weekRgHalf;
         const isFullWeekAbs = absHalf >= 8;
 
@@ -3707,7 +3779,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               </div>
               <div class="chef-offvac-badges">
                 <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
-                <span class="offvac-pill ${sauPillClass}" title="Quota Scanner SAU : ${w.sauTarget} / semaine (plus exceptionnellement)">${w.weekSau}/${w.sauTarget} SAU</span>
+                <span class="offvac-pill ${sauPillClass}" title="Quota Scanner SAU : ${w.sauTarget} / semaine (${w.weekSauAm || 0} Matin / ${w.weekSauPm || 0} PM)">${w.weekSau}/${w.sauTarget} SAU (${w.weekSauAm || 0}M/${w.weekSauPm || 0}PM)</span>
                 <span class="offvac-pill ${irmPmPillClass}" title="Quota IRM d'après-midi : max 1 / semaine (sauf exception)">${w.weekIrmPm}/1 IRM PM</span>
                 <span class="offvac-pill vac-count">${w.weekVac}v</span>
               </div>
@@ -6660,12 +6732,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               <span class="offvac-pill ${offClass}">${w.weekOff}/2 Off</span>
               ${w.weekOffSlots.length ? `<div style="font-size:10px; color:#64748B; margin-top:2px;">${w.weekOffSlots.join(" • ")}</div>` : ""}
             </td>
-            <td><span class="offvac-pill ${sauClass}">${w.weekSau}/${sauTarget} SAU</span></td>
+            <td>
+              <span class="offvac-pill ${sauClass}">${w.weekSau}/${sauTarget} SAU</span>
+              ${w.weekSau ? `<div style="font-size:10px; color:#64748B; margin-top:2px;">${w.weekSauAm || 0}M / ${w.weekSauPm || 0}PM</div>` : ""}
+            </td>
             <td><span class="offvac-pill ${irmPmClass}">${w.weekIrmPm || 0}/1 IRM PM</span></td>
             <td><span class="offvac-pill vac-count">${w.weekVac} vac.</span></td>
             <td><strong>${s.activeHalfDays}</strong></td>
             <td><strong>${s.freeHalfDays}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.freeAmHalfDays || 0}M/${s.freePmHalfDays || 0}PM)</span></td>
-            <td><strong>${s.byModality.TDM_SAU || 0}</strong></td>
+            <td><strong>${s.byModality.TDM_SAU || 0}</strong> <span style="font-size:10px; color:var(--text-muted);">(${s.byModality.TDM_SAU_AM || 0}M/${s.byModality.TDM_SAU_PM || 0}PM)</span></td>
             <td>${s.byModality.SCAN_ACHARD || 0}</td>
             <td>${s.byModality.TDM_OLLIER || 0}</td>
             <td>${s.byModality.IRM_AM || 0}</td>
@@ -7671,7 +7746,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <strong style="color:#0F172A; font-size:12px;">📊 Bilan ${iObj.shortName} (${formatShortDayHeader(monIso)}–${formatShortDayHeader(friIso)})</strong>
           <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
             <span class="offvac-pill ${offPillClass}">${w.weekOff}/2 Off</span>
-            <span class="offvac-pill ${sauPillClass}">${w.weekSau}/${sauTarget} SAU</span>
+            <span class="offvac-pill ${sauPillClass}">${w.weekSau}/${sauTarget} SAU (${w.weekSauAm || 0}M/${w.weekSauPm || 0}PM)</span>
             <span class="offvac-pill ${irmPmPillClass}">${w.weekIrmPm || 0}/1 IRM PM</span>
             <span class="offvac-pill vac-count">${w.weekVac} Vac. sem.</span>
             ${w.weekCongesHalf > 0 ? `<span class="offvac-pill conges-count">${w.weekCongesHalf / 2}j Cong.</span>` : ""}
@@ -7682,7 +7757,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <strong>Créneaux Off cette semaine :</strong> ${w.weekOffSlots.length ? w.weekOffSlots.join(" • ") : "Aucun demi-off"}
         </div>
         <div style="font-size:11px; color:#475569; margin-bottom:6px;">
-          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. (SAU: <strong>${(s.byModality && s.byModality.TDM_SAU) || 0}</strong> • Achard: <strong>${(s.byModality && s.byModality.SCAN_ACHARD) || 0}</strong> • Ollier: <strong>${(s.byModality && s.byModality.TDM_OLLIER) || 0}</strong> • IRM Mat: <strong>${(s.byModality && s.byModality.IRM_AM) || 0}</strong> • IRM PM: <strong>${(s.byModality && s.byModality.IRM_PM) || 0}</strong>) • <strong>${s.freeHalfDays}</strong> demi-offs
+          <strong>Cumul Semestre :</strong> <strong>${s.activeHalfDays}</strong> vac. (SAU: <strong>${(s.byModality && s.byModality.TDM_SAU) || 0}</strong> <span style="font-size:10px;">(${(s.byModality && s.byModality.TDM_SAU_AM) || 0}M/${(s.byModality && s.byModality.TDM_SAU_PM) || 0}PM)</span> • Achard: <strong>${(s.byModality && s.byModality.SCAN_ACHARD) || 0}</strong> • Ollier: <strong>${(s.byModality && s.byModality.TDM_OLLIER) || 0}</strong> • IRM Mat: <strong>${(s.byModality && s.byModality.IRM_AM) || 0}</strong> • IRM PM: <strong>${(s.byModality && s.byModality.IRM_PM) || 0}</strong>) • <strong>${s.freeHalfDays}</strong> demi-offs
         </div>
         ${samePosteAllDay ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : un interne ne peut pas faire le même poste toute la journée (${am} matin et après-midi).</div>` : ""}
         ${forbiddenPmOff ? `<div style="font-size:11px; color:#B91C1C; font-weight:800; margin-bottom:5px;">⛔ Règle du service : pas de demi-off le mardi après-midi ni le vendredi après-midi.</div>` : ""}
