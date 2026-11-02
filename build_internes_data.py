@@ -2697,32 +2697,7 @@ def sync_initial_state_to_cloud(dataset: dict):
       }});
       props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(cur));
     }}
-    var sheetUpdated = 0;
-    try {{
-      var ssInt = SpreadsheetApp.openById('{INTERNES_SHEET_ID}');
-      var shAbs = ssInt.getSheetByName('Planning Absence');
-      if (shAbs) {{
-        var data = shAbs.getDataRange().getDisplayValues();
-        var rowByDate = {{}};
-        for (var r = 1; r < data.length; r++) {{
-          var dStr = String(data[r][0] || '').trim();
-          if (dStr) rowByDate[dStr] = r + 1;
-        }}
-        (incoming.absences || []).forEach(function(a) {{
-          if (!a || a.type !== 'Repos de garde') return;
-          var p = a.date.split('-');
-          var k = p[2] + '/' + p[1] + '/' + p[0].slice(2);
-          if (rowByDate[k]) {{
-            var curVal = String(data[rowByDate[k] - 1][1] || '').trim();
-            if (curVal !== a.interneName) {{
-              shAbs.getRange(rowByDate[k], 2).setValue(a.interneName);
-              sheetUpdated++;
-            }}
-          }}
-        }});
-      }}
-    }} catch (e) {{}}
-    return {{ status: 'verified_cloud', presentations: incoming.presentations.length, absences: incoming.absences.length, gardes: Object.keys(incoming.interneGardes || {{}}).length, sheetRgUpdated: sheetUpdated }};
+    return {{ status: 'verified_cloud', presentations: incoming.presentations.length, absences: incoming.absences.length, gardes: Object.keys(incoming.interneGardes || {{}}).length }};
     """
     req = urllib.request.Request(
         WEBHOOK_URL,
