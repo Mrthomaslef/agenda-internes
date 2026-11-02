@@ -3495,7 +3495,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           casMardi: 0,
           biblioVendredi: 0,
           coursInternes: 0,
-          byModality: { TDM_SAU: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, LECTURE_CS: 0 }
+          byModality: { TDM_SAU: 0, SCAN_ACHARD: 0, TDM_OLLIER: 0, TDM: 0, IRM_AM: 0, IRM_PM: 0, IRM: 0, ECHO: 0, RI_GESTES: 0, CONSULTATION: 0, LECTURE: 0, LECTURE_CS: 0 }
         };
       });
 
@@ -3548,7 +3548,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 stats[iid].byModality.TDM++;
               }
               else if (up.includes("GESTES") || up.includes("ALLURA")) stats[iid].byModality.RI_GESTES++;
-              else if (up.includes("LECTURE") || up.includes("CS")) stats[iid].byModality.LECTURE_CS++;
+              else if (up.includes("CONSULT") || up === "CS") {
+                stats[iid].byModality.CONSULTATION++;
+                stats[iid].byModality.LECTURE_CS++;
+              }
+              else if (up.includes("LECTURE")) {
+                stats[iid].byModality.LECTURE++;
+                stats[iid].byModality.LECTURE_CS++;
+              }
               else stats[iid].byModality.TDM++;
             }
           });
@@ -3842,7 +3849,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const decisions = stateRef.chefDecisions || {};
       const seniorIds = ["gabriel", "marwane", "milan", "nathanael", "oussama"];
       const allInterneIds = ["gabriel", "noe", "marwane", "milan", "nathanael", "oussama"];
-      const donorPriority = ["TDM OLLIER DIAG", "SCAN ACHARD", "ECHO", "IRM 1,5T", "IRM", "IRM 3T", "ALLURA", "GESTES (C)", "LECTURE/CS", "1/2 journée libre"];
+      const donorPriority = ["TDM OLLIER DIAG", "SCAN ACHARD", "ECHO", "IRM 1,5T", "IRM", "IRM 3T", "ALLURA", "GESTES (C)", "CONSULTATION", "LECTURE", "1/2 journée libre"];
 
       const issues = [];
       const byDate = {};
@@ -3893,7 +3900,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 seniorIds.forEach(iid => {
                   const sl = dayObj.byInterne[iid];
                   if (!sl || sl[periodKey] !== candPoste) return;
-                  if (jsDay === 2 && periodKey === "pm" && candPoste === "LECTURE/CS") return;
+                  if (jsDay === 2 && periodKey === "pm" && candPoste === "LECTURE") return;
                   candidates.push({
                     interneId: iid,
                     shortName: getInterneById(iid).shortName,
@@ -3917,10 +3924,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
         }
 
-        // 2. Vérifier couverture obligatoire Mardi PM : Relecture avec Pr Drapé (LECTURE/CS)
+        // 2. Vérifier couverture obligatoire Mardi PM : Relecture avec Pr Drapé (LECTURE)
         if (jsDay === 2) {
-          const hasTueCs = Object.keys(dayObj.byInterne).some(iid => dayObj.byInterne[iid] && dayObj.byInterne[iid].pm === "LECTURE/CS");
-          if (!hasTueCs) {
+          const hasTueLecture = Object.keys(dayObj.byInterne).some(iid => dayObj.byInterne[iid] && (dayObj.byInterne[iid].pm === "LECTURE" || dayObj.byInterne[iid].pm === "LECTURE/CS"));
+          if (!hasTueLecture) {
             const candidates = [];
             donorPriority.forEach(candPoste => {
               seniorIds.forEach(iid => {
@@ -3938,11 +3945,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               id: `block-drape-${iso}-pm`,
               date: iso,
               periodKey: "pm",
-              poste: "LECTURE/CS",
+              poste: "LECTURE",
               severity: "critical",
               category: "relecture_drape",
               title: `Relecture Pr Drapé (Mardi PM) non couverte`,
-              detail: `Aucun interne affecté en LECTURE/CS le mardi après-midi pour la relecture systématique avec Pr Drapé.`,
+              detail: `Aucun interne affecté en LECTURE le mardi après-midi pour la relecture systématique avec Pr Drapé.`,
               candidates: candidates.slice(0, 3)
             });
           }
@@ -5290,7 +5297,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           <span class="poste-pill poste-tdm">TDM SAU : 08h00 – 18h30</span>
           <span class="poste-pill poste-echo">Écho : 09h00</span>
           <span class="poste-pill poste-gestes">Poste C : 09h00</span>
-          <span class="poste-pill poste-cs">Consult. Internes : Mar PM (Relecture Pr Drapé) & Ven PM</span>
+          <span class="poste-pill poste-cs">Consult. Internes : Mar PM & Ven PM (13h30–18h00)</span>
+          <span class="poste-pill poste-lecture">Lecture : Mar PM (Relecture Pr Drapé) & Ven PM</span>
           <span class="poste-pill poste-mandatory-slot" title="Vacations obligatoires prioritaires (TDM SAU permanent + Écho lun. AM, IRM lun. PM, Poste C & IRM 3T/1,5T mar. AM, Relecture mar. PM, IRM 3T/1,5T mer. AM, Poste C/IRM/Achard/Écho mer. PM, Écho & Poste C jeu. AM, IRM jeu. PM, IRM 3T ven. AM)"><span class="mandatory-dot"></span> Vacation obligatoire</span>
           <span class="poste-pill" style="background:#FEF3C7; color:#92400E; border:1px solid #F59E0B;" title="Case en jaune : vacation ouverte avec un Chef / Senior présent mais aucun interne prévu">🟨 Chef sans interne prévu</span>
         </div>
@@ -5499,7 +5507,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         { label: "TDM OLLIER", chefMatch: ["OLLIER 3"], intMatch: ["TDM OLLIER DIAG"], defaultPosteAm: "TDM OLLIER DIAG", defaultPostePm: "TDM OLLIER DIAG" },
         { label: "ALLURA", chefMatch: ["ALLURA"], intMatch: ["ALLURA"], defaultPosteAm: "ALLURA", defaultPostePm: "ALLURA" },
         { label: "IRM", chefMatch: ["IRM"], intMatch: ["IRM 3T", "IRM 1,5T", "IRM"], defaultPosteAm: "IRM 3T", defaultPostePm: "IRM" },
-        { label: "CONSULT / LECTURE", chefMatch: ["CONSULT", "UCSA"], intMatch: ["LECTURE/CS"], defaultPosteAm: "LECTURE/CS", defaultPostePm: "LECTURE/CS" },
+        { label: "CONSULTATION", chefMatch: ["CONSULT", "UCSA"], intMatch: ["CONSULTATION"], defaultPosteAm: "CONSULTATION", defaultPostePm: "CONSULTATION" },
+        { label: "LECTURE", chefMatch: [], intMatch: ["LECTURE"], defaultPosteAm: "LECTURE", defaultPostePm: "LECTURE", onlyIfPresent: true },
         { label: "DEMI-OFF", chefMatch: ["LIBRE"], intMatch: ["1/2 journée libre"], defaultPosteAm: "1/2 journée libre", defaultPostePm: "1/2 journée libre" },
         { label: "REPOS DE GARDE (RG)", chefMatch: [], intMatch: ["RG"], defaultPosteAm: "RG", defaultPostePm: "RG", onlyIfPresent: true }
       ];
@@ -5627,8 +5636,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function renderWeekPlanningView(monIso) {
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(monIso, off));
-      const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
-      const postesPm = ["GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "ECHO", "ALLURA", "LECTURE/CS", "1/2 journée libre", "RG", "VACANCES"];
+      const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "CONSULTATION", "LECTURE", "1/2 journée libre", "RG", "VACANCES"];
+      const postesPm = ["GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "ECHO", "ALLURA", "CONSULTATION", "LECTURE", "1/2 journée libre", "RG", "VACANCES"];
       const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
       const blocking = inChefSpace ? computeBlockingDays(STATE) : { byDate: {}, list: [] };
 
@@ -5708,7 +5717,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             return dObj[periodKey].some(x => x.poste === posteName);
           });
           if (!hasAny && posteName === "FORMATION / ACCUEIL") return;
-          if (periodKey === "am" && posteName === "LECTURE/CS" && !hasAny && !isChefPlanningMode) return;
+          if (periodKey === "am" && (posteName === "CONSULTATION" || posteName === "LECTURE") && !hasAny && !isChefPlanningMode) return;
           if (!isChefPlanningMode && !hasAny && (posteName === "RG" || posteName === "VACANCES")) return;
 
           const escPoste = posteName.replace(/'/g, "\\'");
@@ -5772,9 +5781,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const djHtml = (!isChefPlanningMode && (iObj.isDJ || iObj.id === "oussama")) ? `<span class="tag-dj">DJ</span>` : "";
                 let binomeHtml = "";
                 if (!isChefPlanningMode) {
-                  if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 2) {
+                  if (posteName === "LECTURE" && periodKey === "pm" && jsDay === 2) {
                     binomeHtml = `<span class="tag-binome">Relecture Pr Drapé</span>`;
-                  } else if (posteName === "LECTURE/CS" && periodKey === "pm" && jsDay === 5) {
+                  } else if (posteName === "CONSULTATION" && periodKey === "pm" && (jsDay === 2 || jsDay === 5)) {
                     binomeHtml = `<span class="tag-binome">Consult.</span>`;
                   } else if (m.note && m.note.includes("Macil")) {
                     binomeHtml = `<span class="tag-binome">${m.binome ? 'Binôme • +Macil' : '+Macil'}</span>`;
@@ -6046,7 +6055,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   const isCl = (x.doc === "FERMÉ" || x.doc === "MAINTENANCE" || x.closed);
                   const [yyD, mmD, ddD] = iso.split("-").map(Number);
                   const jsDayD = new Date(yyD, mmD - 1, ddD).getDay();
-                  const mappedP = CHEF_TO_INTERNE_POSTE_MAP[x.poste] || (x.poste === "CONSULTATION" && (jsDayD === 2 || jsDayD === 5) ? "LECTURE/CS" : null);
+                  const mappedP = CHEF_TO_INTERNE_POSTE_MAP[x.poste] || (x.poste === "CONSULTATION" && (jsDayD === 2 || jsDayD === 5) ? "CONSULTATION" : null);
                   const isNoInt = !isCl && mappedP && getChefWithoutInterneDocsForPoste(iso, "pm", mappedP).length > 0;
                   return `<div style="font-size:12px; margin-bottom:3px; ${isNoInt ? 'background:#FEF3C7; border-left:3px solid #F59E0B; padding:2px 6px; border-radius:4px;' : ''}" ${isNoInt ? 'title="Chef présent sans interne prévu"' : ''}><strong>${getPosteWithTimeLabel(x.poste, "pm")}</strong> : ${isCl ? `<span class="poste-pill poste-closed">${x.doc}</span>` : `<span style="color:${isNoInt ? '#92400E' : '#6D28D9'}; font-weight:700;">${x.doc}</span>`}</div>`;
                 }).join("") || '—'}
@@ -6124,7 +6133,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             } else {
               const [yyC, mmC, ddC] = dIso.split("-").map(Number);
               const jsDayC = new Date(yyC, mmC - 1, ddC).getDay();
-              const mappedIntPoste = CHEF_TO_INTERNE_POSTE_MAP[pName] || (pName === "CONSULTATION" && periodKey === "pm" && (jsDayC === 2 || jsDayC === 5) ? "LECTURE/CS" : null);
+              const mappedIntPoste = CHEF_TO_INTERNE_POSTE_MAP[pName] || (pName === "CONSULTATION" && periodKey === "pm" && (jsDayC === 2 || jsDayC === 5) ? "CONSULTATION" : null);
               const noIntDocs = mappedIntPoste ? getChefWithoutInterneDocsForPoste(dIso, periodKey, mappedIntPoste) : [];
               const isNoIntCell = noIntDocs.length > 0;
               const badges = matches.map(m => {
@@ -6233,7 +6242,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <td><strong>${s.byModality.IRM_PM || 0}</strong></td>
             <td>${s.byModality.ECHO}</td>
             <td>${s.byModality.RI_GESTES}</td>
-            <td>${s.byModality.LECTURE_CS}</td>
+            <td>${s.byModality.CONSULTATION || 0}</td>
+            <td>${s.byModality.LECTURE || 0}</td>
             <td><strong>${s.gardesCount || 0}</strong>${s.gardesWeekendCount ? ` <span style="font-size:10px; color:var(--text-muted);">(${s.gardesWeekendCount} WE/Fér.)</span>` : ""}</td>
             <td>${Math.round((s.rgHalfDays || 0) / 2)} j.</td>
             <td>${Math.round(s.vacHalfDays / 2)} j.</td>
@@ -6267,6 +6277,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   <th>Écho</th>
                   <th>Gestes</th>
                   <th>CS</th>
+                  <th>Lect.</th>
                   <th>Gardes</th>
                   <th>RG</th>
                   <th>Congés</th>
