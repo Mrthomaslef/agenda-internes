@@ -801,6 +801,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       display: flex !important;
       align-items: center;
       justify-content: center;
+      gap: 6px;
       width: 100%;
       padding: 8px 8px !important;
       font-size: 13px !important;
@@ -810,6 +811,21 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .perso-chef-initials {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      line-height: 1.25;
+      background: rgba(15, 23, 42, 0.11);
+      color: inherit;
+      letter-spacing: 0.02em;
+      flex-shrink: 0;
     }
 
     .perso-garde-pill {
@@ -2586,6 +2602,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       background: rgba(217, 119, 6, 0.25);
       color: #FDE68A;
     }
+    html[data-theme="dark"] .perso-chef-initials {
+      background: rgba(255, 255, 255, 0.18);
+    }
 
     /* Tableaux du planning en mode sombre */
     html[data-theme="dark"] table.planning-table {
@@ -3789,6 +3808,77 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         (posteName === "CONSULTATION" && x.poste === "LECTURE" && !noDrapeTueDec)
       ));
       return hasInterne ? [] : docs;
+    }
+
+    const CHEF_TOKEN_TO_INITIALS = {
+      "TL": "TL", "HM": "HM", "MH": "MH", "SL": "SL", "YA": "YA",
+      "MP": "MP", "AL": "AL", "AC": "AC", "MD": "MD",
+      "MIHOUBI": "FM", "FEYDY": "AF", "DRAPE": "JD", "DRAPÉ": "JD",
+      "YANG": "YG", "THEVENIN": "FT", "THÉVENIN": "FT",
+      "MOUTOUNET": "LM", "RUBINI": "AR", "SEROR": "PS",
+      "HAMMOUD": "SH", "GUERINI": "HG"
+    };
+
+    function formatDocStringToChefInitials(docStr) {
+      const cleaned = String(docStr || "").replace(/\([^)]*\)/g, "").trim();
+      if (!cleaned) return [];
+      const parts = cleaned.split(/\s*(?:\/|\bET\b)\s*/i);
+      const res = [];
+      parts.forEach(p => {
+        const up = p.trim().toUpperCase();
+        if (!up || up === "INTERNES" || up === "INTERNE" || up.startsWith("FERM") || up === "MAINTENANCE") return;
+        const ini = CHEF_TOKEN_TO_INITIALS[up] || up;
+        if (!res.includes(ini)) res.push(ini);
+      });
+      return res;
+    }
+
+    function getChefInitialsInfoForInternePoste(iso, halfKey, posteName, stRef) {
+      stRef = stRef || STATE;
+      if (!iso || !halfKey || !posteName || !stRef) return null;
+      const dObj = stRef.schedule ? stRef.schedule[iso] : null;
+      if (dObj && dObj.holiday) return null;
+      const [yy, mm, dd] = iso.split("-").map(Number);
+      const jsDay = new Date(yy, mm - 1, dd).getDay();
+      if (jsDay < 1 || jsDay > 5) return null;
+      const chDay = (stRef.chefsPlanning || {})[iso];
+      if (!chDay || !Array.isArray(chDay[halfKey])) return null;
+      const noDrapeTueDec = (halfKey === "pm" && isNoDrapeRelectureTuesday(iso, jsDay));
+      const initials = [];
+      const rawDocs = [];
+      chDay[halfKey].forEach(entry => {
+        const docVal = String(entry.doc || "").trim();
+        const pChef = String(entry.poste || "").trim();
+        const isClosed = Boolean(entry.closed) || docVal.toUpperCase().startsWith("FERM") || docVal.toUpperCase() === "MAINTENANCE";
+        if (isClosed || !docVal) return;
+        let mappedPoste = CHEF_TO_INTERNE_POSTE_MAP[pChef] || null;
+        if (!mappedPoste && pChef === "CONSULTATION") {
+          if (posteName === "CONSULTATION") {
+            mappedPoste = "CONSULTATION";
+          } else if (posteName === "LECTURE" && halfKey === "pm" && jsDay === 2 && !noDrapeTueDec) {
+            mappedPoste = "LECTURE";
+          }
+        }
+        if (mappedPoste === posteName) {
+          rawDocs.push(docVal);
+          formatDocStringToChefInitials(docVal).forEach(ini => {
+            if (!initials.includes(ini)) initials.push(ini);
+          });
+        }
+      });
+      if (!initials.length) return null;
+      return {
+        initialsLabel: initials.join("/"),
+        rawLabel: rawDocs.join(", ")
+      };
+    }
+
+    function renderPosteWithChefInitials(iso, halfKey, posteName) {
+      const label = getPosteCleanLabel(posteName, halfKey);
+      const chInfo = getChefInitialsInfoForInternePoste(iso, halfKey, posteName);
+      if (!chInfo || !chInfo.initialsLabel) return `<span>${label}</span>`;
+      const safeTitle = String(chInfo.rawLabel || chInfo.initialsLabel).replace(/"/g, "&quot;");
+      return `<span>${label}</span><span class="perso-chef-initials" title="Chef : ${safeTitle}">${chInfo.initialsLabel}</span>`;
     }
 
     function recomputeScheduleInPlace(st) {
@@ -8572,11 +8662,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 ` : `
                   <div class="perso-slot-block">
                     <span class="perso-slot-label">Matin</span>
-                    <span class="poste-pill ${getPosteClass(slot.am)} perso-vac-pill">${getPosteCleanLabel(slot.am, "am")}</span>
+                    <span class="poste-pill ${getPosteClass(slot.am)} perso-vac-pill">${renderPosteWithChefInitials(dIso, "am", slot.am)}</span>
                   </div>
                   <div class="perso-slot-block">
                     <span class="perso-slot-label">Après-midi</span>
-                    <span class="poste-pill ${getPosteClass(slot.pm)} perso-vac-pill">${getPosteCleanLabel(slot.pm, "pm")}</span>
+                    <span class="poste-pill ${getPosteClass(slot.pm)} perso-vac-pill">${renderPosteWithChefInitials(dIso, "pm", slot.pm)}</span>
                   </div>
                 `}
               </div>
@@ -8805,8 +8895,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               ${isMeOnGarde ? `<span class="perso-garde-pill" style="font-size:9px; padding:1px 5px;">🌙 Garde</span>` : ""}
             </div>
             ${dObj.holiday ? `<span class="poste-pill poste-rg" style="justify-content:center;">Férié</span>` : (slot ? `
-              <span class="poste-pill ${getPosteClass(slot.am)}" style="font-size:11px; padding:4px 6px; justify-content:center;">${getPosteCleanLabel(slot.am, "am")}</span>
-              <span class="poste-pill ${getPosteClass(slot.pm)}" style="font-size:11px; padding:4px 6px; justify-content:center;">${getPosteCleanLabel(slot.pm, "pm")}</span>
+              <span class="poste-pill ${getPosteClass(slot.am)}" style="font-size:11px; padding:4px 6px; justify-content:center; gap:5px;">${renderPosteWithChefInitials(dIso, "am", slot.am)}</span>
+              <span class="poste-pill ${getPosteClass(slot.pm)}" style="font-size:11px; padding:4px 6px; justify-content:center; gap:5px;">${renderPosteWithChefInitials(dIso, "pm", slot.pm)}</span>
             ` : `—`)}
           </div>
         `;
