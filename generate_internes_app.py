@@ -1121,11 +1121,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         padding: 8px 10px;
       }
       .brand-title {
-        font-size: 15px;
-        font-weight: 900;
-        letter-spacing: -0.3px;
+        font-size: 13.5px;
       }
       .brand-sub {
+        display: none;
+      }
+      .brand > div:not(.brand-logo) {
         display: none;
       }
       .header-actions {
@@ -7978,12 +7979,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       selectedInterneId = iid;
       if (iid === "all_chefs") {
         planningScope = "chefs";
+        planningMode = "week";
       } else if (isChefId(iid)) {
         planningScope = "perso";
       } else if (iid === "all") {
         planningScope = "internes";
+        planningMode = "week";
       } else {
         planningScope = "perso";
+      }
+      if (currentTab !== "planning") {
+        currentTab = "planning";
+        document.querySelectorAll(".tab-btn").forEach(b => {
+          b.classList.toggle("active", b.getAttribute("data-tab") === "planning");
+        });
       }
       localStorage.setItem(SELECTED_INTERNE_KEY, iid);
       renderAll();
