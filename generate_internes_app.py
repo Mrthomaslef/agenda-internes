@@ -8387,8 +8387,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (selectedInterneId === "all_chefs") selectedInterneId = "chef_tl";
       } else if (sc === "internes") {
         selectedInterneId = "all";
+        planningMode = "week";
+      } else if (sc === "combined") {
+        selectedInterneId = "all";
+        planningMode = "week";
       } else if (sc === "chefs") {
         selectedInterneId = "all_chefs";
+        planningMode = "week";
       }
       localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
       renderAll();
