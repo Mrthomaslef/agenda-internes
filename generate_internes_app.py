@@ -468,6 +468,78 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       text-overflow: ellipsis;
     }
 
+    .interne-moi-tous-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      width: 100%;
+    }
+
+    .profile-modal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 10px 0 12px;
+    }
+
+    .profile-choice-btn {
+      border: 1.5px solid #CBD5E1;
+      background: #F8FAFC;
+      color: #0F172A;
+      padding: 12px 12px;
+      border-radius: 11px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .profile-choice-btn:hover {
+      background: #F0F9FF;
+      border-color: #0284C7;
+      transform: translateY(-1px);
+    }
+
+    .profile-choice-btn.active {
+      background: #E0F2FE;
+      border-color: #0284C7;
+      color: #0369A1;
+      box-shadow: 0 0 0 1.5px #0284C7;
+    }
+
+    .profile-chef-btn {
+      width: 100%;
+      border: 2px solid #0284C7;
+      background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%);
+      color: #0369A1;
+      padding: 13px 14px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .profile-chef-btn:hover {
+      background: #BAE6FD;
+      border-color: #0369A1;
+    }
+
+    .profile-chef-btn.active {
+      background: #0284C7;
+      border-color: #0284C7;
+      color: #FFFFFF;
+    }
+
     @media (max-width: 768px) {
       .interne-picker-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2406,6 +2478,41 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       box-shadow: 0 0 0 1.5px #38BDF8;
     }
 
+    html[data-theme="dark"] .profile-choice-btn {
+      background: #1E293B;
+      border-color: #334155;
+      color: #F1F5F9;
+    }
+
+    html[data-theme="dark"] .profile-choice-btn:hover {
+      background: #283548;
+      border-color: #38BDF8;
+    }
+
+    html[data-theme="dark"] .profile-choice-btn.active {
+      background: rgba(2, 132, 199, 0.28);
+      border-color: #38BDF8;
+      color: #7DD3FC;
+      box-shadow: 0 0 0 1.5px #38BDF8;
+    }
+
+    html[data-theme="dark"] .profile-chef-btn {
+      background: rgba(2, 132, 199, 0.18);
+      border-color: #38BDF8;
+      color: #7DD3FC;
+    }
+
+    html[data-theme="dark"] .profile-chef-btn:hover {
+      background: rgba(2, 132, 199, 0.3);
+      border-color: #7DD3FC;
+    }
+
+    html[data-theme="dark"] .profile-chef-btn.active {
+      background: #0284C7;
+      border-color: #38BDF8;
+      color: #FFFFFF;
+    }
+
     html[data-theme="dark"] .summary-strip,
     html[data-theme="dark"] .card,
     html[data-theme="dark"] .modal-box {
@@ -3049,6 +3156,20 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div id="tabContent"></div>
   </main>
 
+  <!-- Modal : Choix du profil à la connexion (mémorisé sur le téléphone) -->
+  <div class="modal-backdrop" id="modalUserProfile">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="card-header">
+        <div class="card-title">👋 Qui êtes-vous ?</div>
+        <button class="btn btn-sm" id="modalUserProfileCloseBtn" style="display:none;" onclick="closeModal('modalUserProfile')">Fermer</button>
+      </div>
+      <div class="note-box" style="margin-bottom:10px;">
+        Choisissez votre nom : <strong>votre téléphone le gardera en mémoire</strong> pour ne pas avoir à le refaire à chaque connexion.
+      </div>
+      <div id="modalUserProfileBody"></div>
+    </div>
+  </div>
+
   <!-- Modal : Déverrouillage Espace Chef (code cocochin) -->
   <div class="modal-backdrop" id="modalChefAuth">
     <div class="modal-box" style="max-width:390px;">
@@ -3297,13 +3418,67 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     const CLOUD_PROP_KEY = __CLOUD_PROP_KEY_JSON__;
     const LOCAL_STORAGE_KEY = "cochin_internes_app_state_v2";
     const SELECTED_INTERNE_KEY = "cochin_internes_selected_id_v1";
+    const USER_PROFILE_KEY = "cochin_user_profile_v1";
     const CHEF_MODE_STORAGE_KEY = "cochin_chef_planning_unlocked_v1";
     const THEME_STORAGE_KEY = "cochin_theme_mode_v1";
     const CHEF_SECRET_CODE = "cocochin";
 
+    function readCookieVal(name) {
+      try {
+        const match = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/([.$?*|{}()[\]\\/+^])/g, "\\$1") + "=([^;]*)"));
+        return match ? decodeURIComponent(match[1]) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function writePersistentVal(key, val) {
+      try { localStorage.setItem(key, val); } catch (e) {}
+      try {
+        document.cookie = `${key}=${encodeURIComponent(val)}; path=/; max-age=31536000; SameSite=Lax`;
+      } catch (e) {}
+    }
+
+    function readPersistentVal(key) {
+      try {
+        const ls = localStorage.getItem(key);
+        if (ls) return ls;
+      } catch (e) {}
+      return readCookieVal(key);
+    }
+
+    function removePersistentVal(key) {
+      try { localStorage.removeItem(key); } catch (e) {}
+      try { sessionStorage.removeItem(key); } catch (e) {}
+      try {
+        document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+      } catch (e) {}
+    }
+
     let STATE = loadInitialState();
+
+    function getValidProfileId(val) {
+      if (!val) return null;
+      if (val === "chef") return "chef";
+      if (STATE && Array.isArray(STATE.internes) && STATE.internes.some(i => i.id === val)) {
+        return val;
+      }
+      return null;
+    }
+
     let currentTab = "planning";
-    let selectedInterneId = localStorage.getItem(SELECTED_INTERNE_KEY) || "gabriel";
+    let isChefPlanningMode = readPersistentVal(CHEF_MODE_STORAGE_KEY) === "1" || sessionStorage.getItem(CHEF_MODE_STORAGE_KEY) === "1";
+    let myProfileId = getValidProfileId(readPersistentVal(USER_PROFILE_KEY)) || (isChefPlanningMode ? "chef" : null);
+    let selectedInterneId = (() => {
+      const savedSel = readPersistentVal(SELECTED_INTERNE_KEY);
+      if (myProfileId === "chef" || isChefPlanningMode) {
+        return savedSel || "all";
+      }
+      if (myProfileId) {
+        return (savedSel === "all" || savedSel === "all_chefs") ? savedSel : myProfileId;
+      }
+      return savedSel || "all";
+    })();
     let planningScope = (selectedInterneId === "all") ? "internes" : (selectedInterneId === "all_chefs" ? "chefs" : "perso"); // 'internes' | 'perso' | 'chefs' | 'combined'
     let planningMode = "week";      // 'week' | 'month'
     let currentDateIso = "2026-11-02";
@@ -3313,7 +3488,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let showStatsTable = false;
     let statsTableTab = "semaine"; // 'semaine' | 'total'
     let showChefOffVacSummary = true;
-    let isChefPlanningMode = sessionStorage.getItem(CHEF_MODE_STORAGE_KEY) === "1";
     let isDarkMode = localStorage.getItem(THEME_STORAGE_KEY) === "dark";
     let activeDragPayload = null;
     let selectedForMove = null; // { dIso, periodKey, interneId, fromPoste }
@@ -6440,7 +6614,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         selectedForMove = null;
         activeDragPayload = null;
         pendingChefActionCallback = null;
-        sessionStorage.removeItem(CHEF_MODE_STORAGE_KEY);
+        removePersistentVal(CHEF_MODE_STORAGE_KEY);
         renderAll();
         showToast("🔒 Espace Chef verrouillé");
       } else {
@@ -6460,8 +6634,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const val = String((inp && inp.value) || "").trim().toLowerCase();
       if (val === CHEF_SECRET_CODE) {
         isChefPlanningMode = true;
+        myProfileId = "chef";
         selectedForMove = null;
-        sessionStorage.setItem(CHEF_MODE_STORAGE_KEY, "1");
+        writePersistentVal(CHEF_MODE_STORAGE_KEY, "1");
+        writePersistentVal(USER_PROFILE_KEY, "chef");
         closeModal("modalChefAuth");
         if (typeof pendingChefActionCallback === "function") {
           const cb = pendingChefActionCallback;
@@ -6471,7 +6647,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
         currentTab = "planning";
         selectedInterneId = "all";
-        localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
+        writePersistentVal(SELECTED_INTERNE_KEY, selectedInterneId);
         if (planningScope !== "combined") {
           planningScope = "internes";
         }
@@ -7959,6 +8135,102 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
     }
 
+    function isChefUserProfile() {
+      return Boolean(isChefPlanningMode || myProfileId === "chef");
+    }
+
+    function getMyInterneId() {
+      if (myProfileId && myProfileId !== "chef" && STATE.internes.some(i => i.id === myProfileId)) {
+        return myProfileId;
+      }
+      if (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs" && STATE.internes.some(i => i.id === selectedInterneId)) {
+        return selectedInterneId;
+      }
+      return "gabriel";
+    }
+
+    function openUserProfileModal() {
+      const bodyEl = document.getElementById("modalUserProfileBody");
+      const closeBtn = document.getElementById("modalUserProfileCloseBtn");
+      if (closeBtn) {
+        closeBtn.style.display = myProfileId ? "inline-flex" : "none";
+      }
+      if (bodyEl) {
+        const internesBtns = (STATE.internes || []).map(i => {
+          const isAct = (myProfileId === i.id && !isChefPlanningMode);
+          const roleTag = i.isSocle
+            ? `<span class="tag-sm" style="margin-left:4px;">Socle</span>`
+            : ((i.isDJ || i.id === "oussama") ? `<span class="tag-dj" style="margin-left:4px;">DJ</span>` : "");
+          return `
+            <button type="button" class="profile-choice-btn ${isAct ? 'active' : ''}" onclick="chooseUserProfile('${i.id}')">
+              <span class="interne-pick-avatar" style="background:${i.color}; width:28px; height:28px; font-size:11.5px;">${i.initials}</span>
+              <span style="min-width:0; flex:1;">
+                <span style="display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${i.shortName}${roleTag}</span>
+              </span>
+              ${isAct ? `<span style="color:#0284C7; font-weight:900;">✓</span>` : ""}
+            </button>
+          `;
+        }).join("");
+
+        const isChefAct = (myProfileId === "chef" || isChefPlanningMode);
+        bodyEl.innerHTML = `
+          <div style="font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em;">
+            Internes du semestre
+          </div>
+          <div class="profile-modal-grid">
+            ${internesBtns}
+          </div>
+          <div style="font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-top:8px; margin-bottom:6px;">
+            Équipe Senior / Chef
+          </div>
+          <button type="button" class="profile-chef-btn ${isChefAct ? 'active' : ''}" onclick="chooseUserProfile('chef')">
+            <span style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:20px;">👨‍⚕️</span>
+              <span>
+                <span style="display:block; font-size:14px; font-weight:800;">Chef / Senior (Voir tous)</span>
+                <span style="display:block; font-size:11.5px; font-weight:600; opacity:0.85;">Affiche automatiquement tous les internes et tous les boutons</span>
+              </span>
+            </span>
+            <span>${isChefAct ? "✓" : "→"}</span>
+          </button>
+        `;
+      }
+      const modal = document.getElementById("modalUserProfile");
+      if (modal) modal.classList.add("open");
+    }
+
+    function chooseUserProfile(profileId) {
+      if (profileId === "chef") {
+        myProfileId = "chef";
+        writePersistentVal(USER_PROFILE_KEY, "chef");
+        selectedInterneId = "all";
+        planningScope = "internes";
+        planningMode = "week";
+        writePersistentVal(SELECTED_INTERNE_KEY, "all");
+        closeModal("modalUserProfile");
+        renderAll();
+        showToast("👨‍⚕️ Profil Chef enregistré — Affichage de tous les internes");
+        return;
+      }
+      const iObj = getInterneById(profileId);
+      if (!iObj) return;
+      myProfileId = iObj.id;
+      writePersistentVal(USER_PROFILE_KEY, iObj.id);
+      if (isChefPlanningMode) {
+        isChefPlanningMode = false;
+        selectedForMove = null;
+        activeDragPayload = null;
+        pendingChefActionCallback = null;
+        removePersistentVal(CHEF_MODE_STORAGE_KEY);
+      }
+      selectedInterneId = iObj.id;
+      planningScope = "perso";
+      writePersistentVal(SELECTED_INTERNE_KEY, iObj.id);
+      closeModal("modalUserProfile");
+      renderAll();
+      showToast(`✓ Connecté en tant que ${iObj.shortName}`);
+    }
+
     function switchRoleSpace(space) {
       if (space === "chefs") {
         if (!isChefId(selectedInterneId) && selectedInterneId !== "all_chefs") {
@@ -7967,11 +8239,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         planningScope = (selectedInterneId === "all_chefs") ? "chefs" : "perso";
       } else {
         if (isChefId(selectedInterneId) || selectedInterneId === "all_chefs") {
-          selectedInterneId = "gabriel";
+          selectedInterneId = isChefUserProfile() ? "all" : getMyInterneId();
         }
         planningScope = (selectedInterneId === "all") ? "internes" : "perso";
       }
-      localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
+      writePersistentVal(SELECTED_INTERNE_KEY, selectedInterneId);
       renderAll();
     }
 
@@ -7994,7 +8266,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           b.classList.toggle("active", b.getAttribute("data-tab") === "planning");
         });
       }
-      localStorage.setItem(SELECTED_INTERNE_KEY, iid);
+      writePersistentVal(SELECTED_INTERNE_KEY, iid);
       renderAll();
     }
 
@@ -8002,34 +8274,68 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function renderPersonalBanner() {
       const el = document.getElementById("personalBanner");
       if (!el) return;
-      if (isChefPlanningMode) {
-        el.style.display = "none";
-        el.innerHTML = "";
-        return;
-      }
       el.style.display = "flex";
 
-      const buttonsHtml = STATE.internes.map(i => {
-        const isAct = (selectedInterneId === i.id && planningScope === "perso");
-        return `
-          <button class="interne-pick-btn ${isAct ? 'active' : ''}" onclick="selectInterne('${isAct ? 'all' : i.id}')">
-            <span class="interne-pick-avatar" style="background:${i.color}">${i.initials}</span>
-            <span class="interne-pick-name">${i.shortName}</span>
-          </button>
-        `;
-      }).join("");
+      // Le Chef (profil Chef ou Mode Chef déverrouillé) a tous les boutons
+      if (isChefUserProfile()) {
+        const buttonsHtml = STATE.internes.map(i => {
+          const isAct = (selectedInterneId === i.id && planningScope === "perso");
+          return `
+            <button class="interne-pick-btn ${isAct ? 'active' : ''}" onclick="selectInterne('${isAct ? 'all' : i.id}')">
+              <span class="interne-pick-avatar" style="background:${i.color}">${i.initials}</span>
+              <span class="interne-pick-name">${i.shortName}</span>
+            </button>
+          `;
+        }).join("");
 
+        const isAllActive = (selectedInterneId === "all" && planningScope === "internes");
+        el.innerHTML = `
+          <div class="interne-picker-wrap">
+            <div class="interne-picker-header">
+              <div class="interne-picker-title">👨‍⚕️ Mode Chef — Tous les plannings :</div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <button class="interne-picker-all-btn ${isAllActive ? 'active' : ''}" onclick="selectInterne('all')">
+                  👥 Tous
+                </button>
+                <button class="btn btn-sm" style="padding:5px 9px; font-size:11.5px;" onclick="openUserProfileModal()" title="Changer de profil mémorisé sur ce téléphone">
+                  🔄 Changer de profil
+                </button>
+              </div>
+            </div>
+            <div class="interne-picker-grid">
+              ${buttonsHtml}
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Pour un interne connecté : uniquement les 2 boutons "Moi" et "Tous"
+      const meId = getMyInterneId();
+      const me = getInterneById(meId);
+      const isMoiActive = (selectedInterneId === me.id && planningScope === "perso");
       const isAllActive = (selectedInterneId === "all" && planningScope === "internes");
+
       el.innerHTML = `
         <div class="interne-picker-wrap">
           <div class="interne-picker-header">
-            <div class="interne-picker-title">📅 Sélectionner un planning interne :</div>
-            <button class="interne-picker-all-btn ${isAllActive ? 'active' : ''}" onclick="selectInterne('all')">
-              👥 Tous les internes
+            <div class="interne-picker-title">
+              <span class="interne-pick-avatar" style="background:${me.color}; width:22px; height:22px; font-size:10px;">${me.initials}</span>
+              <span>Connecté : <strong>${me.shortName}</strong></span>
+            </div>
+            <button class="btn btn-sm" style="padding:4px 9px; font-size:11.5px;" onclick="openUserProfileModal()" title="Changer le nom mémorisé sur ce téléphone">
+              🔄 Changer de nom
             </button>
           </div>
-          <div class="interne-picker-grid">
-            ${buttonsHtml}
+          <div class="interne-moi-tous-grid">
+            <button class="interne-pick-btn ${isMoiActive ? 'active' : ''}" onclick="selectInterne('${me.id}')">
+              <span class="interne-pick-avatar" style="background:${me.color}">${me.initials}</span>
+              <span class="interne-pick-name">Moi (${me.shortName})</span>
+            </button>
+            <button class="interne-pick-btn ${isAllActive ? 'active' : ''}" onclick="selectInterne('all')">
+              <span class="interne-pick-avatar" style="background:#0284C7;">👥</span>
+              <span class="interne-pick-name">Tous</span>
+            </button>
           </div>
         </div>
       `;
@@ -8119,7 +8425,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function openInternePresSignupModal(defaultInterneId, defaultType) {
-      const targetInterneId = defaultInterneId || ((!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") ? selectedInterneId : "gabriel");
+      const targetInterneId = defaultInterneId || getMyInterneId();
       const pType = (defaultType === "cas_mardi" || defaultType === "biblio_vendredi")
         ? defaultType
         : ((presFilter === "biblio_vendredi") ? "biblio_vendredi" : "cas_mardi");
@@ -8209,9 +8515,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     function openQuickVacationPicker() {
-      const iid = (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs")
-        ? selectedInterneId
-        : "gabriel";
+      const iid = getMyInterneId();
       openVacationEditModal(currentDateIso, iid);
     }
 
@@ -8343,7 +8647,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const toolbarScopeHtml = isChefPlanningMode
         ? `<div class="segmented">
-             <button class="seg-btn ${planningScope !== 'combined' ? 'active' : ''}" onclick="setPlanningScope('internes')">Internes seuls</button>
+             <button class="seg-btn ${planningScope !== 'combined' && planningScope !== 'perso' ? 'active' : ''}" onclick="setPlanningScope('internes')">Internes seuls</button>
              <button class="seg-btn ${planningScope === 'combined' ? 'active' : ''}" onclick="setPlanningScope('combined')">Avec les Chefs</button>
            </div>`
         : `<div class="segmented">
@@ -8383,7 +8687,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function setPlanningScope(sc) {
       planningScope = sc;
       if (sc === "perso") {
-        if (selectedInterneId === "all") selectedInterneId = "gabriel";
+        if (selectedInterneId === "all") selectedInterneId = getMyInterneId();
         if (selectedInterneId === "all_chefs") selectedInterneId = "chef_tl";
       } else if (sc === "internes") {
         selectedInterneId = "all";
@@ -8395,7 +8699,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         selectedInterneId = "all_chefs";
         planningMode = "week";
       }
-      localStorage.setItem(SELECTED_INTERNE_KEY, selectedInterneId);
+      writePersistentVal(SELECTED_INTERNE_KEY, selectedInterneId);
       renderAll();
     }
 
@@ -8635,7 +8939,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
       const isSingleInterneSelected = !isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs";
       if (planningScope === "perso" || (isSingleInterneSelected && !isChefPlanningMode)) {
-        const me = getInterneById(selectedInterneId === "all" ? "gabriel" : selectedInterneId);
+        const me = getInterneById(selectedInterneId === "all" ? getMyInterneId() : selectedInterneId);
         const dFullNames = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi"];
         let cardsHtml = `
           <div class="card" style="padding:14px 12px; overflow:hidden;">
@@ -8770,7 +9074,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                   return `<span class="poste-pill poste-closed">${m.reason === "MAINTENANCE" ? "Maint." : "Fermé"}</span>`;
                 }
                 const iObj = getInterneById(m.interneId);
-                const isMe = (selectedInterneId !== "all" && m.interneId === selectedInterneId) ? "highlight-me" : "";
+                const isMe = ((!isChefUserProfile() && myProfileId && m.interneId === myProfileId) || (selectedInterneId !== "all" && m.interneId === selectedInterneId)) ? "highlight-me" : "";
                 const isSelectedMove = isChefPlanningMode && selectedForMove && selectedForMove.interneId === m.interneId && selectedForMove.dIso === dIso && selectedForMove.periodKey === periodKey;
                 const dragClass = isChefPlanningMode ? `draggable-interne ${isSelectedMove ? 'selected-for-move' : ''}` : "";
                 const socleHtml = (!isChefPlanningMode && iObj.isSocle) ? `<span class="tag-sm">Socle</span>` : "";
@@ -8890,7 +9194,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
       const ym = iso.slice(0, 7);
       const daysInMonth = Object.keys(STATE.schedule).filter(k => k.startsWith(ym)).sort();
-      const targetId = (selectedInterneId === "all" || selectedInterneId === "all_chefs") ? "gabriel" : selectedInterneId;
+      const targetId = (selectedInterneId === "all" || selectedInterneId === "all_chefs") ? getMyInterneId() : selectedInterneId;
       const targetInterne = getInterneById(targetId);
 
       let cells = "";
@@ -9500,7 +9804,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                       `<button class="btn-approve" onclick="approveAbsenceGroup('${g.groupId}')">✓ Valider ${g.dates.length}j</button>`
                     ).join("")
                   : ""}
-                <button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${iObj.id}')">+ Demander un congé</button>
+                ${(isChefUserProfile() || iObj.id === getMyInterneId())
+                  ? `<button class="btn btn-sm btn-primary" onclick="openAbsenceModal('${iObj.id}')">+ Demander un congé</button>`
+                  : ""}
               </div>
             </div>
 
@@ -9542,7 +9848,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     function previewAbsenceRuleWarning() {
       const warnEl = document.getElementById("absRuleWarning");
       if (!warnEl) return;
-      const iid = document.getElementById("absInterneSelect") ? document.getElementById("absInterneSelect").value : "gabriel";
+      const iid = document.getElementById("absInterneSelect") ? document.getElementById("absInterneSelect").value : getMyInterneId();
       const type = document.getElementById("absTypeSelect") ? document.getElementById("absTypeSelect").value : "CA 1";
       const startIso = document.getElementById("absStartDate") ? document.getElementById("absStartDate").value : "";
       const endIso = (document.getElementById("absEndDate") && document.getElementById("absEndDate").value) || startIso;
@@ -9596,7 +9902,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     function openAbsenceModal(defaultInterneId) {
       const sel = document.getElementById("absInterneSelect");
-      const target = defaultInterneId || ((!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") ? selectedInterneId : "gabriel");
+      const target = defaultInterneId || getMyInterneId();
       sel.innerHTML = STATE.internes.map(i => `<option value="${i.id}" ${i.id === target ? 'selected' : ''}>${i.fullName}</option>`).join("");
       document.getElementById("absStartDate").value = currentDateIso;
       document.getElementById("absEndDate").value = currentDateIso;
@@ -9758,11 +10064,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
 
       const pageTitle = presFilter === "cas_mardi" ? "Cas des internes (Mardi)" : "Biblio (Vendredi)";
-      const defaultSignupInterneId = (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") ? selectedInterneId : "";
+      const defaultSignupInterneId = (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs")
+        ? selectedInterneId
+        : (myProfileId && myProfileId !== "chef" ? myProfileId : "");
       let rowsHtml = "";
       list.forEach(p => {
         const iObj = getInterneById(p.interneId);
-        const isMe = (selectedInterneId !== "all" && !isChefId(selectedInterneId) && p.interneId === selectedInterneId);
+        const isMe = (!isChefUserProfile() && myProfileId && p.interneId === myProfileId) || (selectedInterneId !== "all" && !isChefId(selectedInterneId) && p.interneId === selectedInterneId);
         const meBg = isMe ? (isDarkMode ? "background:rgba(56, 189, 248, 0.14);" : "background:#EFF6FF;") : "";
         const btnLabel = isMe ? "Échanger / Sujet" : "S'inscrire (Échange)";
 
@@ -9835,6 +10143,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         presModalPreferredInterneId = preferredInterneId;
       } else if (!isChefId(selectedInterneId) && selectedInterneId !== "all" && selectedInterneId !== "all_chefs") {
         presModalPreferredInterneId = selectedInterneId;
+      } else if (myProfileId && myProfileId !== "chef") {
+        presModalPreferredInterneId = myProfileId;
       } else {
         presModalPreferredInterneId = "";
       }
@@ -11146,6 +11456,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         renderAll();
         return;
       }
+      if (ev.key === USER_PROFILE_KEY) {
+        myProfileId = getValidProfileId(ev.newValue);
+        if (myProfileId === "chef") {
+          selectedInterneId = "all";
+          planningScope = "internes";
+        } else if (myProfileId) {
+          selectedInterneId = myProfileId;
+          planningScope = "perso";
+        }
+        renderAll();
+        return;
+      }
       if (ev.key === LOCAL_STORAGE_KEY && ev.newValue) {
         STATE = loadInitialState();
         renderAll();
@@ -11177,6 +11499,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     window.addEventListener("DOMContentLoaded", () => {
       applyThemeMode(isDarkMode);
       renderAll();
+      if (!myProfileId) {
+        openUserProfileModal();
+      }
       syncWithCloud(false);
       setInterval(() => {
         if (document.visibilityState === "visible" && !isCloudPushInFlight) {
