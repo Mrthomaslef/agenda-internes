@@ -488,7 +488,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     /* Onglets principaux courts et lisibles */
     .main-tabs {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 4px;
       background: #E2E8F0;
       padding: 4px;
@@ -1126,7 +1126,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         gap: 8px;
       }
       .main-tabs {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 2px;
         padding: 3px;
       }
@@ -3017,13 +3017,12 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <!-- Bandeau résumé sur 1 ligne -->
     <section class="summary-strip" id="personalBanner"></section>
 
-    <!-- 5 Onglets au texte court et sans icône -->
+    <!-- 4 Onglets au texte court et sans icône -->
     <nav class="main-tabs">
       <button class="tab-btn active" data-tab="planning" id="tabBtnPlanning" onclick="switchTab('planning')">Planning</button>
       <button class="tab-btn" data-tab="vacances" id="tabBtnVacances" onclick="switchTab('vacances')">Congés</button>
       <button class="tab-btn" data-tab="presentations" onclick="switchTab('presentations')">Cours & Cas</button>
       <button class="tab-btn" data-tab="reunions" onclick="switchTab('reunions')">Réunions</button>
-      <button class="tab-btn" data-tab="annuaire" onclick="switchTab('annuaire')">Annuaire</button>
     </nav>
 
     <!-- Contenu de l'onglet -->
@@ -3080,10 +3079,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         <button class="choice-btn" id="quickAddMeetingBtn" style="display:none;" onclick="closeModal('modalQuickAdd'); openMeetingModal();">
           <strong>Ajouter une réunion (Chef)</strong>
           <span>Staff ou information du service</span>
-        </button>
-        <button class="choice-btn" id="quickAddPhoneBtn" style="display:none;" onclick="closeModal('modalQuickAdd'); openPhoneContactModal();">
-          <strong>Ajouter un numéro à l'annuaire (Chef)</strong>
-          <span>Poste interne Cochin, DECT ou secrétariat</span>
         </button>
       </div>
     </div>
@@ -3273,57 +3268,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Modal : Ajouter un numéro -->
-  <div class="modal-backdrop" id="modalPhoneContact">
-    <div class="modal-box">
-      <div class="card-header">
-        <div class="card-title">Nouveau numéro Cochin</div>
-        <button class="btn btn-sm" onclick="closeModal('modalPhoneContact')">Fermer</button>
-      </div>
-      <div class="form-group">
-        <label>Catégorie</label>
-        <select id="phoneCatInput" class="form-control">
-          <option value="Radiologie B — Secrétariats & Consoles">Radio B — Secrétariats & Consoles</option>
-          <option value="Radiologie B — Équipe Médicale (Chefs & Seniors)">Radio B — Médecins</option>
-          <option value="Services Partenaires (Ortho, Rhumato, Anesth, Anapath)">Services (Ortho, Rhumato, Anesth)</option>
-          <option value="Laboratoires, Pharmacie & Administration (DAM)">Labos & Administration</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Nom / Console</label>
-        <input type="text" id="phoneNameInput" class="form-control" placeholder="Ex: Console IRM 3T" />
-      </div>
-      <div class="form-group">
-        <label>Précision</label>
-        <input type="text" id="phoneRoleInput" class="form-control" placeholder="Ex: Manipulateurs IRM" />
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="form-group">
-          <label>Poste à 5 chiffres / DECT</label>
-          <input type="text" id="phonePosteInput" class="form-control" placeholder="Ex: 12483" />
-        </div>
-        <div class="form-group">
-          <label>Ligne directe</label>
-          <input type="text" id="phoneNumInput" class="form-control" placeholder="01 58 41 24 83" />
-        </div>
-      </div>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-        <div class="form-group">
-          <label>Localisation</label>
-          <input type="text" id="phoneBldgInput" class="form-control" placeholder="Bâtiment Ollier" />
-        </div>
-        <div class="form-group">
-          <label>Fax (optionnel)</label>
-          <input type="text" id="phoneFaxInput" class="form-control" />
-        </div>
-      </div>
-      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:12px;">
-        <button class="btn" onclick="closeModal('modalPhoneContact')">Annuler</button>
-        <button class="btn btn-primary" onclick="savePhoneContactForm()">Enregistrer</button>
-      </div>
-    </div>
-  </div>
-
   <div class="toast" id="toastBox">Enregistré</div>
 
   <script>
@@ -3345,8 +3289,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     let currentDateIso = "2026-11-02";
     let presFilter = "cas_mardi"; // 'cas_mardi' | 'biblio_vendredi' | 'cours_internes'
     let reunionsFilter = "bone_cra"; // 'bone_cra' | 'staffs_hebdo'
-    let annuaireSearch = "";
-    let annuaireCategory = "all";
     let vacFilter = "all"; // 'all' | 'conges' | 'rg' | 'gardes'
     let showStatsTable = false;
     let statsTableTab = "semaine"; // 'semaine' | 'total'
@@ -3575,12 +3517,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           if (Array.isArray(saved.meetings) && saved.meetings.length > 0) {
             base.meetings = mergeMeetingsList(base.meetings, saved.meetings);
           }
-          if (Array.isArray(saved.phoneDirectory) && saved.phoneDirectory.length > 0) {
-            const map = {};
-            (base.phoneDirectory || []).forEach(c => { map[c.id] = c; });
-            saved.phoneDirectory.forEach(c => { if (c && c.id) map[c.id] = c; });
-            base.phoneDirectory = Object.values(map);
-          }
         }
       } catch (e) {}
       recomputeScheduleInPlace(base);
@@ -3604,8 +3540,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           chefDecisions: STATE.chefDecisions || {},
           lockedWeeks: STATE.lockedWeeks || {},
           presentations: STATE.presentations,
-          meetings: STATE.meetings,
-          phoneDirectory: STATE.phoneDirectory || []
+          meetings: STATE.meetings
         }));
       } catch (e) {}
     }
@@ -8068,8 +8003,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         container.innerHTML = renderPresentationsTab();
       } else if (currentTab === "reunions") {
         container.innerHTML = renderReunionsTab();
-      } else if (currentTab === "annuaire") {
-        container.innerHTML = renderAnnuaireTab();
       }
     }
 
@@ -8078,9 +8011,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
      * ========================================================================= */
     function openQuickAddModal() {
       const mBtn = document.getElementById("quickAddMeetingBtn");
-      const pBtn = document.getElementById("quickAddPhoneBtn");
       if (mBtn) mBtn.style.display = isChefPlanningMode ? "flex" : "none";
-      if (pBtn) pBtn.style.display = isChefPlanningMode ? "flex" : "none";
       document.getElementById("modalQuickAdd").classList.add("open");
     }
 
@@ -10318,163 +10249,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     /* =========================================================================
-     * ONGLET 5 : ANNUAIRE COCHIN
-     * ========================================================================= */
-    function renderAnnuaireTab() {
-      const list = (STATE.phoneDirectory || []).slice();
-      const q = (annuaireSearch || "").toLowerCase().trim();
-      const categories = [
-        "Radiologie B — Secrétariats & Consoles",
-        "Radiologie B — Équipe Médicale (Chefs & Seniors)",
-        "Services Partenaires (Ortho, Rhumato, Anesth, Anapath)",
-        "Laboratoires, Pharmacie & Administration (DAM)"
-      ];
-
-      const filtered = list.filter(c => {
-        if (annuaireCategory !== "all" && c.category !== annuaireCategory) return false;
-        if (!q) return true;
-        const blob = `${c.name || ""} ${c.role || ""} ${c.poste || ""} ${c.phone || ""} ${c.building || ""} ${c.category || ""}`.toLowerCase();
-        return blob.includes(q);
-      });
-
-      let groupsHtml = "";
-      categories.forEach(cat => {
-        const items = filtered.filter(x => x.category === cat);
-        if (items.length === 0) return;
-
-        let rows = items.map(c => {
-          const telHref = (c.phone || "").replace(/[^0-9+]/g, "");
-          return `
-            <tr>
-              <td>
-                <div style="font-weight:700; color:var(--text);">${c.name}</div>
-                <div style="font-size:11px; color:var(--text-muted);">${c.role || ""}</div>
-              </td>
-              <td><span class="poste-pill poste-irm">${c.poste || "—"}</span></td>
-              <td>
-                ${c.phone
-                  ? `<a href="tel:${telHref}" class="poste-pill poste-echo" style="text-decoration:none;">${c.phone}</a>`
-                  : "—"}
-              </td>
-              <td style="font-size:12px; color:var(--text-muted);">${c.building || "Cochin"}</td>
-            </tr>
-          `;
-        }).join("");
-
-        groupsHtml += `
-          <div class="card" style="margin-bottom:10px;">
-            <div class="card-header">
-              <div class="card-title">${cat}</div>
-            </div>
-            <div class="week-table-wrap">
-              <table class="planning-table" style="min-width:480px;">
-                <thead>
-                  <tr>
-                    <th>Contact</th>
-                    <th style="width:130px;">Poste / DECT</th>
-                    <th style="width:150px;">Ligne directe</th>
-                    <th style="width:150px;">Lieu</th>
-                  </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-              </table>
-            </div>
-          </div>
-        `;
-      });
-
-      if (!groupsHtml) {
-        groupsHtml = `<div class="card" style="text-align:center; color:var(--text-muted); padding:20px;">Aucun numéro trouvé.</div>`;
-      }
-
-      return `
-        <div class="card">
-          <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-            <input
-              type="text"
-              class="form-control"
-              style="flex:1; min-width:200px;"
-              placeholder="Rechercher un nom, poste (ex: 12483), console, service..."
-              value="${annuaireSearch.replace(/"/g, '&quot;')}"
-              oninput="onAnnuaireSearch(this.value)"
-            />
-            <div class="segmented" style="flex-wrap:wrap;">
-              <button class="seg-btn ${annuaireCategory === 'all' ? 'active' : ''}" onclick="setAnnuaireCategory('all')">Tous</button>
-              <button class="seg-btn ${annuaireCategory === 'Radiologie B — Secrétariats & Consoles' ? 'active' : ''}" onclick="setAnnuaireCategory('Radiologie B — Secrétariats & Consoles')">Consoles</button>
-              <button class="seg-btn ${annuaireCategory === 'Radiologie B — Équipe Médicale (Chefs & Seniors)' ? 'active' : ''}" onclick="setAnnuaireCategory('Radiologie B — Équipe Médicale (Chefs & Seniors)')">Médecins</button>
-              <button class="seg-btn ${annuaireCategory === 'Services Partenaires (Ortho, Rhumato, Anesth, Anapath)' ? 'active' : ''}" onclick="setAnnuaireCategory('Services Partenaires (Ortho, Rhumato, Anesth, Anapath)')">Services</button>
-            </div>
-            ${isChefPlanningMode ? `<button class="btn btn-sm btn-primary" onclick="openPhoneContactModal()">+ Numéro</button>` : ""}
-          </div>
-        </div>
-        ${groupsHtml}
-      `;
-    }
-
-    function onAnnuaireSearch(val) {
-      annuaireSearch = val;
-      renderTabContent();
-      const inputs = document.querySelectorAll('input[oninput*="onAnnuaireSearch"]');
-      if (inputs.length) {
-        const inp = inputs[0];
-        inp.focus();
-        inp.setSelectionRange(inp.value.length, inp.value.length);
-      }
-    }
-
-    function setAnnuaireCategory(cat) {
-      annuaireCategory = cat;
-      renderTabContent();
-    }
-
-    function openPhoneContactModal() {
-      if (!isChefPlanningMode) {
-        requireChefUnlockThen(() => openPhoneContactModal());
-        return;
-      }
-      document.getElementById("phoneNameInput").value = "";
-      document.getElementById("phoneRoleInput").value = "";
-      document.getElementById("phonePosteInput").value = "";
-      document.getElementById("phoneNumInput").value = "01 58 41 ";
-      document.getElementById("phoneBldgInput").value = "Bâtiment Ollier";
-      document.getElementById("phoneFaxInput").value = "";
-      document.getElementById("modalPhoneContact").classList.add("open");
-    }
-
-    function savePhoneContactForm() {
-      const category = document.getElementById("phoneCatInput").value;
-      const name = document.getElementById("phoneNameInput").value.trim();
-      const role = document.getElementById("phoneRoleInput").value.trim();
-      const poste = document.getElementById("phonePosteInput").value.trim();
-      const phone = document.getElementById("phoneNumInput").value.trim();
-      const building = document.getElementById("phoneBldgInput").value.trim() || "Hôpital Cochin";
-      const fax = document.getElementById("phoneFaxInput").value.trim();
-
-      if (!name || (!poste && !phone)) {
-        alert("Indiquez le nom et le numéro.");
-        return;
-      }
-
-      if (!STATE.phoneDirectory) STATE.phoneDirectory = [];
-      STATE.phoneDirectory.unshift({
-        id: "tel-custom-" + Date.now(),
-        category,
-        name,
-        role,
-        poste,
-        phone,
-        fax,
-        building
-      });
-
-      saveStateLocal();
-      closeModal("modalPhoneContact");
-      renderAll();
-      showToast("Numéro ajouté");
-      pushStateToCloud({});
-    }
-
-    /* =========================================================================
      * MODIFICATION D'UNE VACATION D'INTERNE
      * ========================================================================= */
     function openVacationEditModal(iso, iid) {
@@ -10817,8 +10591,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         chefDecisions: STATE.chefDecisions || {},
         lockedWeeks: STATE.lockedWeeks || {},
         presentations: STATE.presentations || [],
-        meetings: STATE.meetings || [],
-        phoneDirectory: STATE.phoneDirectory || []
+        meetings: STATE.meetings || []
       };
 
       const syncPayload = Object.assign({}, entry, { isChefValidation: isChefVal });
@@ -11208,12 +10981,6 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (Array.isArray(remote.meetings) && remote.meetings.length > 0) {
               STATE.meetings = mergeMeetingsList(INITIAL_DATA.meetings, remote.meetings);
             }
-            if (Array.isArray(remote.phoneDirectory) && remote.phoneDirectory.length > 0) {
-              const map = {};
-              (STATE.phoneDirectory || []).forEach(c => { map[c.id] = c; });
-              remote.phoneDirectory.forEach(c => { if (c && c.id) map[c.id] = c; });
-              STATE.phoneDirectory = Object.values(map);
-            }
           }
           const sheetAbs = res.evalResult.sheetAbs || [];
           const delSetSheet = new Set(STATE.deletedAbsenceIds || []);
@@ -11256,8 +11023,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               chefDecisions: STATE.chefDecisions || {},
               lockedWeeks: STATE.lockedWeeks || {},
               presentations: STATE.presentations,
-              meetings: STATE.meetings,
-              phoneDirectory: STATE.phoneDirectory || []
+              meetings: STATE.meetings
             }));
           } catch (e) {}
           renderAll();
