@@ -56,9 +56,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="theme-color" content="#F8FAFC" id="metaThemeColor" />
-  <link rel="manifest" href="manifest.json?v=6" />
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6" />
-  <link rel="apple-touch-icon" href="icon.svg?v=6" />
+  <link rel="manifest" href="manifest.json?v=7" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=7" />
+  <link rel="apple-touch-icon" href="icon.svg?v=7" />
   <title>Radio B Cochin — Planning Internes & Chefs</title>
   <script>
     (function() {
@@ -150,9 +150,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .brand-logo {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
+      width: 42px;
+      height: 42px;
+      border-radius: 11px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2975,26 +2975,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <rect width="256" height="256" rx="56" fill="url(#hdrGlow)"/>
             <rect x="7" y="7" width="242" height="242" rx="50" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="4"/>
             <!-- Anneau de gantry Scanner / IRM -->
-            <circle cx="128" cy="128" r="96" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="12"/>
-            <circle cx="128" cy="128" r="96" fill="none" stroke="url(#hdrRingAccent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="190 70 150 92" transform="rotate(-40 128 128)"/>
+            <circle cx="128" cy="128" r="104" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="11"/>
+            <circle cx="128" cy="128" r="104" fill="none" stroke="url(#hdrRingAccent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="205 75 165 95" transform="rotate(-40 128 128)"/>
             <!-- Tunnel central sombre avec repères laser -->
-            <circle cx="128" cy="128" r="76" fill="#0B1120" fill-opacity="0.48" stroke="#7DD3FC" stroke-opacity="0.35" stroke-width="3"/>
-            <line x1="128" y1="24" x2="128" y2="44" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-            <line x1="128" y1="212" x2="128" y2="232" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-            <line x1="24" y1="128" x2="44" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-            <line x1="212" y1="128" x2="232" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-            <!-- Onde RF / Imagerie en haut -->
-            <path d="M 88 76 L 111 76 L 119 60 L 128 88 L 137 66 L 144 76 L 168 76" fill="none" stroke="#38BDF8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
-            <!-- Monogramme RB -->
-            <text x="128" y="154" text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="80" letter-spacing="-2">RB</text>
+            <circle cx="128" cy="128" r="88" fill="#0B1120" fill-opacity="0.62" stroke="#7DD3FC" stroke-opacity="0.4" stroke-width="3"/>
+            <line x1="128" y1="16" x2="128" y2="34" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <line x1="128" y1="222" x2="128" y2="240" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <line x1="16" y1="128" x2="34" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <line x1="222" y1="128" x2="240" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <!-- Texte COCHIN OS grand et lisible -->
+            <text x="128" y="108" text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="38" letter-spacing="0.5">COCHIN</text>
+            <text x="128" y="172" text-anchor="middle" fill="#38BDF8" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="74" letter-spacing="-1">OS</text>
             <!-- Repères Planning (TDM / IRM / Écho) -->
-            <rect x="86" y="174" width="22" height="9" rx="4.5" fill="#FBBF24"/>
-            <rect x="117" y="174" width="22" height="9" rx="4.5" fill="#A78BFA"/>
-            <rect x="148" y="174" width="22" height="9" rx="4.5" fill="#2DD4BF"/>
+            <rect x="86" y="188" width="22" height="8" rx="4" fill="#FBBF24"/>
+            <rect x="117" y="188" width="22" height="8" rx="4" fill="#A78BFA"/>
+            <rect x="148" y="188" width="22" height="8" rx="4" fill="#2DD4BF"/>
           </svg>
         </div>
         <div>
-          <div class="brand-title">Radio B Cochin</div>
+          <div class="brand-title">Cochin OS — Radio B</div>
           <div class="brand-sub">Hiver 2026–2027 • Sans donnée patient</div>
         </div>
       </div>
@@ -11399,22 +11398,21 @@ self.addEventListener('fetch', e => {{
   <rect width="256" height="256" rx="56" fill="url(#topGlow)"/>
   <rect x="7" y="7" width="242" height="242" rx="50" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="4"/>
   <!-- Anneau de gantry Scanner / IRM -->
-  <circle cx="128" cy="128" r="96" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="12"/>
-  <circle cx="128" cy="128" r="96" fill="none" stroke="url(#ringAccent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="190 70 150 92" transform="rotate(-40 128 128)"/>
+  <circle cx="128" cy="128" r="104" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="11"/>
+  <circle cx="128" cy="128" r="104" fill="none" stroke="url(#ringAccent)" stroke-width="11" stroke-linecap="round" stroke-dasharray="205 75 165 95" transform="rotate(-40 128 128)"/>
   <!-- Tunnel central sombre avec repères laser -->
-  <circle cx="128" cy="128" r="76" fill="#0B1120" fill-opacity="0.48" stroke="#7DD3FC" stroke-opacity="0.35" stroke-width="3"/>
-  <line x1="128" y1="24" x2="128" y2="44" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-  <line x1="128" y1="212" x2="128" y2="232" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-  <line x1="24" y1="128" x2="44" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-  <line x1="212" y1="128" x2="232" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
-  <!-- Onde RF / Imagerie en haut -->
-  <path d="M 88 76 L 111 76 L 119 60 L 128 88 L 137 66 L 144 76 L 168 76" fill="none" stroke="#38BDF8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Monogramme RB -->
-  <text x="128" y="154" text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="80" letter-spacing="-2">RB</text>
+  <circle cx="128" cy="128" r="88" fill="#0B1120" fill-opacity="0.62" stroke="#7DD3FC" stroke-opacity="0.4" stroke-width="3"/>
+  <line x1="128" y1="16" x2="128" y2="34" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+  <line x1="128" y1="222" x2="128" y2="240" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+  <line x1="16" y1="128" x2="34" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+  <line x1="222" y1="128" x2="240" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+  <!-- Texte COCHIN OS grand et lisible -->
+  <text x="128" y="108" text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="38" letter-spacing="0.5">COCHIN</text>
+  <text x="128" y="172" text-anchor="middle" fill="#38BDF8" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="74" letter-spacing="-1">OS</text>
   <!-- Repères Planning (TDM / IRM / Écho) -->
-  <rect x="86" y="174" width="22" height="9" rx="4.5" fill="#FBBF24"/>
-  <rect x="117" y="174" width="22" height="9" rx="4.5" fill="#A78BFA"/>
-  <rect x="148" y="174" width="22" height="9" rx="4.5" fill="#2DD4BF"/>
+  <rect x="86" y="188" width="22" height="8" rx="4" fill="#FBBF24"/>
+  <rect x="117" y="188" width="22" height="8" rx="4" fill="#A78BFA"/>
+  <rect x="148" y="188" width="22" height="8" rx="4" fill="#2DD4BF"/>
 </svg>
 """
     ICON_FILE.write_text(svg_icon, encoding="utf-8")

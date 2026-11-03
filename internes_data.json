@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-03T16:24:58.022716+00:00",
+  "updatedAt": "2026-11-03T21:20:57.442392+00:00",
   "chefValidatedAt": "2026-11-03T15:16:23.391Z",
   "chefRevision": 91,
   "deletedAbsenceIds": [],
@@ -808,6 +808,36 @@
       "validatedAt": "2026-11-02T19:59:08.640Z"
     },
     {
+      "id": "abs-noe-2027-01-11",
+      "date": "2027-01-11",
+      "interneId": "noe",
+      "interneName": "Noé GRANDVAL",
+      "type": "CA 1",
+      "status": "pending",
+      "comment": "CA 1",
+      "createdAt": "2026-11-03T19:15:00.384Z"
+    },
+    {
+      "id": "abs-noe-2027-01-12",
+      "date": "2027-01-12",
+      "interneId": "noe",
+      "interneName": "Noé GRANDVAL",
+      "type": "CA 1",
+      "status": "pending",
+      "comment": "CA 1",
+      "createdAt": "2026-11-03T19:15:00.384Z"
+    },
+    {
+      "id": "abs-noe-2027-01-13",
+      "date": "2027-01-13",
+      "interneId": "noe",
+      "interneName": "Noé GRANDVAL",
+      "type": "CA 1",
+      "status": "pending",
+      "comment": "CA 1",
+      "createdAt": "2026-11-03T19:15:00.384Z"
+    },
+    {
       "id": "abs-gabriel-2027-01-14",
       "date": "2027-01-14",
       "gardeDate": "2027-01-13",
@@ -819,6 +849,26 @@
       "isOfficialGardeRg": true,
       "comment": "Repos de garde (lendemain de garde du 13/01/2027)",
       "createdAt": "2026-11-02T14:31:00Z"
+    },
+    {
+      "id": "abs-noe-2027-01-14",
+      "date": "2027-01-14",
+      "interneId": "noe",
+      "interneName": "Noé GRANDVAL",
+      "type": "CA 1",
+      "status": "pending",
+      "comment": "CA 1",
+      "createdAt": "2026-11-03T19:15:00.384Z"
+    },
+    {
+      "id": "abs-noe-2027-01-15",
+      "date": "2027-01-15",
+      "interneId": "noe",
+      "interneName": "Noé GRANDVAL",
+      "type": "CA 1",
+      "status": "pending",
+      "comment": "CA 1",
+      "createdAt": "2026-11-03T19:15:00.384Z"
     },
     {
       "id": "abs-nathanael-2027-01-18",
@@ -36818,12 +36868,12 @@
           "note": "Phase Socle (ECHO)"
         },
         {
-          "poste": "LECTURE",
+          "poste": "CONSULTATION",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
           "binome": false,
-          "note": "Relecture avec Pr Drapé (systématique)"
+          "note": "Consultation Internes (Mardi PM)"
         },
         {
           "poste": "GESTES (C)",
@@ -36834,12 +36884,12 @@
           "note": ""
         },
         {
-          "poste": "CONSULTATION",
+          "poste": "LECTURE",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Mardi PM)"
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -36864,10 +36914,10 @@
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "LECTURE",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "pm": "CONSULTATION",
+          "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "TDM SAU"
         },
@@ -36882,10 +36932,10 @@
         },
         "nathanael": {
           "am": "SCAN ACHARD",
-          "pm": "CONSULTATION",
-          "note": "Consultation Internes (Mardi PM)",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "GESTES (C)",
           "preRgPm": "ECHO"
         },
@@ -36920,10 +36970,10 @@
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "LECTURE",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "pm": "CONSULTATION",
+          "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "TDM SAU"
         },
@@ -36938,10 +36988,10 @@
         },
         "nathanael": {
           "am": "SCAN ACHARD",
-          "pm": "CONSULTATION",
-          "note": "Consultation Internes (Mardi PM)",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "GESTES (C)",
           "preRgPm": "ECHO"
         },
@@ -37043,7 +37093,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "IRM",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -37059,7 +37109,7 @@
           "note": ""
         },
         {
-          "poste": "IRM",
+          "poste": "SCAN ACHARD",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -37090,7 +37140,7 @@
         },
         "milan": {
           "am": "1/2 journée libre",
-          "pm": "SCAN ACHARD",
+          "pm": "IRM",
           "note": "Demi-off hebdomadaire",
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "",
@@ -37108,7 +37158,7 @@
         },
         "oussama": {
           "am": "TDM OLLIER DIAG",
-          "pm": "IRM",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -37146,7 +37196,7 @@
         },
         "milan": {
           "am": "1/2 journée libre",
-          "pm": "SCAN ACHARD",
+          "pm": "IRM",
           "note": "Demi-off hebdomadaire",
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "",
@@ -37164,7 +37214,7 @@
         },
         "oussama": {
           "am": "TDM OLLIER DIAG",
-          "pm": "IRM",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -37901,7 +37951,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -37909,7 +37959,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -37943,7 +37993,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -37951,7 +38001,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -37990,7 +38040,7 @@
         },
         "milan": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -37998,8 +38048,8 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "ECHO",
-          "pm": "SCAN ACHARD",
+          "am": "IRM 3T",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38007,7 +38057,7 @@
           "preRgPm": "TDM SAU"
         },
         "oussama": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -38046,7 +38096,7 @@
         },
         "milan": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38054,8 +38104,8 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "ECHO",
-          "pm": "SCAN ACHARD",
+          "am": "IRM 3T",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38063,7 +38113,7 @@
           "preRgPm": "TDM SAU"
         },
         "oussama": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -38086,7 +38136,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "IRM 3T",
+          "poste": "ECHO",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -38094,12 +38144,12 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (IRM 1,5T)"
+          "note": "Phase Socle (IRM 3T)"
         },
         {
           "poste": "TDM SAU",
@@ -38110,7 +38160,7 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "IRM 1,5T",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -38126,7 +38176,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -38168,7 +38218,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -38176,7 +38226,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -38188,7 +38238,7 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -38206,7 +38256,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "milan": {
-          "am": "TDM OLLIER DIAG",
+          "am": "IRM 1,5T",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -38216,7 +38266,7 @@
         },
         "nathanael": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38224,8 +38274,8 @@
           "preRgPm": "IRM"
         },
         "oussama": {
-          "am": "ECHO",
-          "pm": "SCAN ACHARD",
+          "am": "TDM OLLIER DIAG",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38233,10 +38283,10 @@
           "preRgPm": "ECHO"
         },
         "noe": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Phase Socle (IRM 1,5T)",
-          "noteAm": "Phase Socle (IRM 1,5T)",
+          "note": "Phase Socle (IRM 3T)",
+          "noteAm": "Phase Socle (IRM 3T)",
           "notePm": "",
           "preRgAm": "ECHO",
           "preRgPm": "GESTES (C)"
@@ -38244,7 +38294,7 @@
       },
       "slots": {
         "gabriel": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -38262,7 +38312,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "milan": {
-          "am": "TDM OLLIER DIAG",
+          "am": "IRM 1,5T",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -38272,7 +38322,7 @@
         },
         "nathanael": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38280,8 +38330,8 @@
           "preRgPm": "IRM"
         },
         "oussama": {
-          "am": "ECHO",
-          "pm": "SCAN ACHARD",
+          "am": "TDM OLLIER DIAG",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -38289,10 +38339,10 @@
           "preRgPm": "ECHO"
         },
         "noe": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
-          "note": "Phase Socle (IRM 1,5T)",
-          "noteAm": "Phase Socle (IRM 1,5T)",
+          "note": "Phase Socle (IRM 3T)",
+          "noteAm": "Phase Socle (IRM 3T)",
           "notePm": "",
           "preRgAm": "ECHO",
           "preRgPm": "GESTES (C)"
@@ -39020,7 +39070,7 @@
       ],
       "pm": [
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -39036,7 +39086,7 @@
           "note": "Phase Socle (SCAN ACHARD)"
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -39073,7 +39123,7 @@
       "byInterne": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
           "notePm": "",
@@ -39082,7 +39132,7 @@
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -39129,7 +39179,7 @@
       "slots": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
           "notePm": "",
@@ -39138,7 +39188,7 @@
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -39211,7 +39261,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -39227,7 +39277,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 1,5T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -39307,7 +39357,7 @@
           "preRgPm": "ECHO"
         },
         "milan": {
-          "am": "IRM 1,5T",
+          "am": "ECHO",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -39325,7 +39375,7 @@
           "preRgPm": "GESTES (C)"
         },
         "oussama": {
-          "am": "ECHO",
+          "am": "IRM 1,5T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -39363,7 +39413,7 @@
           "preRgPm": "ECHO"
         },
         "milan": {
-          "am": "IRM 1,5T",
+          "am": "ECHO",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -39381,7 +39431,7 @@
           "preRgPm": "GESTES (C)"
         },
         "oussama": {
-          "am": "ECHO",
+          "am": "IRM 1,5T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -39629,12 +39679,12 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (IRM 3T)"
+          "note": "Phase Socle (IRM 1,5T)"
         },
         {
           "poste": "TDM SAU",
@@ -39653,7 +39703,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "ECHO",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -39661,7 +39711,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 3T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -39750,7 +39800,7 @@
           "preRgPm": "CONSULTATION"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -39759,7 +39809,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "oussama": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -39768,10 +39818,10 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "TDM SAU",
-          "note": "Phase Socle (IRM 3T) • Posté Socle Urgences • Binôme SAU avec Oussama",
-          "noteAm": "Phase Socle (IRM 3T)",
+          "note": "Phase Socle (IRM 1,5T) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (IRM 1,5T)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "LECTURE"
@@ -39806,7 +39856,7 @@
           "preRgPm": "CONSULTATION"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -39815,7 +39865,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "oussama": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -39824,10 +39874,10 @@
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "TDM SAU",
-          "note": "Phase Socle (IRM 3T) • Posté Socle Urgences • Binôme SAU avec Oussama",
-          "noteAm": "Phase Socle (IRM 3T)",
+          "note": "Phase Socle (IRM 1,5T) • Posté Socle Urgences • Binôme SAU avec Oussama",
+          "noteAm": "Phase Socle (IRM 1,5T)",
           "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "LECTURE"
@@ -40071,7 +40121,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -40079,7 +40129,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "SCAN ACHARD",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -40095,7 +40145,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "IRM 1,5T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -40121,7 +40171,7 @@
           "note": "Phase Socle (SCAN ACHARD)"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -40145,7 +40195,7 @@
           "note": "Consultation Internes (Mardi PM)"
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -40166,8 +40216,8 @@
           "preRgPm": "TDM SAU"
         },
         "marwane": {
-          "am": "IRM 1,5T",
-          "pm": "SCAN ACHARD",
+          "am": "IRM 3T",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -40175,7 +40225,7 @@
           "preRgPm": "GESTES (C)"
         },
         "milan": {
-          "am": "IRM 3T",
+          "am": "SCAN ACHARD",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -40193,8 +40243,8 @@
           "preRgPm": "CONSULTATION"
         },
         "oussama": {
-          "am": "SCAN ACHARD",
-          "pm": "ECHO",
+          "am": "IRM 1,5T",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -40222,8 +40272,8 @@
           "preRgPm": "TDM SAU"
         },
         "marwane": {
-          "am": "IRM 1,5T",
-          "pm": "SCAN ACHARD",
+          "am": "IRM 3T",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -40231,7 +40281,7 @@
           "preRgPm": "GESTES (C)"
         },
         "milan": {
-          "am": "IRM 3T",
+          "am": "SCAN ACHARD",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -40249,8 +40299,8 @@
           "preRgPm": "CONSULTATION"
         },
         "oussama": {
-          "am": "SCAN ACHARD",
-          "pm": "ECHO",
+          "am": "IRM 1,5T",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -40296,7 +40346,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -40304,7 +40354,7 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "ECHO",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -40392,7 +40442,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "milan": {
-          "am": "ECHO",
+          "am": "TDM OLLIER DIAG",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -40401,7 +40451,7 @@
           "preRgPm": "TDM SAU"
         },
         "nathanael": {
-          "am": "TDM OLLIER DIAG",
+          "am": "ECHO",
           "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
@@ -40448,7 +40498,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "milan": {
-          "am": "ECHO",
+          "am": "TDM OLLIER DIAG",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -40457,7 +40507,7 @@
           "preRgPm": "TDM SAU"
         },
         "nathanael": {
-          "am": "TDM OLLIER DIAG",
+          "am": "ECHO",
           "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
@@ -41227,7 +41277,7 @@
           "note": "Phase Socle (TDM OLLIER DIAG)"
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -41235,7 +41285,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -41322,7 +41372,7 @@
           "preRgPm": "ECHO"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "ECHO",
           "note": "Vacation obligatoire (ECHO)",
           "noteAm": "",
@@ -41331,7 +41381,7 @@
           "preRgPm": "GESTES (C)"
         },
         "milan": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -41378,7 +41428,7 @@
           "preRgPm": "ECHO"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "ECHO",
           "note": "Vacation obligatoire (ECHO)",
           "noteAm": "",
@@ -41387,7 +41437,7 @@
           "preRgPm": "GESTES (C)"
         },
         "milan": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -41991,12 +42041,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Relecture avec Pr Drapé"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "SCAN ACHARD",
@@ -42007,12 +42057,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "LECTURE",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "GESTES (C)",
@@ -42054,10 +42104,10 @@
         },
         "milan": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "IRM 3T",
           "preRgPm": "LECTURE"
         },
@@ -42081,10 +42131,10 @@
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Relecture avec Pr Drapé",
+          "pm": "ECHO",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (ECHO)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Relecture avec Pr Drapé",
+          "notePm": "Phase Socle (ECHO)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -42110,10 +42160,10 @@
         },
         "milan": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "IRM 3T",
           "preRgPm": "LECTURE"
         },
@@ -42137,10 +42187,10 @@
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Relecture avec Pr Drapé",
+          "pm": "ECHO",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (ECHO)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Relecture avec Pr Drapé",
+          "notePm": "Phase Socle (ECHO)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -42208,12 +42258,12 @@
           "note": "Vacation obligatoire (GESTES (C))"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (SCAN ACHARD)"
+          "note": "Phase Socle (ECHO)"
         },
         {
           "poste": "IRM",
@@ -42224,7 +42274,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -42271,7 +42321,7 @@
         },
         "milan": {
           "am": "TDM SAU",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -42298,10 +42348,10 @@
         },
         "noe": {
           "am": "IRM 3T",
-          "pm": "SCAN ACHARD",
-          "note": "Phase Socle (IRM 3T) • Phase Socle (SCAN ACHARD)",
+          "pm": "ECHO",
+          "note": "Phase Socle (IRM 3T) • Phase Socle (ECHO)",
           "noteAm": "Phase Socle (IRM 3T)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Phase Socle (ECHO)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "IRM"
         }
@@ -42327,7 +42377,7 @@
         },
         "milan": {
           "am": "TDM SAU",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -42354,10 +42404,10 @@
         },
         "noe": {
           "am": "IRM 3T",
-          "pm": "SCAN ACHARD",
-          "note": "Phase Socle (IRM 3T) • Phase Socle (SCAN ACHARD)",
+          "pm": "ECHO",
+          "note": "Phase Socle (IRM 3T) • Phase Socle (ECHO)",
           "noteAm": "Phase Socle (IRM 3T)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Phase Socle (ECHO)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "IRM"
         }
@@ -42817,7 +42867,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "TDM SAU",
+          "poste": "GESTES (C)",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -42825,12 +42875,12 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Demi-off hebdomadaire"
+          "note": "CA 1"
         },
         {
           "poste": "ECHO",
@@ -42841,7 +42891,7 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -42872,15 +42922,15 @@
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (équilibré Matin/PM)"
+          "note": "Demi-off hebdomadaire (équilibré)"
         },
         {
-          "poste": "TDM SAU",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
+          "binome": false,
+          "note": "CA 1"
         },
         {
           "poste": "1/2 journée libre",
@@ -42919,11 +42969,11 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "TDM SAU",
+          "am": "GESTES (C)",
           "pm": "1/2 journée libre",
-          "note": "",
+          "note": "Demi-off hebdomadaire (équilibré)",
           "noteAm": "",
-          "notePm": "Demi-off hebdomadaire (équilibré Matin/PM)",
+          "notePm": "Demi-off hebdomadaire (équilibré)",
           "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         },
@@ -42937,7 +42987,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "milan": {
-          "am": "GESTES (C)",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -42964,22 +43014,22 @@
           "preRgPm": "TDM OLLIER DIAG"
         },
         "noe": {
-          "am": "1/2 journée libre",
-          "pm": "TDM SAU",
-          "note": "Demi-off hebdomadaire • Posté Socle Urgences • Binôme SAU avec Oussama",
-          "noteAm": "Demi-off hebdomadaire",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "ECHO"
         }
       },
       "slots": {
         "gabriel": {
-          "am": "TDM SAU",
+          "am": "GESTES (C)",
           "pm": "1/2 journée libre",
-          "note": "",
+          "note": "Demi-off hebdomadaire (équilibré)",
           "noteAm": "",
-          "notePm": "Demi-off hebdomadaire (équilibré Matin/PM)",
+          "notePm": "Demi-off hebdomadaire (équilibré)",
           "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         },
@@ -42993,7 +43043,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "milan": {
-          "am": "GESTES (C)",
+          "am": "TDM SAU",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -43020,11 +43070,11 @@
           "preRgPm": "TDM OLLIER DIAG"
         },
         "noe": {
-          "am": "1/2 journée libre",
-          "pm": "TDM SAU",
-          "note": "Demi-off hebdomadaire • Posté Socle Urgences • Binôme SAU avec Oussama",
-          "noteAm": "Demi-off hebdomadaire",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Oussama",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "ECHO"
         }
@@ -43042,12 +43092,12 @@
           "note": "Demi-journée off fixe hebdomadaire"
         },
         {
-          "poste": "TDM SAU",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
+          "note": "CA 1"
         },
         {
           "poste": "IRM 1,5T",
@@ -43058,7 +43108,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "GESTES (C)",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -43066,15 +43116,15 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "TDM SAU",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Remplacement TDM SAU (congés/RG)"
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "IRM 3T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -43084,44 +43134,44 @@
       ],
       "pm": [
         {
-          "poste": "CONSULTATION",
+          "poste": "SCAN ACHARD",
           "interneId": "gabriel",
           "interne": "Gabriel",
-          "isSocle": false,
-          "binome": false,
-          "note": "Consultation Internes (Mardi PM)"
-        },
-        {
-          "poste": "SCAN ACHARD",
-          "interneId": "noe",
-          "interne": "Noé",
-          "isSocle": true,
-          "binome": false,
-          "note": "Phase Socle (SCAN ACHARD)"
-        },
-        {
-          "poste": "GESTES (C)",
-          "interneId": "marwane",
-          "interne": "Marwane",
           "isSocle": false,
           "binome": false,
           "note": ""
         },
         {
+          "poste": "VACANCES",
+          "interneId": "noe",
+          "interne": "Noé",
+          "isSocle": true,
+          "binome": false,
+          "note": "CA 1"
+        },
+        {
           "poste": "LECTURE",
-          "interneId": "milan",
-          "interne": "Milan",
+          "interneId": "marwane",
+          "interne": "Marwane",
           "isSocle": false,
           "binome": false,
           "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "TDM SAU",
+          "interneId": "milan",
+          "interne": "Milan",
+          "isSocle": false,
+          "binome": false,
+          "note": ""
+        },
+        {
+          "poste": "CONSULTATION",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Consultation Internes (Mardi PM)"
         },
         {
           "poste": "ECHO",
@@ -43137,42 +43187,42 @@
       "byInterne": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "CONSULTATION",
+          "pm": "SCAN ACHARD",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "CONSULTATION"
         },
         "marwane": {
           "am": "IRM 1,5T",
-          "pm": "GESTES (C)",
-          "note": "",
-          "noteAm": "",
-          "notePm": "",
-          "preRgAm": "IRM 1,5T",
-          "preRgPm": "TDM SAU"
-        },
-        "milan": {
-          "am": "SCAN ACHARD",
           "pm": "LECTURE",
           "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
           "notePm": "Relecture avec Pr Drapé (systématique)",
+          "preRgAm": "IRM 1,5T",
+          "preRgPm": "TDM SAU"
+        },
+        "milan": {
+          "am": "GESTES (C)",
+          "pm": "TDM SAU",
+          "note": "Consultation Internes (Mardi PM)",
+          "noteAm": "",
+          "notePm": "",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "LECTURE"
         },
         "nathanael": {
-          "am": "IRM 3T",
-          "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
-          "notePm": "",
+          "am": "TDM SAU",
+          "pm": "CONSULTATION",
+          "note": "Remplacement TDM SAU (congés/RG) • Consultation Internes (Mardi PM)",
+          "noteAm": "Remplacement TDM SAU (congés/RG)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 3T",
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "GESTES (C)",
+          "am": "IRM 3T",
           "pm": "ECHO",
           "note": "",
           "noteAm": "",
@@ -43181,11 +43231,11 @@
           "preRgPm": "SCAN ACHARD"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "TDM SAU",
           "preRgPm": "GESTES (C)"
         }
@@ -43193,42 +43243,42 @@
       "slots": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "CONSULTATION",
+          "pm": "SCAN ACHARD",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
-          "notePm": "Consultation Internes (Mardi PM)",
+          "notePm": "",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "CONSULTATION"
         },
         "marwane": {
           "am": "IRM 1,5T",
-          "pm": "GESTES (C)",
-          "note": "",
-          "noteAm": "",
-          "notePm": "",
-          "preRgAm": "IRM 1,5T",
-          "preRgPm": "TDM SAU"
-        },
-        "milan": {
-          "am": "SCAN ACHARD",
           "pm": "LECTURE",
           "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
           "notePm": "Relecture avec Pr Drapé (systématique)",
+          "preRgAm": "IRM 1,5T",
+          "preRgPm": "TDM SAU"
+        },
+        "milan": {
+          "am": "GESTES (C)",
+          "pm": "TDM SAU",
+          "note": "Consultation Internes (Mardi PM)",
+          "noteAm": "",
+          "notePm": "",
           "preRgAm": "SCAN ACHARD",
           "preRgPm": "LECTURE"
         },
         "nathanael": {
-          "am": "IRM 3T",
-          "pm": "TDM SAU",
-          "note": "",
-          "noteAm": "",
-          "notePm": "",
+          "am": "TDM SAU",
+          "pm": "CONSULTATION",
+          "note": "Remplacement TDM SAU (congés/RG) • Consultation Internes (Mardi PM)",
+          "noteAm": "Remplacement TDM SAU (congés/RG)",
+          "notePm": "Consultation Internes (Mardi PM)",
           "preRgAm": "IRM 3T",
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "GESTES (C)",
+          "am": "IRM 3T",
           "pm": "ECHO",
           "note": "",
           "noteAm": "",
@@ -43237,11 +43287,11 @@
           "preRgPm": "SCAN ACHARD"
         },
         "noe": {
-          "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "TDM SAU",
           "preRgPm": "GESTES (C)"
         }
@@ -43251,7 +43301,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "GESTES (C)",
+          "poste": "IRM 3T",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -43259,12 +43309,12 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (TDM OLLIER DIAG)"
+          "note": "CA 1"
         },
         {
           "poste": "TDM SAU",
@@ -43275,7 +43325,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -43283,7 +43333,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -43301,7 +43351,7 @@
       ],
       "pm": [
         {
-          "poste": "ECHO",
+          "poste": "TDM SAU",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -43309,15 +43359,15 @@
           "note": ""
         },
         {
-          "poste": "IRM",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (IRM)"
+          "note": "CA 1"
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "IRM",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -43325,7 +43375,7 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -43341,20 +43391,20 @@
           "note": ""
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "GESTES (C)",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": "Demi-off hebdomadaire (équilibré Matin/PM)"
+          "note": ""
         }
       ],
       "closedAm": [],
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "GESTES (C)",
-          "pm": "ECHO",
+          "am": "IRM 3T",
+          "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43363,7 +43413,7 @@
         },
         "marwane": {
           "am": "TDM SAU",
-          "pm": "GESTES (C)",
+          "pm": "IRM",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43371,8 +43421,8 @@
           "preRgPm": "SCAN ACHARD"
         },
         "milan": {
-          "am": "IRM 3T",
-          "pm": "TDM SAU",
+          "am": "IRM 1,5T",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43380,7 +43430,7 @@
           "preRgPm": "GESTES (C)"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "TDM OLLIER DIAG",
           "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
@@ -43390,27 +43440,27 @@
         },
         "oussama": {
           "am": "ECHO",
-          "pm": "1/2 journée libre",
-          "note": "Demi-off hebdomadaire (équilibré Matin/PM)",
+          "pm": "GESTES (C)",
+          "note": "",
           "noteAm": "",
-          "notePm": "Demi-off hebdomadaire (équilibré Matin/PM)",
+          "notePm": "",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
-          "pm": "IRM",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Phase Socle (IRM)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
-          "notePm": "Phase Socle (IRM)",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "ECHO",
           "preRgPm": "IRM"
         }
       },
       "slots": {
         "gabriel": {
-          "am": "GESTES (C)",
-          "pm": "ECHO",
+          "am": "IRM 3T",
+          "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43419,7 +43469,7 @@
         },
         "marwane": {
           "am": "TDM SAU",
-          "pm": "GESTES (C)",
+          "pm": "IRM",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43427,8 +43477,8 @@
           "preRgPm": "SCAN ACHARD"
         },
         "milan": {
-          "am": "IRM 3T",
-          "pm": "TDM SAU",
+          "am": "IRM 1,5T",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43436,7 +43486,7 @@
           "preRgPm": "GESTES (C)"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "TDM OLLIER DIAG",
           "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
@@ -43446,19 +43496,19 @@
         },
         "oussama": {
           "am": "ECHO",
-          "pm": "1/2 journée libre",
-          "note": "Demi-off hebdomadaire (équilibré Matin/PM)",
+          "pm": "GESTES (C)",
+          "note": "",
           "noteAm": "",
-          "notePm": "Demi-off hebdomadaire (équilibré Matin/PM)",
+          "notePm": "",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "TDM OLLIER DIAG",
-          "pm": "IRM",
-          "note": "Phase Socle (TDM OLLIER DIAG) • Phase Socle (IRM)",
-          "noteAm": "Phase Socle (TDM OLLIER DIAG)",
-          "notePm": "Phase Socle (IRM)",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "ECHO",
           "preRgPm": "IRM"
         }
@@ -43476,12 +43526,12 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "ECHO",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "note": "CA 1"
         },
         {
           "poste": "1/2 journée libre",
@@ -43492,15 +43542,15 @@
           "note": "Demi-journée off fixe hebdomadaire"
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Vacation obligatoire (ECHO)"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "GESTES (C)",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -43508,7 +43558,7 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -43526,12 +43576,12 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "1/2 journée libre",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Demi-off hebdomadaire"
+          "note": "CA 1"
         },
         {
           "poste": "TDM SAU",
@@ -43558,12 +43608,12 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "1/2 journée libre",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Demi-off hebdomadaire (équilibré)"
         }
       ],
       "closedAm": [],
@@ -43588,16 +43638,16 @@
           "preRgPm": "SCAN ACHARD"
         },
         "milan": {
-          "am": "TDM SAU",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "Vacation obligatoire (IRM)",
-          "noteAm": "",
+          "noteAm": "Vacation obligatoire (ECHO)",
           "notePm": "Vacation obligatoire (IRM)",
           "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "GESTES (C)",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -43606,20 +43656,20 @@
           "preRgPm": "1/2 journée libre"
         },
         "oussama": {
-          "am": "GESTES (C)",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "am": "TDM SAU",
+          "pm": "1/2 journée libre",
+          "note": "Demi-off hebdomadaire (équilibré)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Demi-off hebdomadaire (équilibré)",
           "preRgAm": "ECHO",
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "ECHO",
-          "pm": "1/2 journée libre",
-          "note": "Phase Socle (ECHO) • Demi-off hebdomadaire",
-          "noteAm": "Phase Socle (ECHO)",
-          "notePm": "Demi-off hebdomadaire",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
         }
@@ -43644,16 +43694,16 @@
           "preRgPm": "SCAN ACHARD"
         },
         "milan": {
-          "am": "TDM SAU",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "Vacation obligatoire (IRM)",
-          "noteAm": "",
+          "noteAm": "Vacation obligatoire (ECHO)",
           "notePm": "Vacation obligatoire (IRM)",
           "preRgAm": "TDM SAU",
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "GESTES (C)",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -43662,20 +43712,20 @@
           "preRgPm": "1/2 journée libre"
         },
         "oussama": {
-          "am": "GESTES (C)",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "am": "TDM SAU",
+          "pm": "1/2 journée libre",
+          "note": "Demi-off hebdomadaire (équilibré)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Demi-off hebdomadaire (équilibré)",
           "preRgAm": "ECHO",
           "preRgPm": "TDM SAU"
         },
         "noe": {
-          "am": "ECHO",
-          "pm": "1/2 journée libre",
-          "note": "Phase Socle (ECHO) • Demi-off hebdomadaire",
-          "noteAm": "Phase Socle (ECHO)",
-          "notePm": "Demi-off hebdomadaire",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "TDM SAU",
           "preRgPm": "1/2 journée libre"
         }
@@ -43685,7 +43735,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "IRM 1,5T",
+          "poste": "TDM SAU",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -43693,12 +43743,12 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (GESTES (C))"
+          "note": "CA 1"
         },
         {
           "poste": "IRM 3T",
@@ -43717,7 +43767,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 1,5T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -43725,7 +43775,7 @@
           "note": ""
         },
         {
-          "poste": "TDM SAU",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -43735,28 +43785,28 @@
       ],
       "pm": [
         {
-          "poste": "TDM SAU",
+          "poste": "CONSULTATION",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Consultation Internes (Vendredi PM)"
         },
         {
-          "poste": "TDM SAU",
+          "poste": "VACANCES",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
-          "binome": true,
-          "note": "Posté Socle Urgences • Binôme SAU avec Gabriel"
+          "binome": false,
+          "note": "CA 1"
         },
         {
-          "poste": "CONSULTATION",
+          "poste": "GESTES (C)",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
           "binome": false,
-          "note": "Consultation Internes (Vendredi PM)"
+          "note": ""
         },
         {
           "poste": "SCAN ACHARD",
@@ -43767,7 +43817,7 @@
           "note": ""
         },
         {
-          "poste": "GESTES (C)",
+          "poste": "TDM SAU",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -43787,20 +43837,20 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "IRM 1,5T",
-          "pm": "TDM SAU",
+          "am": "TDM SAU",
+          "pm": "CONSULTATION",
           "note": "",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "GESTES (C)"
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "Consultation Internes (Vendredi PM)",
+          "pm": "GESTES (C)",
+          "note": "",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "CONSULTATION"
         },
@@ -43814,8 +43864,8 @@
           "preRgPm": "TDM SAU"
         },
         "nathanael": {
-          "am": "ECHO",
-          "pm": "GESTES (C)",
+          "am": "IRM 1,5T",
+          "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43823,7 +43873,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "oussama": {
-          "am": "TDM SAU",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "",
           "noteAm": "",
@@ -43832,31 +43882,31 @@
           "preRgPm": "IRM"
         },
         "noe": {
-          "am": "GESTES (C)",
-          "pm": "TDM SAU",
-          "note": "Phase Socle (GESTES (C)) • Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "noteAm": "Phase Socle (GESTES (C))",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         }
       },
       "slots": {
         "gabriel": {
-          "am": "IRM 1,5T",
-          "pm": "TDM SAU",
+          "am": "TDM SAU",
+          "pm": "CONSULTATION",
           "note": "",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Consultation Internes (Vendredi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "GESTES (C)"
         },
         "marwane": {
           "am": "IRM 3T",
-          "pm": "CONSULTATION",
-          "note": "Consultation Internes (Vendredi PM)",
+          "pm": "GESTES (C)",
+          "note": "",
           "noteAm": "",
-          "notePm": "Consultation Internes (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "CONSULTATION"
         },
@@ -43870,8 +43920,8 @@
           "preRgPm": "TDM SAU"
         },
         "nathanael": {
-          "am": "ECHO",
-          "pm": "GESTES (C)",
+          "am": "IRM 1,5T",
+          "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -43879,7 +43929,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "oussama": {
-          "am": "TDM SAU",
+          "am": "ECHO",
           "pm": "IRM",
           "note": "",
           "noteAm": "",
@@ -43888,11 +43938,11 @@
           "preRgPm": "IRM"
         },
         "noe": {
-          "am": "GESTES (C)",
-          "pm": "TDM SAU",
-          "note": "Phase Socle (GESTES (C)) • Posté Socle Urgences • Binôme SAU avec Gabriel",
-          "noteAm": "Phase Socle (GESTES (C))",
-          "notePm": "Posté Socle Urgences • Binôme SAU avec Gabriel",
+          "am": "VACANCES",
+          "pm": "VACANCES",
+          "note": "CA 1 • CA 1",
+          "noteAm": "CA 1",
+          "notePm": "CA 1",
           "preRgAm": "IRM 3T",
           "preRgPm": "TDM SAU"
         }
@@ -44135,7 +44185,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "IRM 3T",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -44159,7 +44209,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "SCAN ACHARD",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -44230,7 +44280,7 @@
           "preRgPm": "TDM SAU"
         },
         "marwane": {
-          "am": "SCAN ACHARD",
+          "am": "IRM 3T",
           "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
@@ -44257,7 +44307,7 @@
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "IRM 3T",
+          "am": "SCAN ACHARD",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -44286,7 +44336,7 @@
           "preRgPm": "TDM SAU"
         },
         "marwane": {
-          "am": "SCAN ACHARD",
+          "am": "IRM 3T",
           "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
@@ -44313,7 +44363,7 @@
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "IRM 3T",
+          "am": "SCAN ACHARD",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -44336,7 +44386,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "ECHO",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -44352,7 +44402,7 @@
           "note": "Phase Socle (IRM 1,5T)"
         },
         {
-          "poste": "IRM 3T",
+          "poste": "ECHO",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -44368,7 +44418,7 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -44438,7 +44488,7 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "ECHO",
+          "am": "TDM OLLIER DIAG",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -44447,7 +44497,7 @@
           "preRgPm": "ECHO"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -44465,7 +44515,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "TDM OLLIER DIAG",
+          "am": "IRM 3T",
           "pm": "ECHO",
           "note": "",
           "noteAm": "",
@@ -44494,7 +44544,7 @@
       },
       "slots": {
         "gabriel": {
-          "am": "ECHO",
+          "am": "TDM OLLIER DIAG",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -44503,7 +44553,7 @@
           "preRgPm": "ECHO"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -44521,7 +44571,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "TDM OLLIER DIAG",
+          "am": "IRM 3T",
           "pm": "ECHO",
           "note": "",
           "noteAm": "",
@@ -45252,7 +45302,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "IRM 1,5T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -45260,7 +45310,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "SCAN ACHARD",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -45349,7 +45399,7 @@
           "preRgPm": "GESTES (C)"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "IRM 1,5T",
           "pm": "LECTURE",
           "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
@@ -45358,7 +45408,7 @@
           "preRgPm": "CONSULTATION"
         },
         "oussama": {
-          "am": "IRM 1,5T",
+          "am": "SCAN ACHARD",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -45405,7 +45455,7 @@
           "preRgPm": "GESTES (C)"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "IRM 1,5T",
           "pm": "LECTURE",
           "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
@@ -45414,7 +45464,7 @@
           "preRgPm": "CONSULTATION"
         },
         "oussama": {
-          "am": "IRM 1,5T",
+          "am": "SCAN ACHARD",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -45437,7 +45487,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "IRM 1,5T",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -45453,7 +45503,7 @@
           "note": "Phase Socle (ECHO)"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -45539,7 +45589,7 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "TDM OLLIER DIAG",
+          "am": "IRM 1,5T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -45548,7 +45598,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "marwane": {
-          "am": "IRM 1,5T",
+          "am": "TDM OLLIER DIAG",
           "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
@@ -45595,7 +45645,7 @@
       },
       "slots": {
         "gabriel": {
-          "am": "TDM OLLIER DIAG",
+          "am": "IRM 1,5T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -45604,7 +45654,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "marwane": {
-          "am": "IRM 1,5T",
+          "am": "TDM OLLIER DIAG",
           "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
@@ -45712,12 +45762,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "TDM SAU",
@@ -45728,7 +45778,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -45775,7 +45825,7 @@
         },
         "milan": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -45802,10 +45852,10 @@
         },
         "noe": {
           "am": "1/2 journée libre",
-          "pm": "ECHO",
-          "note": "Demi-off hebdomadaire (équilibré) • Phase Socle (ECHO)",
+          "pm": "SCAN ACHARD",
+          "note": "Demi-off hebdomadaire (équilibré) • Phase Socle (SCAN ACHARD)",
           "noteAm": "Demi-off hebdomadaire (équilibré)",
-          "notePm": "Phase Socle (ECHO)",
+          "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -45831,7 +45881,7 @@
         },
         "milan": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -45858,10 +45908,10 @@
         },
         "noe": {
           "am": "1/2 journée libre",
-          "pm": "ECHO",
-          "note": "Demi-off hebdomadaire (équilibré) • Phase Socle (ECHO)",
+          "pm": "SCAN ACHARD",
+          "note": "Demi-off hebdomadaire (équilibré) • Phase Socle (SCAN ACHARD)",
           "noteAm": "Demi-off hebdomadaire (équilibré)",
-          "notePm": "Phase Socle (ECHO)",
+          "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -45895,7 +45945,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 3T",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -45903,7 +45953,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "ECHO",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -45991,7 +46041,7 @@
           "preRgPm": "IRM"
         },
         "milan": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "LECTURE",
           "note": "Lecture (Vendredi PM)",
           "noteAm": "",
@@ -46000,7 +46050,7 @@
           "preRgPm": "LECTURE"
         },
         "nathanael": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -46047,7 +46097,7 @@
           "preRgPm": "IRM"
         },
         "milan": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "LECTURE",
           "note": "Lecture (Vendredi PM)",
           "noteAm": "",
@@ -46056,7 +46106,7 @@
           "preRgPm": "LECTURE"
         },
         "nathanael": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -46588,7 +46638,7 @@
           "note": "Phase Socle (IRM)"
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -46604,7 +46654,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -46634,7 +46684,7 @@
         },
         "marwane": {
           "am": "TDM OLLIER DIAG",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -46652,7 +46702,7 @@
         },
         "nathanael": {
           "am": "IRM 3T",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -46690,7 +46740,7 @@
         },
         "marwane": {
           "am": "TDM OLLIER DIAG",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -46708,7 +46758,7 @@
         },
         "nathanael": {
           "am": "IRM 3T",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -46739,7 +46789,7 @@
       "holiday": null,
       "am": [
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -46771,7 +46821,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -46841,7 +46891,7 @@
       "closedPm": [],
       "byInterne": {
         "gabriel": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "noteAm": "",
@@ -46868,7 +46918,7 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -46897,7 +46947,7 @@
       },
       "slots": {
         "gabriel": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire (hors vacations obligatoires)",
           "noteAm": "",
@@ -46924,7 +46974,7 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -47022,20 +47072,20 @@
           "note": "Posté Socle Urgences • Binôme SAU avec Oussama"
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "LECTURE",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Lecture (Vendredi PM)"
         },
         {
-          "poste": "LECTURE",
+          "poste": "SCAN ACHARD",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
           "binome": false,
-          "note": "Lecture (Vendredi PM)"
+          "note": ""
         },
         {
           "poste": "CONSULTATION",
@@ -47084,19 +47134,19 @@
         },
         "marwane": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Lecture (Vendredi PM)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "LECTURE"
         },
         "milan": {
           "am": "IRM 3T",
-          "pm": "LECTURE",
-          "note": "Lecture (Vendredi PM)",
+          "pm": "SCAN ACHARD",
+          "note": "",
           "noteAm": "",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
         },
@@ -47140,19 +47190,19 @@
         },
         "marwane": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Lecture (Vendredi PM)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "IRM 1,5T",
           "preRgPm": "LECTURE"
         },
         "milan": {
           "am": "IRM 3T",
-          "pm": "LECTURE",
-          "note": "Lecture (Vendredi PM)",
+          "pm": "SCAN ACHARD",
+          "note": "",
           "noteAm": "",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "IRM 3T",
           "preRgPm": "GESTES (C)"
         },
@@ -47631,12 +47681,12 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (IRM 3T)"
+          "note": "Phase Socle (IRM 1,5T)"
         },
         {
           "poste": "VACANCES",
@@ -47655,7 +47705,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -47752,7 +47802,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -47770,10 +47820,10 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "SCAN ACHARD",
-          "note": "Phase Socle (IRM 3T) • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Phase Socle (IRM 3T)",
+          "note": "Phase Socle (IRM 1,5T) • Phase Socle (SCAN ACHARD)",
+          "noteAm": "Phase Socle (IRM 1,5T)",
           "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "IRM"
@@ -47808,7 +47858,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -47826,10 +47876,10 @@
           "preRgPm": "1/2 journée libre"
         },
         "noe": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "SCAN ACHARD",
-          "note": "Phase Socle (IRM 3T) • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Phase Socle (IRM 3T)",
+          "note": "Phase Socle (IRM 1,5T) • Phase Socle (SCAN ACHARD)",
+          "noteAm": "Phase Socle (IRM 1,5T)",
           "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "1/2 journée libre",
           "preRgPm": "IRM"
@@ -49425,7 +49475,7 @@
       ],
       "pm": [
         {
-          "poste": "IRM",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -49465,7 +49515,7 @@
           "note": ""
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "IRM",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -49478,7 +49528,7 @@
       "byInterne": {
         "gabriel": {
           "am": "ECHO",
-          "pm": "IRM",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -49514,7 +49564,7 @@
         },
         "oussama": {
           "am": "1/2 journée libre",
-          "pm": "TDM OLLIER DIAG",
+          "pm": "IRM",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
           "notePm": "",
@@ -49534,7 +49584,7 @@
       "slots": {
         "gabriel": {
           "am": "ECHO",
-          "pm": "IRM",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -49570,7 +49620,7 @@
         },
         "oussama": {
           "am": "1/2 journée libre",
-          "pm": "TDM OLLIER DIAG",
+          "pm": "IRM",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
           "notePm": "",
@@ -49650,12 +49700,12 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (ECHO)"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "RG",
@@ -49674,20 +49724,20 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "LECTURE",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
-          "poste": "LECTURE",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
           "binome": false,
-          "note": "Relecture avec Pr Drapé (systématique)"
+          "note": ""
         }
       ],
       "closedAm": [],
@@ -49722,28 +49772,28 @@
         },
         "nathanael": {
           "am": "IRM 3T",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "IRM 3T",
           "preRgPm": "CONSULTATION"
         },
         "oussama": {
           "am": "GESTES (C)",
-          "pm": "LECTURE",
+          "pm": "ECHO",
           "note": "Vacation obligatoire (GESTES (C))",
           "noteAm": "Vacation obligatoire (GESTES (C))",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "ECHO"
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "ECHO",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (ECHO)",
+          "pm": "SCAN ACHARD",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Phase Socle (ECHO)",
+          "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -49778,28 +49828,28 @@
         },
         "nathanael": {
           "am": "IRM 3T",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "IRM 3T",
           "preRgPm": "CONSULTATION"
         },
         "oussama": {
           "am": "GESTES (C)",
-          "pm": "LECTURE",
+          "pm": "ECHO",
           "note": "Vacation obligatoire (GESTES (C))",
           "noteAm": "Vacation obligatoire (GESTES (C))",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "ECHO"
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "ECHO",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (ECHO)",
+          "pm": "SCAN ACHARD",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Phase Socle (ECHO)",
+          "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -49825,7 +49875,7 @@
           "note": "Phase Socle (IRM 1,5T)"
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 3T",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -49849,7 +49899,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 3T",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -49920,7 +49970,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "marwane": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -49947,7 +49997,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "oussama": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -49976,7 +50026,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "marwane": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -50003,7 +50053,7 @@
           "preRgPm": "SCAN ACHARD"
         },
         "oussama": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -50251,12 +50301,12 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (IRM 1,5T)"
+          "note": "Phase Socle (IRM 3T)"
         },
         {
           "poste": "RG",
@@ -50267,7 +50317,7 @@
           "note": "Repos de garde"
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -50301,12 +50351,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "LECTURE",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (SCAN ACHARD)"
+          "note": "Lecture (Vendredi PM)"
         },
         {
           "poste": "RG",
@@ -50325,12 +50375,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "SCAN ACHARD",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Lecture (Vendredi PM)"
+          "note": ""
         },
         {
           "poste": "CONSULTATION",
@@ -50363,7 +50413,7 @@
           "preRgPm": "TDM SAU"
         },
         "milan": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -50373,10 +50423,10 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "IRM"
         },
@@ -50390,11 +50440,11 @@
           "preRgPm": "CONSULTATION"
         },
         "noe": {
-          "am": "IRM 1,5T",
-          "pm": "SCAN ACHARD",
-          "note": "Phase Socle (IRM 1,5T) • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Phase Socle (IRM 1,5T)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "am": "IRM 3T",
+          "pm": "LECTURE",
+          "note": "Phase Socle (IRM 3T) • Lecture (Vendredi PM)",
+          "noteAm": "Phase Socle (IRM 3T)",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -50419,7 +50469,7 @@
           "preRgPm": "TDM SAU"
         },
         "milan": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -50429,10 +50479,10 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
-          "notePm": "Lecture (Vendredi PM)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "IRM"
         },
@@ -50446,11 +50496,11 @@
           "preRgPm": "CONSULTATION"
         },
         "noe": {
-          "am": "IRM 1,5T",
-          "pm": "SCAN ACHARD",
-          "note": "Phase Socle (IRM 1,5T) • Phase Socle (SCAN ACHARD)",
-          "noteAm": "Phase Socle (IRM 1,5T)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "am": "IRM 3T",
+          "pm": "LECTURE",
+          "note": "Phase Socle (IRM 3T) • Lecture (Vendredi PM)",
+          "noteAm": "Phase Socle (IRM 3T)",
+          "notePm": "Lecture (Vendredi PM)",
           "preRgAm": "TDM SAU",
           "preRgPm": "SCAN ACHARD"
         }
@@ -50693,7 +50743,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -50701,7 +50751,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -50788,7 +50838,7 @@
           "preRgPm": "CONSULTATION"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "ECHO",
           "note": "",
           "noteAm": "",
@@ -50797,7 +50847,7 @@
           "preRgPm": "TDM SAU"
         },
         "milan": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -50844,7 +50894,7 @@
           "preRgPm": "CONSULTATION"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "IRM 1,5T",
           "pm": "ECHO",
           "note": "",
           "noteAm": "",
@@ -50853,7 +50903,7 @@
           "preRgPm": "TDM SAU"
         },
         "milan": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -52913,7 +52963,7 @@
       ],
       "pm": [
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -52953,7 +53003,7 @@
           "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -52966,7 +53016,7 @@
       "byInterne": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
           "notePm": "",
@@ -53002,7 +53052,7 @@
         },
         "oussama": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -53022,7 +53072,7 @@
       "slots": {
         "gabriel": {
           "am": "1/2 journée libre",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "Demi-journée off fixe hebdomadaire",
           "noteAm": "Demi-journée off fixe hebdomadaire",
           "notePm": "",
@@ -53058,7 +53108,7 @@
         },
         "oussama": {
           "am": "GESTES (C)",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -53096,7 +53146,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "IRM 3T",
+          "poste": "ECHO",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -53120,7 +53170,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "IRM 3T",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -53191,7 +53241,7 @@
           "preRgPm": "GESTES (C)"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -53218,7 +53268,7 @@
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -53247,7 +53297,7 @@
           "preRgPm": "GESTES (C)"
         },
         "marwane": {
-          "am": "IRM 3T",
+          "am": "ECHO",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -53274,7 +53324,7 @@
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "ECHO",
+          "am": "IRM 3T",
           "pm": "TDM SAU",
           "note": "",
           "noteAm": "",
@@ -55170,7 +55220,7 @@
       ],
       "pm": [
         {
-          "poste": "ECHO",
+          "poste": "IRM",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -55202,7 +55252,7 @@
           "note": ""
         },
         {
-          "poste": "IRM",
+          "poste": "ECHO",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -55223,7 +55273,7 @@
       "byInterne": {
         "gabriel": {
           "am": "TDM OLLIER DIAG",
-          "pm": "ECHO",
+          "pm": "IRM",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -55250,7 +55300,7 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "IRM",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -55279,7 +55329,7 @@
       "slots": {
         "gabriel": {
           "am": "TDM OLLIER DIAG",
-          "pm": "ECHO",
+          "pm": "IRM",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -55306,7 +55356,7 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "IRM",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -57105,7 +57155,7 @@
           "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)"
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "IRM 3T",
           "interneId": "marwane",
           "interne": "Marwane",
           "isSocle": false,
@@ -57121,7 +57171,7 @@
           "note": "Vacation obligatoire (GESTES (C))"
         },
         {
-          "poste": "IRM 3T",
+          "poste": "IRM 1,5T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -57147,12 +57197,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "LECTURE",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Phase Socle (SCAN ACHARD)"
+          "note": "Relecture avec Pr Drapé"
         },
         {
           "poste": "CONSULTATION",
@@ -57171,12 +57221,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "SCAN ACHARD",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
           "binome": false,
-          "note": "Relecture avec Pr Drapé (systématique)"
+          "note": ""
         },
         {
           "poste": "RG",
@@ -57200,7 +57250,7 @@
           "preRgPm": "ECHO"
         },
         "marwane": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
@@ -57218,11 +57268,11 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 3T",
-          "pm": "LECTURE",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "am": "IRM 1,5T",
+          "pm": "SCAN ACHARD",
+          "note": "",
           "noteAm": "",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "LECTURE"
         },
@@ -57237,10 +57287,10 @@
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
+          "pm": "LECTURE",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Relecture avec Pr Drapé",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Relecture avec Pr Drapé",
           "preRgAm": "TDM SAU",
           "preRgPm": "GESTES (C)"
         }
@@ -57256,7 +57306,7 @@
           "preRgPm": "ECHO"
         },
         "marwane": {
-          "am": "IRM 1,5T",
+          "am": "IRM 3T",
           "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
@@ -57274,11 +57324,11 @@
           "preRgPm": "SCAN ACHARD"
         },
         "nathanael": {
-          "am": "IRM 3T",
-          "pm": "LECTURE",
-          "note": "Relecture avec Pr Drapé (systématique)",
+          "am": "IRM 1,5T",
+          "pm": "SCAN ACHARD",
+          "note": "",
           "noteAm": "",
-          "notePm": "Relecture avec Pr Drapé (systématique)",
+          "notePm": "",
           "preRgAm": "GESTES (C)",
           "preRgPm": "LECTURE"
         },
@@ -57293,10 +57343,10 @@
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
+          "pm": "LECTURE",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Relecture avec Pr Drapé",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Phase Socle (SCAN ACHARD)",
+          "notePm": "Relecture avec Pr Drapé",
           "preRgAm": "TDM SAU",
           "preRgPm": "GESTES (C)"
         }
@@ -58222,7 +58272,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "IRM 1,5T",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -58230,7 +58280,7 @@
           "note": ""
         },
         {
-          "poste": "IRM 1,5T",
+          "poste": "SCAN ACHARD",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -58319,7 +58369,7 @@
           "preRgPm": "CONSULTATION"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "IRM 1,5T",
           "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
@@ -58328,7 +58378,7 @@
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "IRM 1,5T",
+          "am": "SCAN ACHARD",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -58375,7 +58425,7 @@
           "preRgPm": "CONSULTATION"
         },
         "nathanael": {
-          "am": "SCAN ACHARD",
+          "am": "IRM 1,5T",
           "pm": "CONSULTATION",
           "note": "Consultation Internes (Mardi PM)",
           "noteAm": "",
@@ -58384,7 +58434,7 @@
           "preRgPm": "ECHO"
         },
         "oussama": {
-          "am": "IRM 1,5T",
+          "am": "SCAN ACHARD",
           "pm": "GESTES (C)",
           "note": "",
           "noteAm": "",
@@ -59132,7 +59182,7 @@
           "note": "Demi-off hebdomadaire"
         },
         {
-          "poste": "TDM OLLIER DIAG",
+          "poste": "ECHO",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
@@ -59140,7 +59190,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "TDM OLLIER DIAG",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -59179,7 +59229,7 @@
         },
         "milan": {
           "am": "1/2 journée libre",
-          "pm": "TDM OLLIER DIAG",
+          "pm": "ECHO",
           "note": "Demi-off hebdomadaire",
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "",
@@ -59188,7 +59238,7 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "ECHO",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -59235,7 +59285,7 @@
         },
         "milan": {
           "am": "1/2 journée libre",
-          "pm": "TDM OLLIER DIAG",
+          "pm": "ECHO",
           "note": "Demi-off hebdomadaire",
           "noteAm": "Demi-off hebdomadaire",
           "notePm": "",
@@ -59244,7 +59294,7 @@
         },
         "nathanael": {
           "am": "TDM SAU",
-          "pm": "ECHO",
+          "pm": "TDM OLLIER DIAG",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -59333,12 +59383,12 @@
           "note": ""
         },
         {
-          "poste": "LECTURE",
+          "poste": "SCAN ACHARD",
           "interneId": "noe",
           "interne": "Noé",
           "isSocle": true,
           "binome": false,
-          "note": "Relecture avec Pr Drapé"
+          "note": "Phase Socle (SCAN ACHARD)"
         },
         {
           "poste": "TDM SAU",
@@ -59349,12 +59399,12 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "LECTURE",
           "interneId": "milan",
           "interne": "Milan",
           "isSocle": false,
           "binome": false,
-          "note": ""
+          "note": "Relecture avec Pr Drapé (systématique)"
         },
         {
           "poste": "CONSULTATION",
@@ -59396,10 +59446,10 @@
         },
         "milan": {
           "am": "GESTES (C)",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "GESTES (C)",
           "preRgPm": "LECTURE"
         },
@@ -59423,10 +59473,10 @@
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Relecture avec Pr Drapé",
+          "pm": "SCAN ACHARD",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Relecture avec Pr Drapé",
+          "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
@@ -59452,10 +59502,10 @@
         },
         "milan": {
           "am": "GESTES (C)",
-          "pm": "SCAN ACHARD",
-          "note": "",
+          "pm": "LECTURE",
+          "note": "Relecture avec Pr Drapé (systématique)",
           "noteAm": "",
-          "notePm": "",
+          "notePm": "Relecture avec Pr Drapé (systématique)",
           "preRgAm": "GESTES (C)",
           "preRgPm": "LECTURE"
         },
@@ -59479,10 +59529,10 @@
         },
         "noe": {
           "am": "TDM SAU",
-          "pm": "LECTURE",
-          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Relecture avec Pr Drapé",
+          "pm": "SCAN ACHARD",
+          "note": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure) • Phase Socle (SCAN ACHARD)",
           "noteAm": "Avec Dr Macil HAMADOUCHE (MH) — Solo SAU (exceptionnellement sans doublure)",
-          "notePm": "Relecture avec Pr Drapé",
+          "notePm": "Phase Socle (SCAN ACHARD)",
           "preRgAm": "TDM SAU",
           "preRgPm": "ECHO"
         }
@@ -59542,7 +59592,7 @@
       ],
       "pm": [
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "gabriel",
           "interne": "Gabriel",
           "isSocle": false,
@@ -59582,7 +59632,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -59595,7 +59645,7 @@
       "byInterne": {
         "gabriel": {
           "am": "IRM 3T",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -59631,7 +59681,7 @@
         },
         "oussama": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -59651,7 +59701,7 @@
       "slots": {
         "gabriel": {
           "am": "IRM 3T",
-          "pm": "ECHO",
+          "pm": "SCAN ACHARD",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -59687,7 +59737,7 @@
         },
         "oussama": {
           "am": "TDM SAU",
-          "pm": "SCAN ACHARD",
+          "pm": "ECHO",
           "note": "",
           "noteAm": "",
           "notePm": "",
@@ -59741,7 +59791,7 @@
           "note": ""
         },
         {
-          "poste": "ECHO",
+          "poste": "SCAN ACHARD",
           "interneId": "nathanael",
           "interne": "Nathanaël",
           "isSocle": false,
@@ -59749,7 +59799,7 @@
           "note": ""
         },
         {
-          "poste": "SCAN ACHARD",
+          "poste": "ECHO",
           "interneId": "oussama",
           "interne": "Oussama",
           "isSocle": false,
@@ -59838,7 +59888,7 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -59847,7 +59897,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "oussama": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -59894,7 +59944,7 @@
           "preRgPm": "IRM"
         },
         "nathanael": {
-          "am": "ECHO",
+          "am": "SCAN ACHARD",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
@@ -59903,7 +59953,7 @@
           "preRgPm": "1/2 journée libre"
         },
         "oussama": {
-          "am": "SCAN ACHARD",
+          "am": "ECHO",
           "pm": "1/2 journée libre",
           "note": "Demi-off hebdomadaire",
           "noteAm": "",
