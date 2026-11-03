@@ -535,6 +535,22 @@ def is_ph_doc(doc_str: str) -> bool:
     return bool(tokens & PH_DOC_TOKENS)
 
 
+def is_no_drape_relecture_tuesday(day_iso: str, wd: int | None = None) -> bool:
+    """
+    Pas de relecture Pr Drapé le mardi après-midi en décembre 2026,
+    sauf la première semaine de décembre (mardi 01/12/2026).
+    S'applique donc aux mardis 08/12, 15/12, 22/12 et 29/12/2026.
+    """
+    if not day_iso or not day_iso.startswith("2026-12") or day_iso <= "2026-12-06":
+        return False
+    if wd is None:
+        try:
+            wd = datetime.date.fromisoformat(day_iso).weekday()
+        except Exception:
+            return False
+    return wd == 1
+
+
 def get_ph_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None = None, day_iso: str = "") -> set[str]:
     """
     Retourne l'ensemble des postes d'internes obligatoires (les vacations prioritaires)
@@ -542,7 +558,7 @@ def get_ph_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None
     - Lundi matin : ECHO
     - Lundi après-midi : IRM
     - Mardi matin : GESTES (C), IRM 3T, IRM 1,5T
-    - Mardi après-midi : LECTURE (Relecture Pr Drapé)
+    - Mardi après-midi : LECTURE (Relecture Pr Drapé, sauf mardis de décembre après la 1re semaine)
     - Mercredi matin : IRM 3T, IRM 1,5T, TDM OLLIER DIAG (+ ECHO à partir de décembre)
     - Mercredi après-midi : GESTES (C), IRM, SCAN ACHARD, ECHO
     - Jeudi matin : ECHO, GESTES (C)
@@ -556,13 +572,16 @@ def get_ph_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None
         except Exception:
             wd = None
     no_interne_thevenin_nov = (half == "am" and wd == 2 and day_iso.startswith("2026-11"))
+    no_drape_relecture_dec = (half == "pm" and is_no_drape_relecture_tuesday(day_iso, wd))
     mandatory_for_slot = set(MANDATORY_WEEKLY_POSTES.get((wd, half), set()))
     if no_interne_thevenin_nov:
         mandatory_for_slot.discard("ECHO")
+    if no_drape_relecture_dec:
+        mandatory_for_slot.discard("LECTURE")
     if not chefs_day:
         return mandatory_for_slot
 
-    open_set = get_open_interne_postes_for_halfday(chefs_day, half, wd)
+    open_set = get_open_interne_postes_for_halfday(chefs_day, half, wd, day_iso)
     closed_codes = {c["poste"] for c in get_closed_vacations_for_halfday(chefs_day, half, wd)}
     return {p for p in mandatory_for_slot if p in open_set and p not in closed_codes}
 
@@ -596,18 +615,20 @@ def get_closed_vacations_for_halfday(chefs_day: dict, half: str, wd: int | None 
     return closed_items
 
 
-def get_open_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None = None) -> set[str]:
+def get_open_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | None = None, day_iso: str = "") -> set[str]:
     """
     Retourne l'ensemble des postes d'internes réellement OUVERTS sur la demi-journée
     d'après le planning des Chefs.
     Note : 'CONSULTATION' et 'LECTURE' sont ouverts aux internes le mardi après-midi (wd=1, half='pm')
-    et le vendredi après-midi (wd=4, half='pm').
+    et le vendredi après-midi (wd=4, half='pm'), sauf les mardis de décembre hors 1re semaine où il n'y a pas de relecture Pr Drapé.
     """
+    no_drape_relecture_dec = (half == "pm" and is_no_drape_relecture_tuesday(day_iso, wd))
     if not chefs_day:
         base = {"TDM SAU", "ECHO", "GESTES (C)", "SCAN ACHARD", "IRM 3T", "IRM 1,5T", "IRM", "TDM OLLIER DIAG", "ALLURA"}
         if half == "pm" and wd in (1, 4):
             base.add("CONSULTATION")
-            base.add("LECTURE")
+            if not no_drape_relecture_dec:
+                base.add("LECTURE")
         return base
     open_set = set()
     for entry in chefs_day.get(half, []):
@@ -619,8 +640,9 @@ def get_open_interne_postes_for_halfday(chefs_day: dict, half: str, wd: int | No
                 open_set.add(CHEF_TO_INTERNE_POSTE[poste_chef])
             elif poste_chef == "CONSULTATION" and half == "pm" and wd in (1, 4):
                 open_set.add("CONSULTATION")
-                open_set.add("LECTURE")
-    if half == "pm" and wd in (1, 4):
+                if not no_drape_relecture_dec:
+                    open_set.add("LECTURE")
+    if half == "pm" and wd in (1, 4) and not no_drape_relecture_dec:
         open_set.add("LECTURE")
     return open_set
 
@@ -764,8 +786,9 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         closed_pm = get_closed_vacations_for_halfday(chefs_day, "pm", wd)
         closed_am_codes = {c["poste"]: c["status"] for c in closed_am}
         closed_pm_codes = {c["poste"]: c["status"] for c in closed_pm}
-        open_am_codes = get_open_interne_postes_for_halfday(chefs_day, "am", wd)
-        open_pm_codes = get_open_interne_postes_for_halfday(chefs_day, "pm", wd)
+        open_am_codes = get_open_interne_postes_for_halfday(chefs_day, "am", wd, iso)
+        open_pm_codes = get_open_interne_postes_for_halfday(chefs_day, "pm", wd, iso)
+        no_drape_relecture_dec = is_no_drape_relecture_tuesday(iso, wd)
 
         day_roles = weekly_roles[wd]
         by_interne = {}
@@ -918,14 +941,24 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     "ECHO",
                     "GESTES (C)",
                 ],
-                1: [  # Mardi PM (5 seniors actifs, 0 off) — Obligatoires : TDM SAU, LECTURE (+ CONSULTATION, SCAN ACHARD, ECHO, GESTES C)
-                    "LECTURE",
-                    "TDM SAU",
-                    "CONSULTATION",
-                    "SCAN ACHARD",
-                    "ECHO",
-                    "GESTES (C)",
-                ],
+                1: (  # Mardi PM (5 seniors actifs, 0 off) — Obligatoires : TDM SAU, LECTURE (+ CONSULTATION, SCAN ACHARD, ECHO, GESTES C) ; hors mardis de décembre après S1
+                    [
+                        "TDM SAU",
+                        "CONSULTATION",
+                        "SCAN ACHARD",
+                        "ECHO",
+                        "GESTES (C)",
+                    ]
+                    if no_drape_relecture_dec
+                    else [
+                        "LECTURE",
+                        "TDM SAU",
+                        "CONSULTATION",
+                        "SCAN ACHARD",
+                        "ECHO",
+                        "GESTES (C)",
+                    ]
+                ),
                 2: [  # Mercredi PM (4 seniors actifs + Noé en ECHO) — Obligatoires : TDM SAU, GESTES (C), IRM, SCAN ACHARD, ECHO
                     "TDM SAU",
                     "GESTES (C)",
@@ -1006,7 +1039,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         #      * S1 (week_idx == 0, lundi matin = Formation) : Mardi AM (solo avec Dr M. Hamadouche), Jeudi AM, Vendredi PM.
         #      * S2 à S4 (1 <= week_idx < 4) : Lundi AM, Mardi AM (solo avec Dr M. Hamadouche) et Jeudi AM (avec Dr M. Hamadouche).
         #    - À partir du 2e mois (Décembre à Avril, week_idx >= 4) :
-        #      * Toujours au TDM SAU le mardi matin (solo avec Dr M. Hamadouche) + 2 autres TDM SAU en binôme qui varient chaque semaine.
+        #      * Toujours au TDM SAU le mardi matin (solo avec Dr Macil Hamadouche) + 2 autres TDM SAU en binôme qui varient chaque semaine.
         if week_idx < 4:
             if wd == 0:
                 noe_am = "TDM SAU"
@@ -1078,7 +1111,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 # SAU : Mar AM (solo MH), Mer PM, Ven AM (2 AM + 1 PM) • Offs : Mer AM, Lun PM
                 noe_week_plan = {
                     0: ("GESTES (C)", "1/2 journée libre"),
-                    1: ("TDM SAU", "LECTURE"),
+                    1: ("TDM SAU", "SCAN ACHARD" if no_drape_relecture_dec else "LECTURE"),
                     2: ("1/2 journée libre", "TDM SAU"),
                     3: ("ECHO", "SCAN ACHARD"),
                     4: ("TDM SAU", "IRM" if (week_idx % 2 == 0) else ("CONSULTATION" if is_noe_cs_months else "LECTURE")),
@@ -1143,7 +1176,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
         # 3bis. Garantie SYSTÉMATIQUE du TDM SAU (Matin & Après-midi) par un co-interne hors socle
         #       (sauf le mardi matin où Noé assure le TDM SAU en solo avec Dr Macil Hamadouche)
-        #       et de la Relecture avec Pr Drapé le Mardi après-midi (wd == 1)
+        #       et de la Relecture avec Pr Drapé le Mardi après-midi (wd == 1, hors mardis de décembre après S1)
         #       Priorité : prélever d'abord sur une vacation non obligatoire (hors 13 vacations prioritaires)
         for h_sau in ("am", "pm"):
             is_tue_am_noe_solo = (wd == 1 and h_sau == "am" and by_interne["noe"]["am"] == "TDM SAU")
@@ -1169,7 +1202,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     if replaced_sau:
                         break
 
-        if wd == 1:
+        if wd == 1 and not no_drape_relecture_dec:
             has_tue_cs = any(
                 by_interne[iid]["pm"] == "LECTURE"
                 for iid in senior_interne_ids
@@ -1195,6 +1228,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         for half, closed_map, open_set in [("am", closed_am_codes, open_am_codes), ("pm", closed_pm_codes, open_pm_codes)]:
             note_key = "noteAm" if half == "am" else "notePm"
             is_no_off_halfday = (half == "pm" and wd in (1, 4))
+            no_drape_halfday = (half == "pm" and no_drape_relecture_dec)
             ph_half_set = get_ph_interne_postes_for_halfday(chefs_day, half, wd, iso)
             used_by_seniors = set()
             for iid in senior_interne_ids:
@@ -1204,7 +1238,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
             base_fallbacks = ["TDM OLLIER DIAG", "SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "ALLURA"]
             if half == "pm" and wd in (1, 4):
-                base_fallbacks = ["CONSULTATION", "LECTURE"] + base_fallbacks
+                base_fallbacks = (["CONSULTATION"] if no_drape_halfday else ["CONSULTATION", "LECTURE"]) + base_fallbacks
             no_interne_thevenin_nov = (half == "am" and wd == 2 and iso.startswith("2026-11"))
             if no_interne_thevenin_nov:
                 base_fallbacks = [c for c in base_fallbacks if c != "ECHO"]
@@ -1227,6 +1261,21 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     by_interne[iid][note_key] = "Pas d'interne en Écho avec Dr F. Thévenin (Novembre)"
                     if not by_interne[iid]["note"]:
                         by_interne[iid]["note"] = "Pas d'interne en Écho avec Dr F. Thévenin (Novembre)"
+                elif p == "LECTURE" and no_drape_halfday:
+                    reassigned = None
+                    for cand in fallback_candidates:
+                        if cand in open_set and cand not in closed_map and cand not in used_by_seniors and cand != by_interne["noe"][half]:
+                            reassigned = cand
+                            break
+                    if not reassigned:
+                        reassigned = "SCAN ACHARD"
+                    else:
+                        used_by_seniors.add(reassigned)
+                    used_by_seniors.discard("LECTURE")
+                    by_interne[iid][half] = reassigned
+                    by_interne[iid][note_key] = "Pas de relecture Pr Drapé (Décembre hors S1)"
+                    if not by_interne[iid]["note"]:
+                        by_interne[iid]["note"] = "Pas de relecture Pr Drapé (Décembre hors S1)"
                 elif p in closed_map:
                     status_lbl = closed_map[p]
                     reassigned = None
@@ -1239,9 +1288,12 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                             if "CONSULTATION" in open_set and "CONSULTATION" not in closed_map and "CONSULTATION" not in used_by_seniors:
                                 reassigned = "CONSULTATION"
                                 used_by_seniors.add("CONSULTATION")
-                            else:
+                            elif not no_drape_halfday:
                                 reassigned = "LECTURE"
                                 used_by_seniors.add("LECTURE")
+                            else:
+                                reassigned = "SCAN ACHARD"
+                                used_by_seniors.add("SCAN ACHARD")
                         else:
                             reassigned = "1/2 journée libre"
                     else:
@@ -1260,10 +1312,13 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
 
             noe_p = by_interne["noe"][half]
             if noe_p not in ("1/2 journée libre", "RG", "VACANCES", "FÉRIÉ", "FORMATION / ACCUEIL"):
-                if noe_p in closed_map or (noe_p != "TDM SAU" and noe_p in used_by_seniors):
+                if noe_p in closed_map or (noe_p != "TDM SAU" and noe_p in used_by_seniors) or (noe_p == "LECTURE" and no_drape_halfday):
                     noe_cands = ["TDM OLLIER DIAG", "SCAN ACHARD", "ECHO", "IRM 1,5T", "IRM 3T", "IRM", "GESTES (C)"]
                     if half == "pm" and wd in (1, 4):
-                        noe_cands = (["CONSULTATION", "LECTURE"] if iso >= "2027-03-01" else ["LECTURE"]) + noe_cands
+                        extra_pm_cands = ["CONSULTATION", "LECTURE"] if iso >= "2027-03-01" else ["LECTURE"]
+                        if no_drape_halfday:
+                            extra_pm_cands = [c for c in extra_pm_cands if c != "LECTURE"]
+                        noe_cands = extra_pm_cands + noe_cands
                     if no_interne_thevenin_nov:
                         noe_cands = [c for c in noe_cands if c != "ECHO"]
                     reassigned_noe = None
@@ -1307,7 +1362,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         ch_day = (chefs_planning or {}).get(day_iso, {})
         dt_obj = datetime.date.fromisoformat(day_iso)
         wd_cur = dt_obj.weekday()
-        open_set = get_open_interne_postes_for_halfday(ch_day, half_key, wd_cur)
+        open_set = get_open_interne_postes_for_halfday(ch_day, half_key, wd_cur, day_iso)
         ph_set = get_ph_interne_postes_for_halfday(ch_day, half_key, wd_cur, day_iso)
         closed_codes = {c["poste"] for c in (day_obj["closedAm"] if half_key == "am" else day_obj["closedPm"])}
         used = {
@@ -1317,7 +1372,10 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
         }
         base_cands = ["TDM OLLIER DIAG", "SCAN ACHARD", "GESTES (C)", "IRM", "IRM 3T", "IRM 1,5T", "ECHO", "ALLURA"]
         if half_key == "pm" and wd_cur in (1, 4):
-            base_cands = ["CONSULTATION", "LECTURE"] + base_cands
+            if is_no_drape_relecture_tuesday(day_iso, wd_cur):
+                base_cands = ["CONSULTATION"] + base_cands
+            else:
+                base_cands = ["CONSULTATION", "LECTURE"] + base_cands
         if half_key == "am" and wd_cur == 2 and day_iso.startswith("2026-11"):
             base_cands = [c for c in base_cands if c != "ECHO"]
         candidates = [c for c in base_cands if c in ph_set] + [c for c in base_cands if c not in ph_set]
@@ -2357,7 +2415,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     reduced_noe = True
                     break
                 wd_s = datetime.date.fromisoformat(d_iso).weekday()
-                if h == "pm" and wd_s in (1, 4):
+                if h == "pm" and wd_s in (1, 4) and not is_no_drape_relecture_tuesday(d_iso, wd_s):
                     nk = "noteAm" if h == "am" else "notePm"
                     by_int = schedule[d_iso]["byInterne"]
                     swapped_achard = False
@@ -2386,7 +2444,7 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                 # Si les 5 seniors occupent tous les postes ouverts sur cette demi-journée, Noé (Phase Socle)
                 # va en binôme sur un poste diagnostique ouvert (SCAN ACHARD, TDM OLLIER DIAG, ECHO) différent de son autre demi-journée
                 ch_day_s = (chefs_planning or {}).get(d_iso, {})
-                open_set_s = get_open_interne_postes_for_halfday(ch_day_s, h, wd_s)
+                open_set_s = get_open_interne_postes_for_halfday(ch_day_s, h, wd_s, d_iso)
                 closed_s = {c["poste"] for c in (schedule[d_iso]["closedAm"] if h == "am" else schedule[d_iso]["closedPm"])}
                 binome_cands = ["SCAN ACHARD", "TDM OLLIER DIAG", "ECHO", "IRM 1,5T", "IRM 3T", "IRM"]
                 if h == "am" and wd_s == 2 and d_iso.startswith("2026-11"):
@@ -3633,6 +3691,8 @@ def generate_semester_schedule(absences: list[dict], chefs_planning: dict | None
                     raise RuntimeError(f"ERREUR : L'interne {iid_chk} a le même poste toute la journée ({p_am_chk}) le {d_iso}")
                 if wd_chk in (1, 4) and p_pm_chk == "1/2 journée libre":
                     raise RuntimeError(f"ERREUR : Demi-off interdit le {'mardi' if wd_chk == 1 else 'vendredi'} après-midi pour {iid_chk} le {d_iso}")
+                if is_no_drape_relecture_tuesday(d_iso, wd_chk) and p_pm_chk == "LECTURE":
+                    raise RuntimeError(f"ERREUR : Relecture Pr Drapé (LECTURE) interdite le mardi {d_iso} après-midi pour {iid_chk}")
             for h_chk in ("am", "pm"):
                 if d_iso == "2026-11-02" and h_chk == "am":
                     continue
@@ -4528,8 +4588,11 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
         pm_c = [dict(x) for x in day_v.get("pm", [])]
         if wd_k == 1:
             for item in pm_c:
-                if item.get("poste") == "CONSULTATION" and item.get("doc") == "INTERNES":
-                    item["doc"] = "DRAPE / INTERNES"
+                if item.get("poste") == "CONSULTATION":
+                    if is_no_drape_relecture_tuesday(iso_k, wd_k):
+                        item["doc"] = "INTERNES"
+                    elif item.get("doc") == "INTERNES":
+                        item["doc"] = "DRAPE / INTERNES"
         out[iso_k] = {"am": am_c, "pm": pm_c}
     start_dt = datetime.date(2026, 11, 2)
     cur = start_dt
@@ -4544,6 +4607,10 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
             else:
                 am_copy = [dict(x) for x in maquette_dow[wd]["am"]]
                 pm_copy = [dict(x) for x in maquette_dow[wd]["pm"]]
+                if wd == 1 and is_no_drape_relecture_tuesday(iso, wd):
+                    for item in pm_copy:
+                        if item["poste"] == "CONSULTATION":
+                            item["doc"] = "INTERNES"
                 # Vendredi PM : IRM 1 semaine sur 2 (fermée les semaines impaires comme S2 13/11 et S4 27/11)
                 if wd == 4 and (week_idx % 2 == 1):
                     for item in pm_copy:
@@ -5214,7 +5281,7 @@ def build_full_dataset() -> dict:
     for _ in range(15):
         lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
         ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
-        if lec_c["noe"] >= 10:
+        if lec_c["noe"] >= 8:
             break
         best_cand = None
         best_score = -999999.0
@@ -5257,16 +5324,16 @@ def build_full_dataset() -> dict:
         by_s[s_sw]["notePm"] = _format_pm_note_global(d_sw, s_sw, "SCAN ACHARD")
         by_s[s_sw]["note"] = " • ".join(x for x in (by_s[s_sw].get("noteAm", ""), by_s[s_sw].get("notePm", "")) if x)
 
-    # B) Égaliser les LECTURE entre tous les internes (cible ~8-9 chacun)
+    # B) Égaliser les LECTURE entre tous les internes (cible ~7-8 chacun)
     for _ in range(30):
         lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
         ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
         swapped_l = False
-        over_l = sorted([i for i in all_iids_global if lec_c[i] >= (10 if i == "noe" else 9)], key=lambda x: (-lec_c[x], ach_c[x]))
+        over_l = sorted([i for i in all_iids_global if lec_c[i] >= 8], key=lambda x: (-lec_c[x], ach_c[x]))
         under_l = sorted([i for i in all_iids_global if lec_c[i] <= 7], key=lambda x: (lec_c[x], -ach_c[x]))
         for o_id in over_l:
             for u_id in under_l:
-                if lec_c[o_id] - lec_c[u_id] < 1 or (lec_c[o_id] - lec_c[u_id] == 1 and not (o_id != "noe" and lec_c[o_id] >= 9 and lec_c[u_id] <= 7)):
+                if lec_c[o_id] - lec_c[u_id] < 2 and not (lec_c[o_id] >= 9 and lec_c[u_id] <= 7):
                     continue
                 for donor_p in ("SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"):
                     for mon_iso in unlocked_mons_global:
@@ -5337,7 +5404,7 @@ def build_full_dataset() -> dict:
     for _ in range(15):
         lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
         ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
-        if lec_c["noe"] >= 9:
+        if lec_c["noe"] >= 8:
             break
         best_cand = None
         best_score = -999999.0
@@ -5384,11 +5451,11 @@ def build_full_dataset() -> dict:
         lec_c = {i: _total_lec_cnt(i) for i in all_iids_global}
         ach_c = {i: _total_ach_cnt(i) for i in all_iids_global}
         swapped_l = False
-        over_l = sorted([i for i in all_iids_global if lec_c[i] >= (10 if i == "noe" else 9)], key=lambda x: (-lec_c[x], ach_c[x]))
+        over_l = sorted([i for i in all_iids_global if lec_c[i] >= 8], key=lambda x: (-lec_c[x], ach_c[x]))
         under_l = sorted([i for i in all_iids_global if lec_c[i] <= 8], key=lambda x: (lec_c[x], -ach_c[x]))
         for o_id in over_l:
             for u_id in under_l:
-                if lec_c[o_id] - lec_c[u_id] < 1 or (lec_c[o_id] - lec_c[u_id] == 1 and not (o_id != "noe" and lec_c[o_id] >= 9 and lec_c[u_id] <= 7)):
+                if lec_c[o_id] - lec_c[u_id] < 2 and not (lec_c[o_id] >= 9 and lec_c[u_id] <= 7):
                     continue
                 for donor_p in ("SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"):
                     for mon_iso in unlocked_mons_global:
@@ -5560,16 +5627,16 @@ def build_full_dataset() -> dict:
                 "GESTES_C": "Matin : dès 09h00 • Après-midi : dès 14h00",
                 "TDM_SAU": "08h00 – 18h30 (Scanner des Urgences : début à 08h00, fin à 18h30)",
                 "CONSULTATION": "Consultation Internes le Mardi après-midi et le Vendredi après-midi (14h00 – 15h00)",
-                "LECTURE": "Lecture / Relecture le Mardi après-midi (Relecture systématique avec Pr Drapé) et le Vendredi après-midi (14h00 – 16h00)",
+                "LECTURE": "Lecture / Relecture le Mardi après-midi (Relecture systématique avec Pr Drapé, sauf en décembre après la 1re semaine : 08/12, 15/12, 22/12 et 29/12) et le Vendredi après-midi (14h00 – 16h00)",
             },
             "rules": [
                 "Interdiction de faire le même poste toute la journée : un interne ne peut jamais être affecté au même poste le matin et l'après-midi d'une même journée.",
                 "IRM d'après-midi séparées des IRM du matin (3T / 1,5T) : un interne ne peut pas avoir plus d'une IRM d'après-midi par semaine (sauf exception en cas de congés / RG).",
                 "Horaires des vacations : Matin — IRM à 07h45, Scanner des U (TDM SAU) de 08h00 à 18h30, Échographie (US) et Poste C (Gestes) à 09h00 • Après-midi — IRM à 13h00, Échographie (US) et Poste C (Gestes) à 14h00, Consultation (CS) de 14h00 à 15h00, Lecture / Relecture de 14h00 à 16h00.",
-                "Séparation des vacations de Lecture (LECTURE : 14h00 – 16h00) et de Consultation d'internes (CONSULTATION : 14h00 – 15h00) : les consultations d'internes ont lieu le mardi après-midi et le vendredi après-midi, séparément des vacations de lecture/relecture.",
+                "Séparation des vacations de Lecture (LECTURE : 14h00 – 16h00) et de Consultation d'internes (CONSULTATION : 14h00 – 15h00) : les consultations d'internes ont lieu le mardi après-midi et le vendredi après-midi, séparément des vacations de lecture/relecture (pas de relecture avec Pr Drapé le mardi après-midi en décembre sauf la 1re semaine, le 01/12/2026).",
                 "Séparation des 3 scanners du service : Scanner SAU (TDM Ollier 4 — Urgences), Scanner Achard (TDM Achard 1 — Diagnostique & Interventionnel) et Scanner Ollier (TDM Ollier 3 — Diagnostique).",
                 "Quota hebdomadaire de Scanner SAU (TDM SAU) : 2 SAU par semaine pour chacun des 5 internes seniors (Gabriel, Marwane, Milan, Nathanaël, Oussama), et 3 SAU par semaine pour Noé (Phase Socle : imposé en solo sans doublure exceptionnellement chaque mardi matin avec Dr Macil HAMADOUCHE, + 2 créneaux en binôme avec un co-interne senior sur le reste de la semaine) — plus uniquement à titre exceptionnel (remplacement congés / RG).",
-                "Permanence Scanner SAU (un interne senior matin et après-midi, sauf le mardi matin assuré en solo par Noé avec Dr Macil HAMADOUCHE) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi, IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
+                "Permanence Scanner SAU (un interne senior matin et après-midi, sauf le mardi matin assuré en solo par Noé avec Dr Macil HAMADOUCHE) + vacations obligatoires prioritaires : Écho lundi matin, IRM lundi après-midi, Poste C, IRM 3T et IRM 1,5T mardi matin, Lecture/Relecture mardi après-midi (sauf en décembre après la 1re semaine), IRM 3T, IRM 1,5T et Scanner Ollier mercredi matin (+ Écho mercredi matin à partir de décembre), Poste C / IRM / Scanner Achard / Écho mercredi après-midi, Écho et Poste C jeudi matin, IRM jeudi après-midi, IRM 3T vendredi matin.",
                 "Planning officiel des gardes des internes Hiver 2026–2027 intégré : Repos de garde (RG) systématique le lendemain de chaque garde (avec maintien des 2 demi-offs hebdomadaires et couverture garantie du TDM SAU et des vacations obligatoires).",
                 "Maximum 2 demi-offs (1/2 journée libre) par semaine par interne (jamais plus de 2 demi-offs sur une même semaine, et jamais de demi-off le mardi après-midi ni le vendredi après-midi) : à partir du 09/11/2026, demi-journée off fixe pour les demandeurs dans la mesure du possible (Lundi matin pour Oussama, Mardi matin pour Gabriel, Jeudi matin pour Marwane) + 1 autre demi-journée off posée en fonction des vacations obligatoires.",
                 "Présentations des internes (Cas du Mardi & Biblio du Vendredi) : début en semaine 2 (mardi 10/11/2026 pour les Cas, vendredi 13/11/2026 pour la Biblio) avec espacement garanti d'au moins 2,5 à 3,5 semaines (18 à 24 jours minimum) entre deux présentations d'un même interne et 6 semaines entre deux Cas ou deux Biblios.",

@@ -3711,6 +3711,15 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       "ALLURA": "ALLURA"
     };
 
+    function isNoDrapeRelectureTuesday(iso, jsDay) {
+      if (!iso) return false;
+      if (jsDay === undefined || jsDay === null) {
+        const [yy, mm, dd] = String(iso).split("-").map(Number);
+        jsDay = new Date(yy, mm - 1, dd).getDay();
+      }
+      return jsDay === 2 && String(iso).startsWith("2026-12") && String(iso) > "2026-12-06";
+    }
+
     function getOpenMandatoryPostesForHalfDay(iso, halfKey, stRef) {
       stRef = stRef || STATE;
       if (!iso || !stRef) return new Set();
@@ -3721,8 +3730,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const jsDay = new Date(yy, mm - 1, dd).getDay();
       if (jsDay < 1 || jsDay > 5) return new Set();
       const noInterneTheveninNov = (halfKey === "am" && jsDay === 3 && iso.startsWith("2026-11"));
+      const noDrapeTueDec = (halfKey === "pm" && isNoDrapeRelectureTuesday(iso, jsDay));
       const baseReq = new Set(MANDATORY_WEEKLY_POSTES_MAP[`${jsDay}_${halfKey}`] || []);
       if (noInterneTheveninNov) baseReq.delete("ECHO");
+      if (noDrapeTueDec) baseReq.delete("LECTURE");
       const chDay = (stRef.chefsPlanning || {})[iso];
       if (!chDay || !Array.isArray(chDay[halfKey])) {
         baseReq.add("TDM SAU");
@@ -3738,10 +3749,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           openPostes.add(CHEF_TO_INTERNE_POSTE_MAP[pChef]);
         } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
           openPostes.add("CONSULTATION");
-          openPostes.add("LECTURE");
+          if (!noDrapeTueDec) openPostes.add("LECTURE");
         }
       });
-      if (halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+      if (halfKey === "pm" && (jsDay === 2 || jsDay === 5) && !noDrapeTueDec) {
         openPostes.add("LECTURE");
       }
       const res = new Set(["TDM SAU"]);
@@ -3790,9 +3801,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       if (!docs.length) return [];
       const dObj = (stRef && stRef.schedule) ? stRef.schedule[iso] : null;
       const periodList = (dObj && Array.isArray(dObj[halfKey])) ? dObj[halfKey] : [];
+      const noDrapeTueDec = (halfKey === "pm" && isNoDrapeRelectureTuesday(iso));
       const hasInterne = periodList.some(x => !x.closed && x.interneId && (
         x.poste === posteName ||
-        (posteName === "CONSULTATION" && x.poste === "LECTURE")
+        (posteName === "CONSULTATION" && x.poste === "LECTURE" && !noDrapeTueDec)
       ));
       return hasInterne ? [] : docs;
     }
@@ -3860,8 +3872,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       }
       function getPhInternePostesForHalfDay(iso, halfKey, jsDay) {
         const noInterneTheveninNov = (halfKey === "am" && jsDay === 3 && iso.startsWith("2026-11"));
+        const noDrapeTueDec = (halfKey === "pm" && isNoDrapeRelectureTuesday(iso, jsDay));
         const baseReq = new Set(mandatoryWeeklyPostes[`${jsDay}_${halfKey}`] || []);
         if (noInterneTheveninNov) baseReq.delete("ECHO");
+        if (noDrapeTueDec) baseReq.delete("LECTURE");
         const chDay = (st.chefsPlanning || {})[iso];
         if (!chDay || !Array.isArray(chDay[halfKey])) return baseReq;
         const openPostes = new Set();
@@ -3874,10 +3888,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             openPostes.add(chefToInterneMap[pChef]);
           } else if (pChef === "CONSULTATION" && halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
             openPostes.add("CONSULTATION");
-            openPostes.add("LECTURE");
+            if (!noDrapeTueDec) openPostes.add("LECTURE");
           }
         });
-        if (halfKey === "pm" && (jsDay === 2 || jsDay === 5)) {
+        if (halfKey === "pm" && (jsDay === 2 || jsDay === 5) && !noDrapeTueDec) {
           openPostes.add("LECTURE");
         }
         const phSet = new Set();
@@ -3907,8 +3921,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             const intObj = st.internes.find(x => x.id === iid);
             const origSlot = dayObj.byInterne[iid] || {};
             const cKey = iso + "__" + iid;
+            const noDrapeTueDec = isNoDrapeRelectureTuesday(iso, jsDay);
             let am = origSlot.am === "LECTURE/CS" ? "LECTURE" : origSlot.am;
-            let pm = origSlot.pm === "LECTURE/CS" ? (jsDay === 5 ? "CONSULTATION" : "LECTURE") : origSlot.pm;
+            let pm = origSlot.pm === "LECTURE/CS" ? ((jsDay === 5 || noDrapeTueDec) ? "CONSULTATION" : "LECTURE") : origSlot.pm;
             let noteAm = origSlot.noteAm || "";
             let notePm = origSlot.notePm || "";
             let note = origSlot.note || noteAm || notePm || "";
@@ -3919,7 +3934,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             if (!isWeekLocked && !absLookup[cKey] && origSlot.am === "RG" && origSlot.preRgAm) {
               am = origSlot.preRgAm === "LECTURE/CS" ? "LECTURE" : origSlot.preRgAm;
               const rawPrePm = origSlot.preRgPm || origSlot.preRgAm;
-              pm = rawPrePm === "LECTURE/CS" ? (jsDay === 5 ? "CONSULTATION" : "LECTURE") : rawPrePm;
+              pm = rawPrePm === "LECTURE/CS" ? ((jsDay === 5 || noDrapeTueDec) ? "CONSULTATION" : "LECTURE") : rawPrePm;
               note = "";
               noteAm = "";
               notePm = "";
@@ -3936,7 +3951,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 am = custom[cKey].am === "LECTURE/CS" ? "LECTURE" : custom[cKey].am;
               }
               if (custom[cKey].pm && (isChefCustom || !((jsDayC === 2 || jsDayC === 5) && custom[cKey].pm === "1/2 journée libre"))) {
-                pm = custom[cKey].pm === "LECTURE/CS" ? (jsDayC === 5 ? "CONSULTATION" : "LECTURE") : custom[cKey].pm;
+                pm = custom[cKey].pm === "LECTURE/CS" ? ((jsDayC === 5 || noDrapeTueDec) ? "CONSULTATION" : "LECTURE") : custom[cKey].pm;
               }
               if (custom[cKey].note !== undefined) {
                 note = custom[cKey].note;
@@ -4021,7 +4036,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             // Si un Repos de garde (RG) supplémentaire est posé un Mardi ou Vendredi, couvrir automatiquement LECTURE (Mardi) / CONSULTATION (Vendredi)
             // en prélevant d'abord sur une vacation non obligatoire
-            if (jsDay === 2) {
+            if (jsDay === 2 && !isNoDrapeRelectureTuesday(iso, jsDay)) {
               const hasTueCs = Object.keys(dayObj.byInterne).some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "LECTURE");
               const anyRgToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "RG");
               const anyVacToday = seniorIds.some(sId => dayObj.byInterne[sId] && dayObj.byInterne[sId].pm === "VACANCES");
@@ -4285,7 +4300,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const otherP = slot[otherH];
                 const usedSet = new Set(Object.values(byInt).map(s => s && s[h]).filter(Boolean));
                 const phSet = getPhInternePostesForHalfDay(dIso, h, jsDay);
-                const candPostes = [...Array.from(phSet), ...nonMandatoryPriority];
+                const noDrapeTueDec = (h === "pm" && isNoDrapeRelectureTuesday(dIso, jsDay));
+                const candPostes = [...Array.from(phSet), ...nonMandatoryPriority].filter(p => !(noDrapeTueDec && p === "LECTURE"));
                 const chosen = candPostes.find(p => !usedSet.has(p) && p !== otherP) || candPostes.find(p => p !== otherP) || "TDM OLLIER DIAG";
                 const nk = h === "am" ? "noteAm" : "notePm";
                 slot[h] = chosen;
@@ -4862,7 +4878,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             return jsDay === 2 ? "Consultation Internes (Mardi PM)" : "Consultation Internes (Vendredi PM)";
           }
           if (pCode === "LECTURE") {
-            if (jsDay === 2) return iid === "noe" ? "Relecture avec Pr Drapé" : "Relecture avec Pr Drapé (systématique)";
+            if (jsDay === 2 && !isNoDrapeRelectureTuesday(dIso, jsDay)) return iid === "noe" ? "Relecture avec Pr Drapé" : "Relecture avec Pr Drapé (systématique)";
             return "Lecture (Vendredi PM)";
           }
           if (iid === "noe") return `Phase Socle (${pCode})`;
@@ -5323,7 +5339,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         for (let iterNL = 0; iterNL < 15; iterNL++) {
           const lecC = {}, achC = {};
           allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
-          if ((lecC["noe"] || 0) >= 10) break;
+          if ((lecC["noe"] || 0) >= 8) break;
           let bestCand = null;
           let bestSc = -999999;
           for (const monIso of unlockedWeekMons) {
@@ -5369,11 +5385,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const lecC = {}, achC = {};
           allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
           let swappedL = false;
-          const overL = allIidsGlobal.filter(i => lecC[i] >= (i === "noe" ? 10 : 9)).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
+          const overL = allIidsGlobal.filter(i => lecC[i] >= 8).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
           const underL = allIidsGlobal.filter(i => lecC[i] <= 7).sort((a, b) => (lecC[a] - lecC[b]) || (achC[b] - achC[a]));
           for (const oId of overL) {
             for (const uId of underL) {
-              if (lecC[oId] - lecC[uId] < 2) continue;
+              if (lecC[oId] - lecC[uId] < 2 && !(lecC[oId] >= 9 && lecC[uId] <= 7)) continue;
               for (const donorP of ["SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"]) {
                 for (const monIso of unlockedWeekMons) {
                   if (getWeekLecCountGlobal(monIso, uId) >= 1) continue;
@@ -5447,7 +5463,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         for (let iterNL2 = 0; iterNL2 < 15; iterNL2++) {
           const lecC = {}, achC = {};
           allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
-          if ((lecC["noe"] || 0) >= 9) break;
+          if ((lecC["noe"] || 0) >= 8) break;
           let bestCand = null;
           let bestSc = -999999;
           for (const monIso of unlockedWeekMons) {
@@ -5493,11 +5509,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           const lecC = {}, achC = {};
           allIidsGlobal.forEach(i => { lecC[i] = getTotalLecCountGlobal(i); achC[i] = getTotalAchCountGlobal(i); });
           let swappedL = false;
-          const overL = allIidsGlobal.filter(i => lecC[i] >= (i === "noe" ? 10 : 9)).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
+          const overL = allIidsGlobal.filter(i => lecC[i] >= 8).sort((a, b) => (lecC[b] - lecC[a]) || (achC[a] - achC[b]));
           const underL = allIidsGlobal.filter(i => lecC[i] <= 8).sort((a, b) => (lecC[a] - lecC[b]) || (achC[b] - achC[a]));
           for (const oId of overL) {
             for (const uId of underL) {
-              if (lecC[oId] - lecC[uId] < 2) continue;
+              if (lecC[oId] - lecC[uId] < 2 && !(lecC[oId] >= 9 && lecC[uId] <= 7)) continue;
               for (const donorP of ["SCAN ACHARD", "ECHO", "TDM OLLIER DIAG"]) {
                 for (const monIso of unlockedWeekMons) {
                   if (getWeekLecCountGlobal(monIso, uId) >= 1) continue;
@@ -6180,7 +6196,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 seniorIds.forEach(iid => {
                   const sl = dayObj.byInterne[iid];
                   if (!sl || sl[periodKey] !== candPoste) return;
-                  if (jsDay === 2 && periodKey === "pm" && candPoste === "LECTURE") return;
+                  if (jsDay === 2 && !isNoDrapeRelectureTuesday(iso, jsDay) && periodKey === "pm" && candPoste === "LECTURE") return;
                   candidates.push({
                     interneId: iid,
                     shortName: getInterneById(iid).shortName,
@@ -6204,8 +6220,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
           });
         }
 
-        // 2. Vérifier couverture obligatoire Mardi PM : Relecture avec Pr Drapé (LECTURE)
-        if (jsDay === 2) {
+        // 2. Vérifier couverture obligatoire Mardi PM : Relecture avec Pr Drapé (LECTURE) — sauf en décembre après la 1re semaine
+        if (jsDay === 2 && !isNoDrapeRelectureTuesday(iso, jsDay)) {
           const hasTueLecture = Object.keys(dayObj.byInterne).some(iid => dayObj.byInterne[iid] && (dayObj.byInterne[iid].pm === "LECTURE" || dayObj.byInterne[iid].pm === "LECTURE/CS"));
           if (!hasTueLecture) {
             const candidates = [];
@@ -7321,7 +7337,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
               }
               const iObj = getInterneById(m.interneId);
               let extraTag = "";
-              if (r.posteName === "LECTURE" && r.periodKey === "pm" && jsDay === 2) extraTag = "Pr Drapé";
+              if (r.posteName === "LECTURE" && r.periodKey === "pm" && jsDay === 2 && !isNoDrapeRelectureTuesday(dIso, jsDay)) extraTag = "Pr Drapé";
               else if (r.posteName === "CONSULTATION" && r.periodKey === "pm" && (jsDay === 2 || jsDay === 5)) extraTag = "Consult.";
               else if (m.note && m.note.includes("Macil")) extraTag = m.binome ? "Binôme +MH" : "+MH";
               else if (m.binome) extraTag = "Binôme";
@@ -8679,7 +8695,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 const djHtml = (!isChefPlanningMode && (iObj.isDJ || iObj.id === "oussama")) ? `<span class="tag-dj">DJ</span>` : "";
                 let binomeHtml = "";
                 if (!isChefPlanningMode) {
-                  if (posteName === "LECTURE" && periodKey === "pm" && jsDay === 2) {
+                  if (posteName === "LECTURE" && periodKey === "pm" && jsDay === 2 && !isNoDrapeRelectureTuesday(dIso, jsDay)) {
                     binomeHtml = `<span class="tag-binome">Relecture Pr Drapé</span>`;
                   } else if (posteName === "CONSULTATION" && periodKey === "pm" && (jsDay === 2 || jsDay === 5)) {
                     binomeHtml = `<span class="tag-binome">Consult.</span>`;
