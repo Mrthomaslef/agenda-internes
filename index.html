@@ -12,9 +12,9 @@
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="theme-color" content="#F8FAFC" id="metaThemeColor" />
-  <link rel="manifest" href="manifest.json?v=5" />
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=5" />
-  <link rel="apple-touch-icon" href="icon.svg?v=5" />
+  <link rel="manifest" href="manifest.json?v=6" />
+  <link rel="icon" type="image/svg+xml" href="icon.svg?v=6" />
+  <link rel="apple-touch-icon" href="icon.svg?v=6" />
   <title>Radio B Cochin — Planning Internes & Chefs</title>
   <script>
     (function() {
@@ -106,17 +106,27 @@
     }
 
     .brand-logo {
-      width: 34px;
-      height: 34px;
-      border-radius: 9px;
-      background: var(--primary);
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      font-size: 13px;
-      color: #fff;
       flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.28), 0 1px 2px rgba(15, 23, 42, 0.12);
+      transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+    }
+
+    .brand-logo:hover {
+      transform: translateY(-1px) scale(1.03);
+      box-shadow: 0 5px 14px rgba(2, 132, 199, 0.36), 0 2px 4px rgba(15, 23, 42, 0.15);
+    }
+
+    .brand-logo svg {
+      width: 100%;
+      height: 100%;
+      display: block;
     }
 
     .brand-title {
@@ -2896,7 +2906,50 @@
   <header class="app-header">
     <div class="header-top">
       <div class="brand">
-        <div class="brand-logo">RB</div>
+        <div class="brand-logo" title="Radio B Cochin — Imagerie Ostéo-Articulaire">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true">
+            <defs>
+              <linearGradient id="hdrBg" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0EA5E9"/>
+                <stop offset="48%" stop-color="#0284C7"/>
+                <stop offset="100%" stop-color="#1E3A8A"/>
+              </linearGradient>
+              <radialGradient id="hdrGlow" cx="25%" cy="18%" r="75%">
+                <stop offset="0%" stop-color="#7DD3FC" stop-opacity="0.45"/>
+                <stop offset="55%" stop-color="#0284C7" stop-opacity="0"/>
+              </radialGradient>
+              <linearGradient id="hdrRingCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#BAE6FD"/>
+                <stop offset="100%" stop-color="#38BDF8"/>
+              </linearGradient>
+              <linearGradient id="hdrRingAccent" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2DD4BF"/>
+                <stop offset="50%" stop-color="#38BDF8"/>
+                <stop offset="100%" stop-color="#A78BFA"/>
+              </linearGradient>
+            </defs>
+            <rect width="256" height="256" rx="56" fill="url(#hdrBg)"/>
+            <rect width="256" height="256" rx="56" fill="url(#hdrGlow)"/>
+            <rect x="7" y="7" width="242" height="242" rx="50" fill="none" stroke="#FFFFFF" stroke-opacity="0.22" stroke-width="4"/>
+            <!-- Anneau de gantry Scanner / IRM -->
+            <circle cx="128" cy="128" r="96" fill="none" stroke="#FFFFFF" stroke-opacity="0.14" stroke-width="12"/>
+            <circle cx="128" cy="128" r="96" fill="none" stroke="url(#hdrRingAccent)" stroke-width="12" stroke-linecap="round" stroke-dasharray="190 70 150 92" transform="rotate(-40 128 128)"/>
+            <!-- Tunnel central sombre avec repères laser -->
+            <circle cx="128" cy="128" r="76" fill="#0B1120" fill-opacity="0.48" stroke="#7DD3FC" stroke-opacity="0.35" stroke-width="3"/>
+            <line x1="128" y1="24" x2="128" y2="44" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <line x1="128" y1="212" x2="128" y2="232" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <line x1="24" y1="128" x2="44" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <line x1="212" y1="128" x2="232" y2="128" stroke="#7DD3FC" stroke-width="5" stroke-linecap="round"/>
+            <!-- Onde RF / Imagerie en haut -->
+            <path d="M 88 76 L 111 76 L 119 60 L 128 88 L 137 66 L 144 76 L 168 76" fill="none" stroke="#38BDF8" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Monogramme RB -->
+            <text x="128" y="154" text-anchor="middle" fill="#FFFFFF" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif" font-weight="900" font-size="80" letter-spacing="-2">RB</text>
+            <!-- Repères Planning (TDM / IRM / Écho) -->
+            <rect x="86" y="174" width="22" height="9" rx="4.5" fill="#FBBF24"/>
+            <rect x="117" y="174" width="22" height="9" rx="4.5" fill="#A78BFA"/>
+            <rect x="148" y="174" width="22" height="9" rx="4.5" fill="#2DD4BF"/>
+          </svg>
+        </div>
         <div>
           <div class="brand-title">Radio B Cochin</div>
           <div class="brand-sub">Hiver 2026–2027 • Sans donnée patient</div>
