@@ -118,6 +118,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       font-size: 14px;
       line-height: 1.4;
       min-height: 100vh;
+      overflow-y: auto;
       overflow-x: hidden;
     }
 
@@ -11509,6 +11510,25 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         }
       }, 25000);
       if (hasPendingPushes()) updateSyncBadge("⚠️ Non envoyé");
+
+      // Défilement fluide à la molette / trackpad Mac sur les barres de filtres horizontales et tableaux larges
+      window.addEventListener("wheel", (e) => {
+        if (e.ctrlKey || e.metaKey) return;
+        const dy = e.deltaY || 0;
+        const dx = e.deltaX || 0;
+        if (!dy && !dx) return;
+        const horiz = e.target && e.target.closest
+          ? e.target.closest(".person-chips, .week-table-wrap, .decompte-table-wrap")
+          : null;
+        if (horiz && horiz.scrollWidth > horiz.clientWidth && Math.abs(dy) > Math.abs(dx)) {
+          // Si c'est une barre de puces (person-chips), la molette verticale fait défiler horizontalement
+          if (horiz.classList.contains("person-chips")) {
+            horiz.scrollLeft += dy;
+            e.preventDefault();
+            return;
+          }
+        }
+      }, { passive: false });
     });
   </script>
 </body>
