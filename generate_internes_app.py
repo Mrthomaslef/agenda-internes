@@ -56,9 +56,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
   <meta http-equiv="Pragma" content="no-cache" />
   <meta http-equiv="Expires" content="0" />
   <meta name="theme-color" content="#F8FAFC" id="metaThemeColor" />
-  <link rel="manifest" href="manifest.json?v=8" />
-  <link rel="icon" type="image/svg+xml" href="icon.svg?v=8" />
-  <link rel="apple-touch-icon" href="icon.svg?v=8" />
+  <link rel="manifest" href="manifest.json?v=9" />
+  <link rel="icon" type="image/svg+xml" sizes="any" href="icon.svg?v=9" />
+  <link rel="apple-touch-icon" href="icon.svg?v=9" />
   <title>Radio B Cochin — Planning Internes & Chefs</title>
   <script>
     (function() {
@@ -153,6 +153,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     .brand-logo {
       width: 42px;
       height: 42px;
+      min-width: 42px;
+      min-height: 42px;
       border-radius: 11px;
       display: flex;
       align-items: center;
@@ -169,8 +171,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     }
 
     .brand-logo svg {
-      width: 100%;
-      height: 100%;
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+      min-height: 42px;
+      flex-shrink: 0;
       display: block;
     }
 
@@ -3069,6 +3074,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     html[data-theme="dark"] .garde-name {
       color: #FCA5A5 !important;
     }
+
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 8mm;
+      }
+      html, body {
+        background: #FFFFFF !important;
+        color: #0F172A !important;
+        font-size: 11px !important;
+        overflow: visible !important;
+      }
+      .app-header,
+      .planning-toolbar,
+      .chef-simple-panel,
+      .week-status-strip,
+      .weekend-gardes-compact,
+      .chef-offvac-section,
+      .decompte-card,
+      .modal-backdrop,
+      .toast-container {
+        display: none !important;
+      }
+      .card,
+      .week-table-wrap {
+        border: none !important;
+        box-shadow: none !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      table.planning-table.week-5col {
+        width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+      }
+      table.planning-table.week-5col th,
+      table.planning-table.week-5col td,
+      table.planning-table.week-5col .poste-pill,
+      table.planning-table.week-5col .interne-badge,
+      table.planning-table.week-5col .garde-name {
+        white-space: normal !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -3077,7 +3130,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     <div class="header-top">
       <div class="brand">
         <div class="brand-logo" title="Radio B Cochin — Imagerie Ostéo-Articulaire">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 256 256" role="img" aria-label="COCHIN OS">
             <defs>
               <linearGradient id="hdrBg" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#0EA5E9"/>
@@ -7160,10 +7213,11 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       const days = [0, 1, 2, 3, 4].map(off => addDaysIso(targetMon, off));
       recomputeScheduleInPlace(STATE);
 
+      // Format A4 Paysage (297 x 210 mm = 841.89 x 595.28 pt) avec marges d'impression sûres
       const PAGE_W = 841.89;
       const PAGE_H = 595.28;
-      const MARGIN_X = 16;
-      const MARGIN_Y = 14;
+      const MARGIN_X = 20;
+      const MARGIN_Y = 18;
       const CONTENT_W = PAGE_W - MARGIN_X * 2;
       const ops = [];
 
@@ -7234,26 +7288,54 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       function measureText(str, fontSize, isBold) {
         const s = sanitizeForPdf(str);
         let w = 0;
-        const factor = isBold ? 1.06 : 1.0;
+        const factor = isBold ? 1.07 : 1.02;
         for (let i = 0; i < s.length; i++) {
           const ch = s[i];
-          if ("ilI.,:;!|' ".includes(ch)) w += 0.28;
-          else if ("ftrj()[]/-".includes(ch)) w += 0.35;
-          else if ("mwMWGDOQ@%&".includes(ch)) w += 0.78;
-          else if (ch >= "A" && ch <= "Z") w += 0.66;
-          else w += 0.53;
+          if ("ilI.,:;!|'’` ".includes(ch)) w += 0.29;
+          else if ("ftrj()[]/-•".includes(ch)) w += 0.36;
+          else if ("mwMWŒ@%&—".includes(ch)) w += 0.84;
+          else if ("CDGHNOQRUÜÔÙ".includes(ch)) w += 0.73;
+          else if ((ch >= "A" && ch <= "Z") || "ÀÂÄÇÉÈÊËÎÏÖÛŸ".includes(ch)) w += 0.68;
+          else if ("œ–+=".includes(ch)) w += 0.62;
+          else w += 0.56;
         }
         return w * fontSize * factor;
       }
 
-      function truncateTextToWidth(str, fontSize, isBold, maxW) {
+      function wrapTextToLines(str, fontSize, isBold, maxW) {
         const s = sanitizeForPdf(str);
-        if (!maxW || measureText(s, fontSize, isBold) <= maxW) return s;
-        let cur = s;
-        while (cur.length > 1 && measureText(cur + "...", fontSize, isBold) > maxW) {
-          cur = cur.slice(0, -1);
+        if (!s) return [];
+        if (!maxW || measureText(s, fontSize, isBold) <= maxW) return [s];
+        const words = s.split(" ");
+        const lines = [];
+        let cur = "";
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i];
+          const cand = cur ? `${cur} ${word}` : word;
+          if (!cur || measureText(cand, fontSize, isBold) <= maxW) {
+            cur = cand;
+          } else {
+            lines.push(cur);
+            if (measureText(word, fontSize, isBold) <= maxW) {
+              cur = word;
+            } else {
+              // Découpage propre d'un mot très long sans jamais tronquer avec "..."
+              let chunk = "";
+              for (let c = 0; c < word.length; c++) {
+                const nextChunk = chunk + word[c];
+                if (chunk && measureText(nextChunk, fontSize, isBold) > maxW) {
+                  lines.push(chunk);
+                  chunk = word[c];
+                } else {
+                  chunk = nextChunk;
+                }
+              }
+              cur = chunk;
+            }
+          }
         }
-        return cur.trim() + "...";
+        if (cur) lines.push(cur);
+        return lines;
       }
 
       function drawRect(x, yTop, w, h, fillHex, strokeHex, lineW = 0.6) {
@@ -7306,8 +7388,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         ops.push(`q ${hexToRgb01(strokeHex)} RG ${lineW.toFixed(2)} w ${x1.toFixed(2)} ${y1.toFixed(2)} m ${x2.toFixed(2)} ${y2.toFixed(2)} l S Q`);
       }
 
-      function drawText(str, x, yBaselineTop, fontSize, colorHex = "#0F172A", isBold = false, maxW = 0) {
-        const finalStr = maxW > 0 ? truncateTextToWidth(str, fontSize, isBold, maxW) : sanitizeForPdf(str);
+      function drawText(str, x, yBaselineTop, fontSize, colorHex = "#0F172A", isBold = false) {
+        const finalStr = sanitizeForPdf(str);
         if (!finalStr) return;
         const yPdf = PAGE_H - yBaselineTop;
         const fontRef = isBold ? "/F2" : "/F1";
@@ -7372,11 +7454,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       drawText("Horaires : Matin (IRM 07h45 • TDM SAU 08h00–18h30 • US & Gestes 09h00) • Après-midi (IRM 13h00 • US & Gestes 14h00 • CS 14h–15h • Lecture 14h–16h)", MARGIN_X + 12, MARGIN_Y + 34, 7.0, "#475569", false);
 
       const weekLock = getWeekLockInfo(targetMon);
-      const badgeW = 205;
-      const badgeX = MARGIN_X + CONTENT_W - badgeW - 8;
       if (weekLock) {
-        drawRoundedRect(badgeX, MARGIN_Y + 5, badgeW, 28, 5, "#DCFCE7", "#86EFAC", 0.8);
-        drawText("PLANNING VALIDÉ & FIXÉ PAR LE CHEF", badgeX + 8, MARGIN_Y + 16, 7.8, "#166534", true, badgeW - 14);
+        const badgeTitle = "PLANNING VALIDÉ & FIXÉ PAR LE CHEF";
         let stampLabel = weekLock.validatedBy || "Chef de clinique";
         if (weekLock.validatedAt) {
           const dt = new Date(weekLock.validatedAt);
@@ -7385,16 +7464,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             stampLabel += ` • ${dStr}`;
           }
         }
-        drawText(stampLabel, badgeX + 8, MARGIN_Y + 27, 6.8, "#15803D", false, badgeW - 14);
+        const badgeW = Math.max(210, Math.ceil(Math.max(measureText(badgeTitle, 7.6, true), measureText(stampLabel, 6.8, false)) + 18));
+        const badgeX = MARGIN_X + CONTENT_W - badgeW - 8;
+        drawRoundedRect(badgeX, MARGIN_Y + 5, badgeW, 28, 5, "#DCFCE7", "#86EFAC", 0.8);
+        drawText(badgeTitle, badgeX + 8, MARGIN_Y + 16, 7.6, "#166534", true);
+        drawText(stampLabel, badgeX + 8, MARGIN_Y + 27, 6.8, "#15803D", false);
       } else {
-        drawRoundedRect(badgeX, MARGIN_Y + 5, badgeW, 28, 5, "#FEF3C7", "#FCD34D", 0.8);
-        drawText("PLANNING HEBDOMADAIRE (NON FIXÉ)", badgeX + 8, MARGIN_Y + 16, 7.8, "#92400E", true, badgeW - 14);
+        const badgeTitle = "PLANNING HEBDOMADAIRE (NON FIXÉ)";
         const now = new Date();
         const nowStr = `Exporté le ${String(now.getDate()).padStart(2, "0")}/${String(now.getMonth() + 1).padStart(2, "0")}/${now.getFullYear()} à ${String(now.getHours()).padStart(2, "0")}h${String(now.getMinutes()).padStart(2, "0")}`;
-        drawText(nowStr, badgeX + 8, MARGIN_Y + 27, 6.8, "#B45309", false, badgeW - 14);
+        const badgeW = Math.max(205, Math.ceil(Math.max(measureText(badgeTitle, 7.6, true), measureText(nowStr, 6.8, false)) + 18));
+        const badgeX = MARGIN_X + CONTENT_W - badgeW - 8;
+        drawRoundedRect(badgeX, MARGIN_Y + 5, badgeW, 28, 5, "#FEF3C7", "#FCD34D", 0.8);
+        drawText(badgeTitle, badgeX + 8, MARGIN_Y + 16, 7.6, "#92400E", true);
+        drawText(nowStr, badgeX + 8, MARGIN_Y + 27, 6.8, "#B45309", false);
       }
 
-      // 2. Construction des lignes de la table
+      // 2. Construction des lignes de la table (pleine hauteur A4 Paysage, sans barre de bas de page)
       const postesAm = ["FORMATION / ACCUEIL", "ECHO", "GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM 3T", "IRM 1,5T", "CONSULTATION", "LECTURE", "1/2 journée libre", "RG", "VACANCES"];
       const postesPm = ["GESTES (C)", "TDM SAU", "SCAN ACHARD", "TDM OLLIER DIAG", "IRM", "ECHO", "ALLURA", "CONSULTATION", "LECTURE", "1/2 journée libre", "RG", "VACANCES"];
 
@@ -7424,202 +7510,24 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       tableRows.push({ kind: "divider", title: "GARDE SENIOR (LUNDI – VENDREDI)" });
       tableRows.push({ kind: "garde_senior" });
 
-      // Calcul des poids de hauteur pour que tout tienne sur 1 page A4 Paysage
-      const FOOTER_H = 38;
+      // Dimensions de la table sur toute la hauteur utile de la page A4 Paysage
       const TABLE_TOP = MARGIN_Y + HEADER_H + 5;
-      const TABLE_BOTTOM = PAGE_H - MARGIN_Y - FOOTER_H - 5;
+      const TABLE_BOTTOM = PAGE_H - MARGIN_Y;
       const TABLE_TOTAL_H = TABLE_BOTTOM - TABLE_TOP;
-      const COL_POSTE_W = 108;
+      const COL_POSTE_W = 116;
       const COL_DAY_W = (CONTENT_W - COL_POSTE_W) / 5;
-      const TH_H = 24;
+      const TH_H = 25;
 
+      // Pré-calcul du contenu exact (lignes de badges et retours à la ligne) pour qu'aucun texte ne soit coupé
       tableRows.forEach(r => {
         if (r.kind === "divider") {
-          r.weight = 0.58;
-        } else if (r.kind === "staff") {
-          let maxItems = 1;
-          days.forEach(dIso => {
-            const pCount = (STATE.presentations || []).filter(p => p.date === dIso && !(p.type === "cours_internes" && p.pasDeCours)).length;
-            const mCount = (STATE.meetings || []).filter(m => m.date === dIso).length;
-            maxItems = Math.max(maxItems, pCount + mCount);
-          });
-          r.weight = maxItems >= 2 ? 1.35 : 1.05;
-        } else if (r.kind === "poste") {
-          let maxBadges = 1;
-          days.forEach(dIso => {
-            const dObj = STATE.schedule[dIso];
-            const matches = (dObj && dObj[r.periodKey]) ? dObj[r.periodKey].filter(x => x.poste === r.posteName) : [];
-            maxBadges = Math.max(maxBadges, matches.length);
-          });
-          r.weight = maxBadges >= 3 ? 1.35 : (maxBadges === 2 ? 1.12 : 0.96);
-        } else {
-          r.weight = 0.95;
-        }
-      });
-
-      const totalWeight = tableRows.reduce((acc, r) => acc + r.weight, 0);
-      const availRowsH = TABLE_TOTAL_H - TH_H;
-
-      // En-tête des colonnes
-      drawRect(MARGIN_X, TABLE_TOP, CONTENT_W, TH_H, "#F1F5F9", "#CBD5E1", 0.7);
-      drawText("POSTE", MARGIN_X + 8, TABLE_TOP + 15, 8, "#334155", true);
-
-      const dFullNames = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"];
-      days.forEach((dIso, idx) => {
-        const cx = MARGIN_X + COL_POSTE_W + idx * COL_DAY_W;
-        drawLine(cx, TABLE_TOP, cx, TABLE_TOP + TH_H, "#CBD5E1", 0.6);
-        const [yy, mm, dd] = dIso.split("-").map(Number);
-        const dayTitle = `${dFullNames[idx]} ${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}`;
-        drawText(dayTitle, cx + 6, TABLE_TOP + 10.5, 8.2, "#0F172A", true, COL_DAY_W - 10);
-
-        const gInt = getInterneGardeInfo(dIso);
-        const gIntTxt = (gInt && gInt.isRadioB && gInt.interneId)
-          ? `Int: ${getInterneById(gInt.interneId).shortName}`
-          : (gInt && (gInt.rawLabel || gInt.interneName || gInt.rawName) ? `Int: ${(gInt.rawLabel || gInt.interneName || gInt.rawName).split(" ")[0]}` : "");
-        const subHeader = gIntTxt;
-        if (subHeader) {
-          drawText(subHeader, cx + 6, TABLE_TOP + 20, 6.6, "#64748B", false, COL_DAY_W - 10);
-        }
-      });
-
-      // Rendu des lignes
-      let curY = TABLE_TOP + TH_H;
-      tableRows.forEach(r => {
-        const rowH = (r.weight / totalWeight) * availRowsH;
-
-        if (r.kind === "divider") {
-          drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#E2E8F0", "#CBD5E1", 0.5);
-          drawText(r.title, MARGIN_X + 8, curY + rowH * 0.72, 6.8, "#1E293B", true);
-          curY += rowH;
+          r.weight = 0.56;
           return;
         }
-
-        drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#FFFFFF", "#E2E8F0", 0.45);
-
-        // Colonne 0 : Nom du poste + Horaire dessous
-        if (r.kind === "poste") {
-          const pal = getPostePalette(r.posteName);
-          const lbl = getPdfPosteLabel(r.posteName, r.periodKey);
-          const horaire = getPdfPosteHoraire(r.posteName, r.periodKey);
-          const pillW = Math.min(COL_POSTE_W - 10, measureText(lbl, 6.8, true) + 9);
-          if (horaire && rowH >= 15) {
-            const pillH = Math.min(9.6, rowH - 6.5);
-            const pillY = curY + Math.max(1.2, (rowH - pillH - 5.5) / 2);
-            drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 2.8, pal.bg, pal.bd, 0.5);
-            drawText(lbl, MARGIN_X + 9.5, pillY + pillH * 0.75, 6.6, pal.fg, true, pillW - 6);
-            drawText(horaire, MARGIN_X + 6.5, pillY + pillH + 5.2, 5.4, "#64748B", false, COL_POSTE_W - 10);
-          } else {
-            const pillH = Math.min(11.5, rowH - 2);
-            const pillY = curY + (rowH - pillH) / 2;
-            drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
-            drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.9, pal.fg, true, pillW - 6);
-          }
-        } else if (r.kind === "staff") {
-          const pal = getPostePalette("IRM");
-          const pillH = Math.min(11.5, rowH - 3);
-          const pillY = curY + (rowH - pillH) / 2;
-          drawRoundedRect(MARGIN_X + 5, pillY, 64, pillH, 3, pal.bg, pal.bd, 0.5);
-          drawText("COURS 12h30", MARGIN_X + 10, pillY + pillH * 0.74, 6.8, pal.fg, true);
-        } else if (r.kind === "garde_interne") {
-          const pal = getPostePalette("RG");
-          const pillH = Math.min(11.5, rowH - 3);
-          const pillY = curY + (rowH - pillH) / 2;
-          drawRoundedRect(MARGIN_X + 5, pillY, 78, pillH, 3, pal.bg, pal.bd, 0.5);
-          drawText("GARDE INTERNE", MARGIN_X + 10, pillY + pillH * 0.74, 6.7, pal.fg, true);
-        } else if (r.kind === "garde_senior") {
-          const pal = getPostePalette("RG");
-          const pillH = Math.min(11.5, rowH - 3);
-          const pillY = curY + (rowH - pillH) / 2;
-          drawRoundedRect(MARGIN_X + 5, pillY, 74, pillH, 3, pal.bg, pal.bd, 0.5);
-          drawText("GARDE SENIOR", MARGIN_X + 10, pillY + pillH * 0.74, 6.7, pal.fg, true);
-        }
-
-        // Colonnes 1..5 : Jours
-        days.forEach((dIso, idx) => {
-          const cx = MARGIN_X + COL_POSTE_W + idx * COL_DAY_W;
-          const dObj = STATE.schedule[dIso];
-
-          if (r.kind === "poste") {
-            const isMand = isMandatoryVacationSlot(dIso, r.periodKey, r.posteName);
-            const chefNoIntDocs = getChefWithoutInterneDocsForPoste(dIso, r.periodKey, r.posteName);
-            const matches = (dObj && dObj[r.periodKey]) ? dObj[r.periodKey].filter(x => x.poste === r.posteName) : [];
-
-            if (dObj && dObj.holiday) {
-              drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
-              drawText("Férié", cx + 6, curY + rowH * 0.65, 6.8, "#B91C1C", true);
-              return;
-            }
-
-            if (matches.length === 0 && chefNoIntDocs.length > 0) {
-              drawRect(cx, curY, COL_DAY_W, rowH, "#FEF3C7", "#E2E8F0", 0.45);
-              drawText(`Chef : ${chefNoIntDocs.join(", ")}`, cx + 5, curY + rowH * 0.65, 6.3, "#92400E", true, COL_DAY_W - 10);
-              return;
-            }
-
-            if (isMand) {
-              drawRect(cx, curY, COL_DAY_W, rowH, "#FFF8F8", "#E2E8F0", 0.45);
-              drawRect(cx, curY, 2.2, rowH, "#FCA5A5", null);
-            } else {
-              drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
-            }
-
-            if (matches.length === 0) {
-              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
-              return;
-            }
-
-            const [yy, mm, dd] = dIso.split("-").map(Number);
-            const jsDay = new Date(yy, mm - 1, dd).getDay();
-
-            // Disposition des badges d'internes dans la cellule
-            let bx = cx + 4;
-            let by = curY + 2;
-            const badgeH = Math.min(11.5, Math.max(8.8, rowH - 3.5));
-
-            matches.forEach(m => {
-              if (m.closed) {
-                const clTxt = m.reason === "MAINTENANCE" ? "Maint." : "Fermé";
-                const bw = Math.min(COL_DAY_W - 8, measureText(clTxt, 6.5, true) + 9);
-                drawRoundedRect(bx, curY + (rowH - badgeH) / 2, bw, badgeH, 2.5, "#FEF2F2", "#EF4444", 0.5);
-                drawText(clTxt, bx + 4, curY + (rowH - badgeH) / 2 + badgeH * 0.73, 6.4, "#B91C1C", true);
-                bx += bw + 3;
-                return;
-              }
-              const iObj = getInterneById(m.interneId);
-              let extraTag = "";
-              if (r.posteName === "LECTURE" && r.periodKey === "pm" && jsDay === 2 && !isNoDrapeRelectureTuesday(dIso, jsDay)) extraTag = "Pr Drapé";
-              else if (r.posteName === "CONSULTATION" && r.periodKey === "pm" && (jsDay === 2 || jsDay === 5)) extraTag = "Consult.";
-              else if (m.note && m.note.includes("Macil")) extraTag = m.binome ? "Binôme +MH" : "+MH";
-              else if (m.binome) extraTag = "Binôme";
-              else if (iObj.isSocle) extraTag = "Socle";
-              else if (iObj.isDJ || iObj.id === "oussama") extraTag = "DJ";
-
-              const nameStr = iObj.shortName;
-              const nameW = measureText(nameStr, 6.8, true);
-              const tagW = extraTag ? measureText(extraTag, 5.6, true) + 6 : 0;
-              const bw = Math.min(COL_DAY_W - 7, 11 + nameW + (tagW ? tagW + 3 : 0));
-
-              if (bx + bw > cx + COL_DAY_W - 2 && bx > cx + 4) {
-                bx = cx + 4;
-                by += badgeH + 1.5;
-              }
-              const actualY = matches.length === 1 ? curY + (rowH - badgeH) / 2 : by;
-              drawRoundedRect(bx, actualY, bw, badgeH, 3, "#FFFFFF", "#CBD5E1", 0.5);
-              drawCircle(bx + 5, actualY + badgeH / 2, 2.2, iObj.color || "#0284C7");
-              drawText(nameStr, bx + 9.2, actualY + badgeH * 0.73, 6.7, "#0F172A", true);
-
-              if (extraTag && bw >= 11 + nameW + tagW) {
-                const tagX = bx + 9.8 + nameW;
-                const tagBg = extraTag === "Socle" ? "#EDE9FE" : (extraTag === "DJ" ? "#DCFCE7" : "#E0F2FE");
-                const tagFg = extraTag === "Socle" ? "#6D28D9" : (extraTag === "DJ" ? "#15803D" : "#0369A1");
-                drawRoundedRect(tagX, actualY + 1.6, tagW, badgeH - 3.2, 2, tagBg, null);
-                drawText(extraTag, tagX + 2.5, actualY + badgeH * 0.71, 5.4, tagFg, true);
-              }
-
-              bx += bw + 2.5;
-            });
-          } else if (r.kind === "staff") {
-            drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+        r.cellsByDay = {};
+        if (r.kind === "staff") {
+          let maxRequiredUnits = 1.2;
+          days.forEach(dIso => {
             const pres = (STATE.presentations || []).filter(p => p.date === dIso && !(p.type === "cours_internes" && p.pasDeCours));
             const meets = (STATE.meetings || []).filter(m => m.date === dIso);
             const items = [];
@@ -7635,38 +7543,287 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             meets.forEach(m => {
               items.push({ text: `${m.horaire} : ${m.title}`, bg: "#DCFCE7", fg: "#15803D" });
             });
+            let totalLines = 0;
+            items.forEach(it => {
+              it.lines = wrapTextToLines(it.text, 6.2, true, COL_DAY_W - 14);
+              totalLines += Math.max(1, it.lines.length);
+            });
+            r.cellsByDay[dIso] = { items, totalLines };
+            const neededUnits = totalLines <= 1 ? 1.15 : (1.0 + (totalLines - 1) * 0.62 + (items.length - 1) * 0.15);
+            maxRequiredUnits = Math.max(maxRequiredUnits, neededUnits);
+          });
+          r.weight = maxRequiredUnits;
+          return;
+        }
+
+        if (r.kind === "poste") {
+          let maxLinesInRow = 1;
+          days.forEach(dIso => {
+            const dObj = STATE.schedule[dIso];
+            const isMand = isMandatoryVacationSlot(dIso, r.periodKey, r.posteName);
+            const chefNoIntDocs = getChefWithoutInterneDocsForPoste(dIso, r.periodKey, r.posteName);
+            const matches = (dObj && dObj[r.periodKey]) ? dObj[r.periodKey].filter(x => x.poste === r.posteName) : [];
+            const [yy, mm, dd] = dIso.split("-").map(Number);
+            const jsDay = new Date(yy, mm - 1, dd).getDay();
+
+            if (dObj && dObj.holiday) {
+              r.cellsByDay[dIso] = { holiday: true, badgeLines: [] };
+              return;
+            }
+            if (matches.length === 0 && chefNoIntDocs.length > 0) {
+              const chefLines = wrapTextToLines(`Chef : ${chefNoIntDocs.join(", ")}`, 6.4, true, COL_DAY_W - 10);
+              r.cellsByDay[dIso] = { isMand, chefLines, badgeLines: [] };
+              maxLinesInRow = Math.max(maxLinesInRow, chefLines.length);
+              return;
+            }
+            if (matches.length === 0) {
+              r.cellsByDay[dIso] = { isMand, empty: true, badgeLines: [] };
+              return;
+            }
+
+            const badges = matches.map(m => {
+              if (m.closed) {
+                const clTxt = m.reason === "MAINTENANCE" ? "Maint." : "Fermé";
+                const bw = Math.min(COL_DAY_W - 8, Math.ceil(measureText(clTxt, 6.5, true)) + 10);
+                return { closed: true, clTxt, bw };
+              }
+              const iObj = getInterneById(m.interneId);
+              let extraTag = "";
+              if (r.posteName === "LECTURE" && r.periodKey === "pm" && jsDay === 2 && !isNoDrapeRelectureTuesday(dIso, jsDay)) extraTag = "Pr Drapé";
+              else if (r.posteName === "CONSULTATION" && r.periodKey === "pm" && (jsDay === 2 || jsDay === 5)) extraTag = "Consult.";
+              else if (m.note && m.note.includes("Macil")) extraTag = m.binome ? "Binôme +MH" : "+MH";
+              else if (m.binome) extraTag = "Binôme";
+              else if (iObj.isSocle) extraTag = "Socle";
+              else if (iObj.isDJ || iObj.id === "oussama") extraTag = "DJ";
+
+              const nameStr = iObj.shortName;
+              const nameW = Math.ceil(measureText(nameStr, 6.8, true));
+              const tagW = extraTag ? Math.ceil(measureText(extraTag, 5.5, true)) + 6 : 0;
+              const bw = Math.min(COL_DAY_W - 7, 12 + nameW + (tagW ? tagW + 3.5 : 0));
+              return { closed: false, iObj, nameStr, nameW, extraTag, tagW, bw };
+            });
+
+            const badgeLines = [];
+            let curLine = [];
+            let curLineW = 0;
+            const maxLineW = COL_DAY_W - 7;
+            badges.forEach(b => {
+              const neededW = curLine.length === 0 ? b.bw : curLineW + 2.5 + b.bw;
+              if (curLine.length > 0 && neededW > maxLineW) {
+                badgeLines.push(curLine);
+                curLine = [b];
+                curLineW = b.bw;
+              } else {
+                curLine.push(b);
+                curLineW = neededW;
+              }
+            });
+            if (curLine.length > 0) badgeLines.push(curLine);
+
+            r.cellsByDay[dIso] = { isMand, badgeLines };
+            maxLinesInRow = Math.max(maxLinesInRow, badgeLines.length);
+          });
+          r.weight = maxLinesInRow === 1 ? 1.0 : (maxLinesInRow === 2 ? 1.68 : (maxLinesInRow === 3 ? 2.35 : 0.78 * maxLinesInRow));
+          return;
+        }
+
+        if (r.kind === "garde_senior") {
+          let maxLinesInRow = 1;
+          days.forEach(dIso => {
+            const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
+            if (g && Array.isArray(g.noms) && g.noms.length > 0) {
+              const lines = wrapTextToLines(`Dr ${g.noms.join(", ")}`, 6.8, true, COL_DAY_W - 12);
+              r.cellsByDay[dIso] = { lines };
+              maxLinesInRow = Math.max(maxLinesInRow, lines.length);
+            } else {
+              r.cellsByDay[dIso] = { lines: [] };
+            }
+          });
+          r.weight = maxLinesInRow >= 2 ? 1.45 : 1.05;
+          return;
+        }
+
+        r.weight = 1.0;
+      });
+
+      const totalWeight = tableRows.reduce((acc, r) => acc + r.weight, 0);
+      const availRowsH = TABLE_TOTAL_H - TH_H;
+
+      // En-tête des colonnes
+      drawRect(MARGIN_X, TABLE_TOP, CONTENT_W, TH_H, "#F1F5F9", "#CBD5E1", 0.7);
+      drawText("POSTE", MARGIN_X + 8, TABLE_TOP + 15.5, 8.2, "#334155", true);
+
+      const dFullNames = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI"];
+      days.forEach((dIso, idx) => {
+        const cx = MARGIN_X + COL_POSTE_W + idx * COL_DAY_W;
+        drawLine(cx, TABLE_TOP, cx, TABLE_TOP + TH_H, "#CBD5E1", 0.6);
+        const [yy, mm, dd] = dIso.split("-").map(Number);
+        const dayTitle = `${dFullNames[idx]} ${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}`;
+        drawText(dayTitle, cx + 6, TABLE_TOP + 11, 8.4, "#0F172A", true);
+
+        const gInt = getInterneGardeInfo(dIso);
+        const gIntTxt = (gInt && gInt.isRadioB && gInt.interneId)
+          ? `Garde : ${getInterneById(gInt.interneId).shortName}`
+          : (gInt && (gInt.rawLabel || gInt.interneName || gInt.rawName) ? `Garde : ${gInt.rawLabel || gInt.interneName || gInt.rawName}` : "");
+        if (gIntTxt) {
+          drawText(gIntTxt, cx + 6, TABLE_TOP + 20.5, 6.7, "#64748B", false);
+        }
+      });
+
+      // Rendu des lignes
+      let curY = TABLE_TOP + TH_H;
+      tableRows.forEach(r => {
+        const rowH = (r.weight / totalWeight) * availRowsH;
+
+        if (r.kind === "divider") {
+          drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#E2E8F0", "#CBD5E1", 0.5);
+          drawText(r.title, MARGIN_X + 8, curY + rowH * 0.73, 7.0, "#1E293B", true);
+          curY += rowH;
+          return;
+        }
+
+        drawRect(MARGIN_X, curY, CONTENT_W, rowH, "#FFFFFF", "#E2E8F0", 0.45);
+
+        // Colonne 0 : Nom du poste + Horaire dessous (sans aucune troncature)
+        if (r.kind === "poste") {
+          const pal = getPostePalette(r.posteName);
+          const lbl = getPdfPosteLabel(r.posteName, r.periodKey);
+          const horaire = getPdfPosteHoraire(r.posteName, r.periodKey);
+          if (horaire && rowH >= 15.5) {
+            const lblFontSize = 6.7;
+            const pillW = Math.min(COL_POSTE_W - 8, Math.ceil(measureText(lbl, lblFontSize, true)) + 11);
+            const pillH = Math.min(10.2, rowH - 6.8);
+            const pillY = curY + Math.max(1.4, (rowH - pillH - 5.8) / 2);
+            drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 2.8, pal.bg, pal.bd, 0.5);
+            drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, lblFontSize, pal.fg, true);
+            drawText(horaire, MARGIN_X + 6.5, pillY + pillH + 5.4, 5.6, "#64748B", false);
+          } else {
+            const lblFontSize = 6.9;
+            const pillW = Math.min(COL_POSTE_W - 8, Math.ceil(measureText(lbl, lblFontSize, true)) + 11);
+            const pillH = Math.min(12.0, rowH - 2.4);
+            const pillY = curY + (rowH - pillH) / 2;
+            drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
+            drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, lblFontSize, pal.fg, true);
+          }
+        } else if (r.kind === "staff") {
+          const pal = getPostePalette("IRM");
+          const lbl = "COURS 12h30";
+          const pillW = Math.min(COL_POSTE_W - 8, Math.ceil(measureText(lbl, 6.8, true)) + 11);
+          const pillH = Math.min(12.0, rowH - 3);
+          const pillY = curY + (rowH - pillH) / 2;
+          drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
+          drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.8, pal.fg, true);
+        } else if (r.kind === "garde_senior") {
+          const pal = getPostePalette("RG");
+          const lbl = "GARDE SENIOR";
+          const pillW = Math.min(COL_POSTE_W - 8, Math.ceil(measureText(lbl, 6.7, true)) + 11);
+          const pillH = Math.min(12.0, rowH - 3);
+          const pillY = curY + (rowH - pillH) / 2;
+          drawRoundedRect(MARGIN_X + 5, pillY, pillW, pillH, 3, pal.bg, pal.bd, 0.5);
+          drawText(lbl, MARGIN_X + 10, pillY + pillH * 0.74, 6.7, pal.fg, true);
+        }
+
+        // Colonnes 1..5 : Jours
+        days.forEach((dIso, idx) => {
+          const cx = MARGIN_X + COL_POSTE_W + idx * COL_DAY_W;
+          const cellData = (r.cellsByDay && r.cellsByDay[dIso]) ? r.cellsByDay[dIso] : {};
+
+          if (r.kind === "poste") {
+            if (cellData.holiday) {
+              drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+              drawText("Férié", cx + 6, curY + rowH * 0.65, 6.9, "#B91C1C", true);
+              return;
+            }
+
+            if (cellData.chefLines && cellData.chefLines.length > 0) {
+              drawRect(cx, curY, COL_DAY_W, rowH, "#FEF3C7", "#E2E8F0", 0.45);
+              const lines = cellData.chefLines;
+              const lineH = 7.4;
+              const blockH = lines.length * lineH;
+              const startBaseY = curY + (rowH - blockH) / 2 + 5.8;
+              lines.forEach((ln, lIdx) => {
+                drawText(ln, cx + 5, startBaseY + lIdx * lineH, 6.4, "#92400E", true);
+              });
+              return;
+            }
+
+            if (cellData.isMand) {
+              drawRect(cx, curY, COL_DAY_W, rowH, "#FFF8F8", "#E2E8F0", 0.45);
+              drawRect(cx, curY, 2.2, rowH, "#FCA5A5", null);
+            } else {
+              drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+            }
+
+            if (cellData.empty || !cellData.badgeLines || cellData.badgeLines.length === 0) {
+              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
+              return;
+            }
+
+            const badgeLines = cellData.badgeLines;
+            const numLines = badgeLines.length;
+            const lineGap = numLines > 1 ? 1.5 : 0;
+            const badgeH = Math.min(12.0, Math.max(8.5, (rowH - 2.6 - (numLines - 1) * lineGap) / numLines));
+            const totalBlockH = numLines * badgeH + (numLines - 1) * lineGap;
+            const startY = curY + (rowH - totalBlockH) / 2;
+
+            badgeLines.forEach((lineBadges, lineIdx) => {
+              const actualY = startY + lineIdx * (badgeH + lineGap);
+              let bx = cx + 4;
+              lineBadges.forEach(b => {
+                if (b.closed) {
+                  drawRoundedRect(bx, actualY, b.bw, badgeH, 2.5, "#FEF2F2", "#EF4444", 0.5);
+                  drawText(b.clTxt, bx + 4.5, actualY + badgeH * 0.73, 6.5, "#B91C1C", true);
+                  bx += b.bw + 2.5;
+                  return;
+                }
+                const iObj = b.iObj;
+                drawRoundedRect(bx, actualY, b.bw, badgeH, 3, "#FFFFFF", "#CBD5E1", 0.5);
+                drawCircle(bx + 5.2, actualY + badgeH / 2, 2.2, iObj.color || "#0284C7");
+                drawText(b.nameStr, bx + 9.4, actualY + badgeH * 0.73, 6.8, "#0F172A", true);
+
+                if (b.extraTag && b.bw >= 11 + b.nameW + b.tagW) {
+                  const tagX = bx + 10.2 + b.nameW;
+                  const tagBg = b.extraTag === "Socle" ? "#EDE9FE" : (b.extraTag === "DJ" ? "#DCFCE7" : "#E0F2FE");
+                  const tagFg = b.extraTag === "Socle" ? "#6D28D9" : (b.extraTag === "DJ" ? "#15803D" : "#0369A1");
+                  drawRoundedRect(tagX, actualY + 1.5, b.tagW, badgeH - 3.0, 2, tagBg, null);
+                  drawText(b.extraTag, tagX + 2.6, actualY + badgeH * 0.71, 5.5, tagFg, true);
+                }
+                bx += b.bw + 2.5;
+              });
+            });
+          } else if (r.kind === "staff") {
+            drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
+            const items = cellData.items || [];
             if (items.length === 0) {
               drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
             } else {
-              const itemH = Math.min(10.5, (rowH - 2) / items.length);
-              items.forEach((it, iIdx) => {
-                const iy = curY + 1 + iIdx * itemH;
-                drawRoundedRect(cx + 3, iy, COL_DAY_W - 6, itemH - 0.8, 2, it.bg, null);
-                drawText(it.text, cx + 6, iy + (itemH - 0.8) * 0.75, 6.1, it.fg, true, COL_DAY_W - 12);
+              const totalLines = cellData.totalLines || items.length;
+              const itemGap = items.length > 1 ? 1.4 : 0;
+              const availH = rowH - 2.4 - (items.length - 1) * itemGap;
+              let iy = curY + 1.2;
+              items.forEach(it => {
+                const lines = (it.lines && it.lines.length) ? it.lines : [it.text];
+                const boxH = (lines.length / totalLines) * availH;
+                drawRoundedRect(cx + 3, iy, COL_DAY_W - 6, boxH, 2.2, it.bg, null);
+                const lineH = Math.min(7.2, (boxH - 1.2) / lines.length);
+                const blockH = lines.length * lineH;
+                const firstBaseY = iy + (boxH - blockH) / 2 + lineH * 0.78;
+                lines.forEach((ln, lIdx) => {
+                  drawText(ln, cx + 6, firstBaseY + lIdx * lineH, 6.2, it.fg, true);
+                });
+                iy += boxH + itemGap;
               });
-            }
-          } else if (r.kind === "garde_interne") {
-            drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
-            const g = getInterneGardeInfo(dIso);
-            if (!g || !g.nom) {
-              drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
-            } else if (g.isRadioB && g.interneId) {
-              const iObj = getInterneById(g.interneId);
-              const badgeH = Math.min(11.5, rowH - 2.5);
-              const by = curY + (rowH - badgeH) / 2;
-              const txt = `${iObj.shortName}${g.rgIsWorkingDay ? " (RG J+1)" : ""}`;
-              const bw = Math.min(COL_DAY_W - 8, 12 + measureText(txt, 6.6, true));
-              drawRoundedRect(cx + 4, by, bw, badgeH, 3, "#FFF1F2", "#FCA5A5", 0.5);
-              drawCircle(cx + 9, by + badgeH / 2, 2.2, iObj.color || "#B91C1C");
-              drawText(txt, cx + 13.5, by + badgeH * 0.73, 6.5, "#991B1B", true, bw - 12);
-            } else {
-              drawText(g.nom, cx + 6, curY + rowH * 0.65, 6.4, "#475569", true, COL_DAY_W - 10);
             }
           } else if (r.kind === "garde_senior") {
             drawLine(cx, curY, cx, curY + rowH, "#E2E8F0", 0.5);
-            const g = STATE.chefsGardes ? STATE.chefsGardes[dIso] : null;
-            if (g && Array.isArray(g.noms) && g.noms.length > 0) {
-              drawText(`Dr ${g.noms.join(", ")}`, cx + 6, curY + rowH * 0.65, 6.7, "#B91C1C", true, COL_DAY_W - 10);
+            const lines = cellData.lines || [];
+            if (lines.length > 0) {
+              const lineH = 7.6;
+              const blockH = lines.length * lineH;
+              const startBaseY = curY + (rowH - blockH) / 2 + 5.8;
+              lines.forEach((ln, lIdx) => {
+                drawText(ln, cx + 6, startBaseY + lIdx * lineH, 6.8, "#B91C1C", true);
+              });
             } else {
               drawText("—", cx + 6, curY + rowH * 0.65, 6.8, "#CBD5E1", false);
             }
@@ -7679,57 +7836,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       // Contour extérieur de la table
       drawRect(MARGIN_X, TABLE_TOP, CONTENT_W, TABLE_TOTAL_H, null, "#94A3B8", 0.8);
 
-      // 3. Pied de page : Gardes du week-end + Récapitulatif hebdomadaire par interne
-      const FOOT_Y = PAGE_H - MARGIN_Y - FOOTER_H;
-      const WE_BOX_W = 248;
-      drawRoundedRect(MARGIN_X, FOOT_Y, WE_BOX_W, FOOTER_H, 5, "#FFF1F2", "#FECDD3", 0.7);
-      drawText("GARDES DU WEEK-END", MARGIN_X + 8, FOOT_Y + 10.5, 7.2, "#9F1239", true);
-
-      const satIso = addDaysIso(targetMon, 5);
-      const sunIso = addDaysIso(targetMon, 6);
-      [
-        { iso: satIso, label: "Sam.", yOff: 21 },
-        { iso: sunIso, label: "Dim.", yOff: 31.5 }
-      ].forEach(we => {
-        const [wy, wm, wd] = we.iso.split("-").map(Number);
-        const gSen = (STATE.chefsGardes && STATE.chefsGardes[we.iso] && STATE.chefsGardes[we.iso].noms)
-          ? `Dr ${STATE.chefsGardes[we.iso].noms.join(", ")}`
-          : "—";
-        const gInt = getInterneGardeInfo(we.iso);
-        const intLbl = gInt
-          ? (gInt.isRadioB && gInt.interneId ? `Int: ${getInterneById(gInt.interneId).shortName}` : `Int: ${gInt.rawLabel || gInt.nom || ""}`)
-          : "";
-        const lineStr = `${we.label} ${String(wd).padStart(2, "0")}/${String(wm).padStart(2, "0")} : ${gSen}${intLbl ? " • " + intLbl : ""}`;
-        drawText(lineStr, MARGIN_X + 8, FOOT_Y + we.yOff, 6.6, "#881337", true, WE_BOX_W - 14);
-      });
-
-      const RECAP_X = MARGIN_X + WE_BOX_W + 6;
-      const RECAP_W = CONTENT_W - WE_BOX_W - 6;
-      drawRoundedRect(RECAP_X, FOOT_Y, RECAP_W, FOOTER_H, 5, "#F8FAFC", "#CBD5E1", 0.7);
-      drawText("ÉQUILIBRE HEBDOMADAIRE DES INTERNES (VACATIONS • DEMI-OFF • SAU)", RECAP_X + 8, FOOT_Y + 10, 6.8, "#334155", true);
-
-      const weekStats = computeWeekStatsByInterne(targetMon);
-      const intList = STATE.internes || [];
-      const cardW = (RECAP_W - 12) / Math.max(1, intList.length);
-      intList.forEach((iObj, idx) => {
-        const ix = RECAP_X + 6 + idx * cardW;
-        const iy = FOOT_Y + 13;
-        const ih = FOOTER_H - 16;
-        const w = weekStats[iObj.id] || { weekVac: 0, weekOff: 0, weekOffSlots: [], weekSau: 0, sauTarget: 2, weekCongesHalf: 0, weekRgHalf: 0 };
-        drawRoundedRect(ix + 1, iy, cardW - 2, ih, 3.5, "#FFFFFF", "#E2E8F0", 0.5);
-        drawCircle(ix + 6, iy + 6.5, 2.2, iObj.color || "#0284C7");
-        drawText(iObj.shortName, ix + 10, iy + 8.8, 6.5, "#0F172A", true, cardW - 34);
-        drawText(`${w.weekVac}v • ${w.weekOff}/2 Off`, ix + cardW - 38, iy + 8.8, 5.8, "#0369A1", true);
-
-        const subParts = [];
-        if (w.weekOffSlots.length > 0) subParts.push(`Off: ${w.weekOffSlots.join(", ")}`);
-        if (w.weekCongesHalf > 0) subParts.push(`${w.weekCongesHalf / 2}j Congé`);
-        if (w.weekRgHalf > 0) subParts.push(`${w.weekRgHalf / 2}j RG`);
-        subParts.push(`SAU: ${w.weekSau}/${w.sauTarget}`);
-        drawText(subParts.join(" • "), ix + 4, iy + 18, 5.4, "#64748B", false, cardW - 8);
-      });
-
-      // 4. Assemblage du fichier PDF 1.4
+      // 3. Assemblage du fichier PDF 1.4
       const contentStream = ops.join(NL);
       const objects = [
         `1 0 obj${NL}<< /Type /Catalog /Pages 2 0 R >>${NL}endobj${NL}`,
@@ -11559,8 +11666,8 @@ def generate_pwa_files(dataset: dict):
         "theme_color": "#F8FAFC",
         "icons": [
             {
-                "src": "icon.svg",
-                "sizes": "any",
+                "src": "icon.svg?v=9",
+                "sizes": "48x48 72x72 96x96 128x128 192x192 256x256 512x512 any",
                 "type": "image/svg+xml",
                 "purpose": "any maskable",
             }
@@ -11587,7 +11694,7 @@ self.addEventListener('fetch', e => {{
 """
     SW_FILE.write_text(sw_code, encoding="utf-8")
 
-    svg_icon = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+    svg_icon = """<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
   <defs>
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#0EA5E9"/>
