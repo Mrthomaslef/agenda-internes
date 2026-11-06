@@ -122,7 +122,7 @@ CHEFS_LIST = [
         "initials": "TL",
         "color": "#0284C7",
         "role": "Chef de Clinique / Assistant — RI & Ostéo-Articulaire",
-        "posteTel": "12489 / 12163 (DECT 12504)",
+        "posteTel": "DECT 12489 / Salle RI 12163",
         "gardeMatch": ["LEFEVRE", "LEFÈVRE"],
     },
     {
@@ -135,7 +135,7 @@ CHEFS_LIST = [
         "initials": "HM",
         "color": "#7C3AED",
         "role": "Chef de Clinique Assistant — Radiologie B",
-        "posteTel": "12488 / 12489",
+        "posteTel": "DECT 12503",
         "gardeMatch": ["MONNIER"],
     },
     {
@@ -148,7 +148,7 @@ CHEFS_LIST = [
         "initials": "MH",
         "color": "#D97706",
         "role": "Assistant Spécialiste — Radiologie B & RI",
-        "posteTel": "DECT 12504 / 12488",
+        "posteTel": "DECT 12504",
         "gardeMatch": ["HAMADOUCHE"],
     },
     {
@@ -161,7 +161,7 @@ CHEFS_LIST = [
         "initials": "SL",
         "color": "#0D9488",
         "role": "Chef de Clinique Assistant — Radiologie B",
-        "posteTel": "12488 / 12489",
+        "posteTel": "DECT 12488",
         "gardeMatch": ["LUSI"],
     },
     {
@@ -174,7 +174,7 @@ CHEFS_LIST = [
         "initials": "YA",
         "color": "#E11D48",
         "role": "Chef de Clinique Assistant — Radiologie B",
-        "posteTel": "12488 / 12489",
+        "posteTel": "DECT 12404",
         "gardeMatch": ["ALLEL"],
     },
     {
@@ -187,7 +187,7 @@ CHEFS_LIST = [
         "initials": "MP",
         "color": "#DB2777",
         "role": "Chef de Clinique Assistant — Imagerie Ostéo-Articulaire & RI",
-        "posteTel": "12489",
+        "posteTel": "DECT 12489",
         "gardeMatch": ["TALABARD"],
     },
     {
@@ -200,7 +200,7 @@ CHEFS_LIST = [
         "initials": "AL",
         "color": "#4F46E5",
         "role": "PH / Senior — Référente Sarcomes & Radiologie B",
-        "posteTel": "12483 / 12488",
+        "posteTel": "Pas de DECT / Secr. 12483",
         "gardeMatch": ["LAPORTE"],
     },
     {
@@ -226,7 +226,7 @@ CHEFS_LIST = [
         "initials": "FM",
         "color": "#0891B2",
         "role": "PH — Responsable Pédagogique Internes & Staffs",
-        "posteTel": "12483",
+        "posteTel": "DECT 18987",
         "gardeMatch": ["MIHOUBI"],
     },
     {
@@ -239,7 +239,7 @@ CHEFS_LIST = [
         "initials": "AF",
         "color": "#2563EB",
         "role": "PU-PH, Chef de Service — Radiologie B",
-        "posteTel": "12483 / 12481",
+        "posteTel": "12494 / Secr. 12483",
         "gardeMatch": ["FEYDY"],
     },
     {
@@ -252,7 +252,7 @@ CHEFS_LIST = [
         "initials": "JD",
         "color": "#6D28D9",
         "role": "PU-PH — Radiologie B",
-        "posteTel": "12502 / 12480",
+        "posteTel": "12502 (Ania)",
         "gardeMatch": ["DRAPE", "DRAPÉ"],
     },
     {

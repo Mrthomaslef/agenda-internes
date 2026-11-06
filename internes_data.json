@@ -1,6 +1,6 @@
 {
   "version": "2.0.0",
-  "updatedAt": "2026-11-04T16:07:26.142433+00:00",
+  "updatedAt": "2026-11-06T21:14:51.964289+00:00",
   "chefValidatedAt": "2026-11-03T15:16:23.391Z",
   "chefRevision": 91,
   "deletedAbsenceIds": [],
@@ -123,7 +123,7 @@
       "initials": "TL",
       "color": "#0284C7",
       "role": "Chef de Clinique / Assistant — RI & Ostéo-Articulaire",
-      "posteTel": "12489 / 12163 (DECT 12504)",
+      "posteTel": "DECT 12489 / Salle RI 12163",
       "gardeMatch": [
         "LEFEVRE",
         "LEFÈVRE"
@@ -139,7 +139,7 @@
       "initials": "HM",
       "color": "#7C3AED",
       "role": "Chef de Clinique Assistant — Radiologie B",
-      "posteTel": "12488 / 12489",
+      "posteTel": "DECT 12503",
       "gardeMatch": [
         "MONNIER"
       ]
@@ -154,7 +154,7 @@
       "initials": "MH",
       "color": "#D97706",
       "role": "Assistant Spécialiste — Radiologie B & RI",
-      "posteTel": "DECT 12504 / 12488",
+      "posteTel": "DECT 12504",
       "gardeMatch": [
         "HAMADOUCHE"
       ]
@@ -169,7 +169,7 @@
       "initials": "SL",
       "color": "#0D9488",
       "role": "Chef de Clinique Assistant — Radiologie B",
-      "posteTel": "12488 / 12489",
+      "posteTel": "DECT 12488",
       "gardeMatch": [
         "LUSI"
       ]
@@ -184,7 +184,7 @@
       "initials": "YA",
       "color": "#E11D48",
       "role": "Chef de Clinique Assistant — Radiologie B",
-      "posteTel": "12488 / 12489",
+      "posteTel": "DECT 12404",
       "gardeMatch": [
         "ALLEL"
       ]
@@ -199,7 +199,7 @@
       "initials": "MP",
       "color": "#DB2777",
       "role": "Chef de Clinique Assistant — Imagerie Ostéo-Articulaire & RI",
-      "posteTel": "12489",
+      "posteTel": "DECT 12489",
       "gardeMatch": [
         "TALABARD"
       ]
@@ -214,7 +214,7 @@
       "initials": "AL",
       "color": "#4F46E5",
       "role": "PH / Senior — Référente Sarcomes & Radiologie B",
-      "posteTel": "12483 / 12488",
+      "posteTel": "Pas de DECT / Secr. 12483",
       "gardeMatch": [
         "LAPORTE"
       ]
@@ -244,7 +244,7 @@
       "initials": "FM",
       "color": "#0891B2",
       "role": "PH — Responsable Pédagogique Internes & Staffs",
-      "posteTel": "12483",
+      "posteTel": "DECT 18987",
       "gardeMatch": [
         "MIHOUBI"
       ]
@@ -259,7 +259,7 @@
       "initials": "AF",
       "color": "#2563EB",
       "role": "PU-PH, Chef de Service — Radiologie B",
-      "posteTel": "12483 / 12481",
+      "posteTel": "12494 / Secr. 12483",
       "gardeMatch": [
         "FEYDY"
       ]
@@ -274,7 +274,7 @@
       "initials": "JD",
       "color": "#6D28D9",
       "role": "PU-PH — Radiologie B",
-      "posteTel": "12502 / 12480",
+      "posteTel": "12502 (Ania)",
       "gardeMatch": [
         "DRAPE",
         "DRAPÉ"
