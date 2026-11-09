@@ -258,10 +258,10 @@ CHEFS_LIST = [
     {
         "id": "chef_yang",
         "code": "YANG",
-        "prenom": "",
+        "prenom": "Sisi",
         "nom": "YANG",
-        "fullName": "Dr YANG",
-        "shortName": "Dr Yang",
+        "fullName": "Dr Sisi YANG",
+        "shortName": "Dr S. Yang",
         "initials": "YG",
         "color": "#059669",
         "role": "Praticien — IRM, Écho & Staff Rachis/Rhumato",
@@ -346,7 +346,7 @@ FADILA_COURS_SCHEDULE = {
     "2027-03-30": ("Dr Fadila MIHOUBI BOUVIER", "Lésion de surface"),
     "2027-04-06": ("Dr Wassef KHALED", "Tumeurs des tissus mous"),
     "2027-04-13": ("Dr Yazid ALLEL", "PTH"),
-    "2027-04-20": ("Dr S. YANG", "Diagnostic d'un hypersignal musculaire"),
+    "2027-04-20": ("Dr Sisi YANG", "Diagnostic d'un hypersignal musculaire"),
     "2027-04-27": ("Dr Stéphano LUSI", "Tumeurs cartilagineuses"),
 }
 

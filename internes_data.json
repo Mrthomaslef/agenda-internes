@@ -283,10 +283,10 @@
     {
       "id": "chef_yang",
       "code": "YANG",
-      "prenom": "",
+      "prenom": "Sisi",
       "nom": "YANG",
-      "fullName": "Dr YANG",
-      "shortName": "Dr Yang",
+      "fullName": "Dr Sisi YANG",
+      "shortName": "Dr S. Yang",
       "initials": "YG",
       "color": "#059669",
       "role": "Praticien — IRM, Écho & Staff Rachis/Rhumato",
@@ -60839,7 +60839,7 @@
       "date": "2027-04-20",
       "type": "cours_internes",
       "typeLabel": "Cours des internes",
-      "chefIntervenant": "Dr S. YANG",
+      "chefIntervenant": "Dr Sisi YANG",
       "coursChef": "Diagnostic d'un hypersignal musculaire",
       "sujet": "Diagnostic d'un hypersignal musculaire",
       "pasDeCours": false
