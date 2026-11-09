@@ -258,7 +258,7 @@ CHEFS_LIST = [
     {
         "id": "chef_yang",
         "code": "YANG",
-        "prenom": "Malika",
+        "prenom": "",
         "nom": "YANG",
         "fullName": "Dr YANG",
         "shortName": "Dr Yang",
