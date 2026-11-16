@@ -5316,16 +5316,15 @@ def sync_initial_state_to_cloud(dataset: dict):
     if (!lock.tryLock(30000)) return {{ status: 'busy' }};
     try {{
     var props = PropertiesService.getScriptProperties();
-    var existingRaw = props.getProperty('{CLOUD_PROP_KEY}');
+    var cur = internesGetState_();
     var incoming = {safe_json};
     var rgPairs = {{}};
     (incoming.absences || []).forEach(function(a) {{
       if (a && a.type === 'Repos de garde') rgPairs[a.date + '__' + a.interneId] = true;
     }});
-    if (!existingRaw) {{
-      props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(incoming));
+    if (!cur) {{
+      internesSetState_(incoming);
     }} else {{
-      var cur = JSON.parse(existingRaw);
       var savedMap = {{}};
       if (Array.isArray(cur.presentations)) {{
         cur.presentations.forEach(function(p) {{ if (p && p.id) savedMap[p.id] = p; }});
@@ -5397,7 +5396,7 @@ def sync_initial_state_to_cloud(dataset: dict):
       cur.absences = Object.keys(absMap).map(function(k) {{ return absMap[k]; }}).sort(function(a, b) {{
         return String(a.date || '').localeCompare(String(b.date || ''));
       }});
-      props.setProperty('{CLOUD_PROP_KEY}', JSON.stringify(cur));
+      internesSetState_(cur);
     }}
     return {{ status: 'verified_cloud', presentations: incoming.presentations.length, absences: incoming.absences.length, gardes: Object.keys(incoming.interneGardes || {{}}).length }};
     }} finally {{
