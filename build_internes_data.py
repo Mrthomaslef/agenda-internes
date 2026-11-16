@@ -4238,29 +4238,38 @@ def expand_chefs_planning_full_semester(base_chefs_planning: dict) -> dict:
     return out
 
 
+def _admin_token() -> str:
+    """Jeton admin du webhook Apps Script (partagé avec l'Agenda RI), lu localement — jamais publié."""
+    env_file = Path("/Users/thomaslefevre/Documents/Agendainterventionnel/.env")
+    try:
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            if line.startswith("ADMIN_TOKEN="):
+                return line.split("=", 1)[1].strip().strip('"').strip("'")
+    except OSError:
+        pass
+    return os.environ.get("ADMIN_TOKEN", "")
+
+
 def fetch_existing_cloud_state() -> dict | None:
     """
     Récupère l'état actuellement synchronisé dans le Cloud (PropertiesService)
     afin de ne jamais écraser les modifications et validations faites dans l'Espace Chef.
     """
-    eval_code = f"""
-    var props = PropertiesService.getScriptProperties();
-    var raw = props.getProperty('{CLOUD_PROP_KEY}');
-    return raw ? JSON.parse(raw) : null;
-    """
     try:
         req = urllib.request.Request(
             WEBHOOK_URL,
-            data=json.dumps({"eval_code": eval_code}).encode("utf-8"),
+            data=json.dumps({"action": "internes_read"}).encode("utf-8"),
             headers={"Content-Type": "text/plain;charset=utf-8"},
             method="POST",
         )
         with urllib.request.urlopen(req, context=ssl._create_unverified_context(), timeout=10) as resp:
             res = json.loads(resp.read().decode("utf-8"))
-            if isinstance(res, dict) and isinstance(res.get("evalResult"), dict):
-                return res["evalResult"]
-    except Exception:
-        pass
+            ev = res.get("evalResult") if isinstance(res, dict) else None
+            if isinstance(ev, dict) and isinstance(ev.get("cloudState"), dict):
+                return ev["cloudState"]
+            print("⚠️ Lecture de l'état cloud impossible :", res.get("status") if isinstance(res, dict) else res)
+    except Exception as exc:
+        print("⚠️ Lecture de l'état cloud impossible :", exc)
     return None
 
 
@@ -5397,7 +5406,7 @@ def sync_initial_state_to_cloud(dataset: dict):
     """
     req = urllib.request.Request(
         WEBHOOK_URL,
-        data=json.dumps({"eval_code": eval_code}).encode("utf-8"),
+        data=json.dumps({"eval_code": eval_code, "admin_token": _admin_token()}).encode("utf-8"),
         headers={"Content-Type": "text/plain;charset=utf-8"},
         method="POST",
     )
