@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cochin-internes-2026-11-06T21:14:51.964289+00:00';
+const CACHE_NAME = 'cochin-internes-2026-11-16T06:50:17.642479+00:00';
 self.addEventListener('install', e => {
   self.skipWaiting();
 });

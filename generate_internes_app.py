@@ -3535,7 +3535,14 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     })();
     let planningScope = (selectedInterneId === "all") ? "internes" : (selectedInterneId === "all_chefs" ? "chefs" : "perso"); // 'internes' | 'perso' | 'chefs' | 'combined'
     let planningMode = "week";      // 'week' | 'month'
-    let currentDateIso = "2026-11-02";
+    let currentDateIso = (() => {
+      // Ouvre le planning sur la semaine en cours (bornée au semestre 02/11/2026 → 02/05/2027)
+      const t = new Date();
+      const iso = `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+      if (iso < "2026-11-02") return "2026-11-02";
+      if (iso > "2027-05-02") return "2027-05-02";
+      return iso;
+    })();
     let presFilter = "cas_mardi"; // 'cas_mardi' | 'biblio_vendredi' | 'cours_internes'
     let reunionsFilter = "bone_cra"; // 'bone_cra' | 'staffs_hebdo'
     let vacFilter = "all"; // 'all' | 'conges' | 'rg' | 'gardes'
