@@ -8687,6 +8687,9 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         ? `🌙 ${getInterneById(gInt.interneId).shortName}`
         : (gInt && (gInt.rawLabel || gInt.interneName || gInt.rawName) ? `🌙 ${(gInt.rawLabel || gInt.interneName || gInt.rawName).split(" ")[0]}` : "");
       const gardeSubLabel = gIntLabel;
+      const absentsToday = getAbsentsByDate()[dIso] || [];
+      const crowded = absentsToday.length >= 2;
+      const crowdedTitle = crowded ? `${absentsToday.length} internes absents : ${absentsToday.map(a => getInterneById(a.interneId).shortName + ' (' + absTypeShort(a.type) + ')').join(', ')}` : "";
       const stopJs = (opts && opts.stopProp) ? "event.stopPropagation(); " : "";
       const extraStyle = (opts && opts.extraStyle) ? `style="${opts.extraStyle}"` : "";
       const customSubHtml = (opts && opts.customSubHtml !== undefined)
@@ -8694,13 +8697,18 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         : (dayIssues.length
           ? `<div class="dp-sub" style="color:${isAct ? '#0369A1' : '#DC2626'}; font-weight:800;">À couvrir (${dayIssues.length})</div>`
           : (gardeSubLabel ? `<div class="dp-sub">${gardeSubLabel}</div>` : ``));
+      const crowdedHtml = crowded ? `<div class="dp-sub" style="color:#DC2626; font-weight:800;">⚠️ ${absentsToday.length} absents</div>` : "";
+      const pillStyle = crowded
+        ? `style="${(opts && opts.extraStyle) ? opts.extraStyle + '; ' : ''}box-shadow: inset 0 0 0 2px #DC2626;"`
+        : extraStyle;
       return `
-        <div class="day-pill ${isAct} ${isBlock}" ${extraStyle} onclick="${stopJs}setCurrentDate('${dIso}')" title="${dayIssues.length ? dayIssues.map(x => x.title).join(' • ') : gardeSubLabel}">
+        <div class="day-pill ${isAct} ${isBlock}" ${pillStyle} onclick="${stopJs}setCurrentDate('${dIso}')" title="${[crowdedTitle, dayIssues.length ? dayIssues.map(x => x.title).join(' • ') : gardeSubLabel].filter(Boolean).join(' • ')}">
           <div class="dp-top">
             <span class="dp-dow">${dNames[offset]}${dayIssues.length ? ' •' : ''}</span>
             <span class="dp-date">${String(dd).padStart(2, "0")}/${String(mm).padStart(2, "0")}</span>
           </div>
           ${customSubHtml}
+          ${crowdedHtml}
         </div>
       `;
     }
@@ -9812,6 +9820,62 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     /* =========================================================================
      * ONGLET 2 : CONGÉS (ORGANISÉ PAR INTERNE, SANS REPOS DE GARDE)
      * ========================================================================= */
+    /* Jours ouvrés avec ≥ 2 internes absents (congés, formations, repos de garde, autres — hors refusés). */
+    function getAbsentsByDate() {
+      const deleted = new Set(STATE.deletedAbsenceIds || []);
+      const map = {};
+      (STATE.absences || []).forEach(a => {
+        if (!a || !a.date || !a.interneId || a.status === "rejected" || deleted.has(a.id)) return;
+        const [yy, mm, dd] = a.date.split("-").map(Number);
+        const dow = new Date(yy, mm - 1, dd).getDay();
+        if (dow === 0 || dow === 6) return;
+        if (!map[a.date]) map[a.date] = {};
+        if (!map[a.date][a.interneId]) map[a.date][a.interneId] = a;
+      });
+      const out = {};
+      Object.keys(map).forEach(d => { out[d] = Object.values(map[d]); });
+      return out;
+    }
+
+    function absTypeShort(t) {
+      const s = String(t || "").toLowerCase();
+      if (s.includes("garde") || s === "rg") return "RG";
+      if (s.startsWith("ca")) return "CA";
+      if (s === "cf" || s.includes("formation")) return "CF";
+      return "Abs.";
+    }
+
+    function renderCrowdedDaysCard() {
+      const byDate = getAbsentsByDate();
+      const now = new Date();
+      const todayIso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const days = Object.keys(byDate).filter(d => byDate[d].length >= 2).sort();
+      const upcoming = days.filter(d => d >= todayIso);
+      const pastCount = days.length - upcoming.length;
+      const rows = upcoming.map(d => {
+        const list = byDate[d];
+        const names = list.map(a => `${getInterneById(a.interneId).shortName} <span style="opacity:.7">(${absTypeShort(a.type)}${a.status === "approved" ? "" : " ⏳"})</span>`).join(", ");
+        const sev = list.length >= 3 ? "#DC2626" : "#EA580C";
+        return `<tr style="background:${list.length >= 3 ? '#FEE2E2' : '#FFEDD5'};">
+            <td style="font-weight:700; white-space:nowrap; cursor:pointer;" onclick="setCurrentDate('${d}')">${formatDateFr(d, true)}</td>
+            <td style="white-space:nowrap;"><span class="poste-pill" style="background:${sev}; color:#fff;">${list.length} absents</span></td>
+            <td>${names}</td>
+          </tr>`;
+      }).join("");
+      return `
+        <div class="card" style="margin-bottom:12px; border-left:4px solid #DC2626;">
+          <div class="card-header" style="margin-bottom:${upcoming.length ? '10px' : '0'};">
+            <div>
+              <div class="card-title">⚠️ Jours avec 2 internes ou plus absents</div>
+              <div style="font-size:12px; color:var(--text-muted);">${upcoming.length} jour${upcoming.length > 1 ? 's' : ''} à venir${pastCount ? ` • ${pastCount} passé${pastCount > 1 ? 's' : ''}` : ''} • congés, formations, repos de garde (hors week-ends et refusés)</div>
+            </div>
+          </div>
+          ${upcoming.length ? `<div class="week-table-wrap"><table class="planning-table">
+            <thead><tr><th style="width:150px;">Date</th><th style="width:110px;">Absents</th><th>Internes</th></tr></thead>
+            <tbody>${rows}</tbody></table></div>` : `<div style="font-size:12.5px; color:var(--text-muted); padding:4px 0;">Aucun jour à venir avec 2 internes absents ou plus.</div>`}
+        </div>`;
+    }
+
     function renderVacancesTab() {
       const absences = (STATE.absences || []).slice().sort((a, b) => a.date.localeCompare(b.date));
       const inChefSpace = (selectedInterneId === "all_chefs" || isChefId(selectedInterneId) || isChefPlanningMode);
@@ -9838,6 +9902,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
       ).length;
 
       const colSpanCount = inChefSpace ? 6 : 4;
+      const absentsByDate = getAbsentsByDate();
 
       const interneCardsHtml = internesToShow.map(iObj => {
         const iConges = allConges.filter(a => a.interneId === iObj.id);
@@ -9871,8 +9936,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 : `<span class="status-pill-pending">À valider</span>`);
 
             rowsHtml += `
-              <tr style="${st === 'rejected' ? 'opacity:0.55; text-decoration:line-through;' : ''}">
-                <td style="font-weight:700; white-space:nowrap;">${formatDateFr(a.date, true)}</td>
+              <tr style="${st === 'rejected' ? 'opacity:0.55; text-decoration:line-through;' : ((absentsByDate[a.date] || []).length >= 2 ? 'background:#FFEDD5;' : '')}">
+                <td style="font-weight:700; white-space:nowrap;">${formatDateFr(a.date, true)}${(absentsByDate[a.date] || []).length >= 2 && st !== 'rejected' ? ` <span title="${(absentsByDate[a.date] || []).map(x => getInterneById(x.interneId).shortName).join(', ')}" style="color:#DC2626; font-size:11px;">⚠️ ${(absentsByDate[a.date] || []).length} absents</span>` : ''}</td>
                 <td><span class="poste-pill poste-vac">${a.type}</span></td>
                 <td style="color:var(--text-muted);">${a.comment || "—"}</td>
                 <td>
@@ -9956,6 +10021,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             </div>
           </div>
         </div>
+        ${renderCrowdedDaysCard()}
         ${interneCardsHtml}
       `;
     }
