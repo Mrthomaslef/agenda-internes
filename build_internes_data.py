@@ -5381,6 +5381,7 @@ def sync_initial_state_to_cloud(dataset: dict):
       }});
       (cur.absences || []).forEach(function(a) {{
         if (a && a.id && !delSet[a.id]) {{
+          if (a.isOfficialGardeRg && !absMap[a.id]) return;
           if (absMap[a.id] && absMap[a.id].isOfficialGardeRg) {{
             if (a.status === 'rejected') {{
               absMap[a.id].status = 'rejected';
