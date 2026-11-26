@@ -3668,6 +3668,8 @@ HTML_TEMPLATE = """<!DOCTYPE html>
         if (!a || !a.date || !a.interneId || delSet.has(a.id)) return;
         const k = a.date + "__" + a.interneId;
         const existing = mapByPair[k];
+        // RG officiel obsolète (garde échangée/supprimée) : absent du planning de gardes actuel
+        if (a.isOfficialGardeRg && !(existing && existing.id === a.id && existing.isOfficialGardeRg)) return;
         if (existing && existing.isOfficialGardeRg) {
           // Conserver le Repos de garde officiel (sauf si son statut a été explicitement modifié en rejected)
           if (a.status === "rejected") {

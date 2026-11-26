@@ -4337,6 +4337,9 @@ def build_full_dataset() -> dict:
                     if not a.get("status"):
                         a["status"] = "pending"
                     prev = abs_map.get(aid)
+                    if a.get("isOfficialGardeRg") and not prev:
+                        # RG officiel obsolète (garde échangée/supprimée) : on l'écarte
+                        continue
                     if prev and prev.get("isOfficialGardeRg"):
                         if a.get("status") == "rejected":
                             prev["status"] = "rejected"
