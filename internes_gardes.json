@@ -624,19 +624,19 @@
     "rgDate": "2027-01-19"
   },
   "2027-01-19": {
-    "interneId": null,
-    "interneName": "PM",
-    "fullName": "PM",
-    "rawName": "PM",
-    "isRadioB": false,
-    "rgDate": "2027-01-20"
-  },
-  "2027-01-20": {
     "interneId": "milan",
     "interneName": "Milan",
     "fullName": "Milan KORSEC",
     "isRadioB": true,
     "rawName": "Milan",
+    "rgDate": "2027-01-20"
+  },
+  "2027-01-20": {
+    "interneId": null,
+    "interneName": "PM",
+    "fullName": "PM",
+    "rawName": "PM",
+    "isRadioB": false,
     "rgDate": "2027-01-21"
   },
   "2027-01-21": {
